@@ -1,0 +1,41 @@
+@page
+@model GameStore.PL.Pages.ClaudeModel
+@{
+    ViewData["Title"] = "Claude AI Assistant";
+}
+
+<div class="section-header mt-5">
+    <div class="section-tag">AI Integration</div>
+    <h2 class="section-title glitch">CLAUDE ASSISTANT</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2" style="background: var(--bg2); padding: 30px; border: 1px solid var(--border-red);">
+        <form method="post">
+            <div class="form-group mb-3">
+                <label for="Prompt" class="form-label" style="color: var(--gold); font-family: var(--font-mono);">AWAITING INPUT:</label>
+                <textarea asp-for="Prompt" class="form-control" rows="4" placeholder="Enter your question here..." style="background: var(--bg3); border: 1px solid var(--border-red); color: white;"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-2">TRANSMIT</button>
+        </form>
+
+            @if (!string.IsNullOrEmpty(Model.ClaudeResponse))
+            {
+                <div class="mt-4 alert alert-info">
+                    <h5>Response:</h5>
+                    <p>@Model.ClaudeResponse</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .container {
+        font-family: Arial, sans-serif;
+    }
+    textarea {
+        font-family: 'Courier New', monospace;
+    }
+</style>

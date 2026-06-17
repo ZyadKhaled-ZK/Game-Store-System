@@ -1,0 +1,120 @@
+@page
+@model GameStore.PL.Pages.Admin.ManageUsersModel
+@{
+    ViewData["Title"] = "User Database";
+    Layout = "_AdminLayout";
+}
+
+<style>
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+  .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
+  .gs-search-input {
+    background: var(--bg2); border: 1px solid var(--border-red); color: var(--text);
+    padding: 10px 16px; font-family: var(--font-mono); font-size: 12px; width: 300px; outline: none;
+  }
+  .gs-search-input:focus { border-color: var(--red); }
+  .gs-search-input::placeholder { color: var(--text-dim); }
+
+  .role-badge {
+    display: inline-block; padding: 3px 12px; font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; border: 1px solid;
+  }
+  .role-admin     { color: var(--red);  border-color: rgba(230,57,70,0.4); background: rgba(230,57,70,0.08); }
+  .role-developer { color: var(--gold); border-color: rgba(245,197,66,0.4); background: rgba(245,197,66,0.07); }
+  .role-customer  { color: #7a7a99;    border-color: rgba(122,122,153,0.3); background: rgba(122,122,153,0.05); }
+
+  .role-select {
+    background: var(--bg3); border: 1px solid var(--border-red); color: var(--text);
+    font-family: var(--font-mono); font-size: 11px; padding: 4px 8px; cursor: pointer; outline: none;
+  }
+  .role-select:focus { border-color: var(--red); }
+  .role-select option { background: var(--bg2); }
+
+  .user-row { transition: background 0.2s; }
+  .user-row td { transition: color 0.2s; }
+  .user-row:hover td { color: white; }
+  .user-row td:first-child { opacity: 0.5; font-size: 12px; font-family: var(--font-mono); }
+</style>
+
+<div class="page-header">
+  <div>
+    <div class="section-tag">Access Control</div>
+    <h2 class="section-title glitch">USER DATABASE OVERRIDE</h2>
+  </div>
+  <a href="/Admin/Dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Dashboard</a>
+</div>
+
+<div class="filter-bar">
+  <input type="text" id="searchInput" class="gs-search-input" placeholder="Search by username or email..."/>
+  <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim);">
+    [ <span id="userCount">@Model.Users.Count</span> RECORDS ]
+  </span>
+</div>
+
+<div class="table-responsive">
+<table class="cyber-table" id="usersTable">
+  <thead>
+    <tr>
+      <th>UUID</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Change Role</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var user in Model.Users)
+    {
+      var roleClass = user.Role.ToString().ToLower();
+      <tr class="user-row" data-search="@user.Username.ToLower() @user.Email.ToLower()">
+        <td style="opacity:0.5; font-size:12px; font-family:var(--font-mono);">
+          ...@(user.Id.Length > 8 ? user.Id.Substring(user.Id.Length - 8) : user.Id)
+        </td>
+        <td style="color: var(--gold); font-weight: 700;">@user.Username</td>
+        <td style="font-size: 13px;">@user.Email</td>
+        <td><span class="badge role-badge role-@roleClass">@user.Role</span></td>
+        <td>
+          <form method="post" asp-page-handler="ChangeRole" asp-route-id="@user.Id" style="display:inline-flex; align-items:center; gap:8px;">
+            @Html.AntiForgeryToken()
+            <select name="role" class="form-select role-select" style="width:auto; padding: 4px 10px; font-size: 11px;" onchange="this.form.submit()">
+              <option value="0" selected="@(user.Role == GameStore.DAL.Enum.Role.ADMIN     ? "selected" : null)">ADMIN</option>
+              <option value="2" selected="@(user.Role == GameStore.DAL.Enum.Role.DEVELOPER ? "selected" : null)">DEVELOPER</option>
+              <option value="1" selected="@(user.Role == GameStore.DAL.Enum.Role.CUSTOMER  ? "selected" : null)">CUSTOMER</option>
+            </select>
+          </form>
+        </td>
+        <td>
+          <form method="post" asp-page-handler="Delete" asp-route-id="@user.Id" style="display:inline;"
+            onsubmit="return confirm('WARNING: TERMINATE user @user.Username?')">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-primary ripple" style="padding:6px 14px; font-size:11px;">TERMINATE</button>
+          </form>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+</div>
+
+@if (!Model.Users.Any())
+{
+  <div style="text-align:center; padding:80px; font-family:var(--font-mono); color:var(--text-dim);">
+    [ NO USERS IN DATABASE ]
+  </div>
+}
+
+<script>
+  const searchInput = document.getElementById('searchInput');
+  const rows = document.querySelectorAll('.user-row');
+  searchInput.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    let visible = 0;
+    rows.forEach(row => {
+      const match = !q || row.dataset.search.includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    document.getElementById('userCount').textContent = visible;
+  });
+</script>

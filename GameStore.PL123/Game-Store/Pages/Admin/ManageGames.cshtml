@@ -1,0 +1,295 @@
+@page
+@model GameStore.PL.Pages.Admin.ManageGamesModel
+@{
+    ViewData["Title"] = "Game Database";
+    Layout = "_AdminLayout";
+}
+
+<style>
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+  .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
+  .gs-search-input {
+    background: var(--bg2); border: 1px solid var(--border-red); color: var(--text);
+    padding: 10px 16px; font-family: var(--font-mono); font-size: 12px; width: 300px; outline: none;
+  }
+  .gs-search-input:hover { border-color: var(--red-dim); }
+  .gs-search-input:focus { border-color: var(--red); box-shadow: var(--glow-red); }
+  .gs-search-input::placeholder { color: var(--text-dim); }
+
+  .game-row { transition: background 0.2s; }
+  .game-row:hover td { color: white; }
+  .game-row td { transition: color 0.2s; }
+
+  .cover-thumb {
+    width: 60px; height: 40px; object-fit: cover; border: 1px solid var(--border-red);
+    display: block; background: var(--bg3);
+  }
+  .cover-placeholder {
+    width: 60px; height: 40px; background: var(--bg3); border: 1px solid var(--border-red);
+    display: flex; align-items: center; justify-content: center; color: var(--red); font-size: 18px;
+  }
+
+  .categories-list { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cat-tag {
+    font-family: var(--font-mono); font-size: 10px; padding: 2px 8px;
+    background: rgba(230,57,70,0.1); border: 1px solid var(--border-red); color: var(--red);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .price-val { font-family: var(--font-display); font-weight: 700; color: var(--gold); }
+  .price-free { color: var(--text-dim); font-style: italic; }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 5000; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--bg2); border: 1px solid var(--border-red); padding: 40px;
+    width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+    box-shadow: var(--glow-red); position: relative;
+  }
+  .modal-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; color: white; margin-bottom: 8px; letter-spacing: 2px; }
+  .modal-tag { font-family: var(--font-mono); font-size: 11px; color: var(--red); letter-spacing: 2px; margin-bottom: 28px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px; background: none; border: none;
+    color: var(--text-dim); font-size: 22px; cursor: pointer; line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--red); }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 6px; display: block; text-transform: uppercase; }
+  .form-input, .form-textarea, .form-select-field {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border-red);
+    color: var(--text); padding: 10px 14px; font-family: var(--font-ui); font-size: 14px;
+    outline: none; transition: all 0.2s;
+  }
+  .form-input:hover, .form-textarea:hover, .form-select-field:hover { border-color: var(--red-dim); }
+  .form-input:focus, .form-textarea:focus, .form-select-field:focus { border-color: var(--red); box-shadow: var(--glow-red); }
+  .form-textarea { resize: vertical; min-height: 90px; }
+  .form-select-field option { background: var(--bg2); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .checkbox-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .checkbox-item { display: flex; align-items: center; gap: 8px; }
+  .checkbox-item input[type="checkbox"] { accent-color: var(--red); width: 14px; height: 14px; cursor: pointer; }
+  .checkbox-item label { font-family: var(--font-mono); font-size: 12px; color: var(--text); cursor: pointer; }
+</style>
+
+<div class="page-header">
+  <div>
+    <div class="section-tag">Content Control</div>
+    <h2 class="section-title glitch">GAME DATABASE</h2>
+  </div>
+  <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+    <a href="/Admin/Dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Dashboard</a>
+    <button class="btn btn-primary" onclick="openModal()">+ ADD GAME</button>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <input type="text" id="searchInput" class="gs-search-input" placeholder="Search games by title or developer..."/>
+  <span style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim);">
+    [ <span id="gameCount">@Model.Games.Count</span> RECORDS ]
+  </span>
+</div>
+
+<div class="table-responsive">
+<table class="cyber-table" id="gamesTable">
+  <thead>
+    <tr>
+      <th>Cover</th>
+      <th>Title</th>
+      <th>Developer</th>
+      <th>Categories</th>
+      <th>Price</th>
+      <th>Release</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @{ int gameIdx = 0; }
+    @foreach (var game in Model.Games)
+    {
+      <tr class="game-row" data-search="@game.Title.ToLower() @(game.Developer ?? "").ToLower()">
+        <td>
+          @if (!string.IsNullOrEmpty(game.CoverImageUrl))
+          {
+            <img src="@game.CoverImageUrl" alt="@game.Title" class="cover-thumb"/>
+          }
+          else
+          {
+            <div class="cover-placeholder"><i class="bi bi-play-fill"></i></div>
+          }
+        </td>
+        <td style="font-family: var(--font-display); font-size: 13px; font-weight: 700; color: white; max-width: 200px;">
+          @game.Title
+        </td>
+        <td style="color: var(--text-dim); font-size: 13px;">@(game.Developer ?? "—")</td>
+        <td>
+          <div class="categories-list">
+            @foreach (var gc in game.GameCategories.Take(3))
+            {
+              <span class="cat-tag">@gc.Category?.Name</span>
+            }
+            @if (game.GameCategories.Count > 3)
+            {
+              <span class="cat-tag" style="color: var(--text-dim);">+@(game.GameCategories.Count - 3)</span>
+            }
+          </div>
+        </td>
+        <td>
+          @if (game.Price == 0)
+          {
+            <span class="price-free">FREE</span>
+          }
+          else
+          {
+            <span class="price-val">$@game.Price.ToString("N2")</span>
+          }
+        </td>
+        <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">@game.ReleaseDate.ToString("yyyy-MM-dd")</td>
+        <td>
+          <button class="btn btn-secondary ripple" style="padding:6px 12px; font-size:11px;"
+            data-game-index="@(gameIdx++)" onclick="openEditModal(+this.dataset.gameIndex)">EDIT</button>
+          <form method="post" asp-page-handler="Delete" asp-route-id="@game.Id" style="display:inline;"
+            data-game-title="@game.Title" onsubmit="return confirm('TERMINATE game record: ' + this.dataset.gameTitle + '?')">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-primary ripple" style="padding:6px 12px; font-size:11px;">DELETE</button>
+          </form>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+</div>
+
+@if (!Model.Games.Any())
+{
+  <div style="text-align:center; padding:80px; font-family:var(--font-mono); color:var(--text-dim);">
+    [ NO GAMES IN DATABASE ]
+  </div>
+}
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="gameModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div class="modal-title" id="modalTitle">ADD GAME</div>
+    <div class="modal-tag" id="modalTag">> NEW RECORD INJECTION</div>
+
+    <form method="post" id="gameForm" enctype="multipart/form-data">
+      @Html.AntiForgeryToken()
+      <input type="hidden" name="GameId" id="gameId"/>
+
+      <div class="form-group">
+        <label class="form-label">Game Title //</label>
+        <input type="text" name="Title" id="fTitle" class="form-input" placeholder="Enter game title" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description //</label>
+        <textarea name="Description" id="fDescription" class="form-textarea" placeholder="Game description..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price (USD) //</label>
+          <input type="number" step="0.01" min="0" name="Price" id="fPrice" class="form-input" placeholder="0.00" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Release Date //</label>
+          <input type="date" name="ReleaseDate" id="fReleaseDate" class="form-input" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Developer //</label>
+        <input type="text" name="Developer" id="fDeveloper" class="form-input" placeholder="Studio / Developer name"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cover Image URL //</label>
+        <input type="url" name="CoverImageUrl" id="fCoverImageUrl" class="form-input" placeholder="https://..."/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Trailer URL //</label>
+        <input type="url" name="TrailerUrl" id="fTrailerUrl" class="form-input" placeholder="https://youtube.com/..."/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categories //</label>
+        <div class="checkbox-grid">
+          @foreach (var cat in Model.Categories)
+          {
+            <div class="checkbox-item">
+              <input type="checkbox" name="CategoryIds" value="@cat.Id" id="cat_@cat.Id" class="cat-checkbox"/>
+              <label for="cat_@cat.Id">@cat.Name</label>
+            </div>
+          }
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:28px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">ABORT</button>
+        <button type="submit" id="submitBtn" class="btn btn-primary">INJECT RECORD</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const gamesData = @Html.Raw(Model.GameDataJson);
+
+  function openModal() {
+    document.getElementById('modalTitle').textContent = 'ADD GAME';
+    document.getElementById('modalTag').textContent = '> NEW RECORD INJECTION';
+    document.getElementById('submitBtn').textContent = 'INJECT RECORD';
+    document.getElementById('gameForm').action = '?handler=Add';
+    document.getElementById('gameId').value = '';
+    document.getElementById('gameForm').reset();
+    document.getElementById('gameModal').classList.add('active');
+  }
+
+  function openEditModal(index) {
+    const data = gamesData[index];
+    document.getElementById('modalTitle').textContent = 'EDIT GAME';
+    document.getElementById('modalTag').textContent = '> MODIFY RECORD: ' + data.id.slice(-8).toUpperCase();
+    document.getElementById('submitBtn').textContent = 'UPDATE RECORD';
+    document.getElementById('gameForm').action = '?handler=Edit';
+    document.getElementById('gameId').value = data.id;
+    document.getElementById('fTitle').value = data.title;
+    document.getElementById('fDescription').value = data.description;
+    document.getElementById('fPrice').value = data.price;
+    document.getElementById('fDeveloper').value = data.developer;
+    document.getElementById('fTrailerUrl').value = data.trailerUrl;
+    document.getElementById('fCoverImageUrl').value = data.coverImageUrl;
+    document.getElementById('fReleaseDate').value = data.releaseDate;
+
+    const catIds = new Set(data.categoryIds);
+    document.querySelectorAll('.cat-checkbox').forEach(cb => {
+      cb.checked = catIds.has(cb.value);
+    });
+
+    document.getElementById('gameModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('gameModal').classList.remove('active');
+  }
+
+  document.getElementById('gameModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Debounced search filter
+  const searchInput = document.getElementById('searchInput');
+  let searchTimer;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const q = this.value.toLowerCase();
+      const rows = document.querySelectorAll('.game-row');
+      let visible = 0;
+      rows.forEach(row => {
+        const match = !q || row.dataset.search.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+      document.getElementById('gameCount').textContent = visible;
+    }, 150);
+  });
+</script>

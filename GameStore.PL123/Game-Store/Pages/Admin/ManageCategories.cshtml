@@ -1,0 +1,156 @@
+@page
+@model GameStore.PL.Pages.Admin.ManageCategoriesModel
+@{
+    ViewData["Title"] = "Category Registry";
+    Layout = "_AdminLayout";
+}
+
+<style>
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+  .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2px; background: var(--border-red); margin-top: 24px; }
+  .cat-card {
+    background: var(--bg2); padding: 24px 28px; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; transition: background 0.2s; position: relative; overflow: hidden;
+  }
+  .cat-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--red); transform: scaleY(0); transition: transform 0.2s; transform-origin: bottom;
+  }
+  .cat-card:hover { background: rgba(230,57,70,0.03); }
+  .cat-card:hover::before { transform: scaleY(1); }
+  .cat-name { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: white; letter-spacing: 1px; }
+  .cat-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-top: 4px; }
+  .cat-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 5000; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--bg2); border: 1px solid var(--border-red); padding: 40px;
+    width: 100%; max-width: 440px; box-shadow: var(--glow-red); position: relative;
+  }
+  .modal-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; color: white; margin-bottom: 8px; letter-spacing: 2px; }
+  .modal-tag { font-family: var(--font-mono); font-size: 11px; color: var(--red); letter-spacing: 2px; margin-bottom: 28px; }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px; background: none; border: none;
+    color: var(--text-dim); font-size: 22px; cursor: pointer; line-height: 1; transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--red); }
+  .form-group { margin-bottom: 20px; }
+  .form-label { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 6px; display: block; text-transform: uppercase; }
+  .form-input {
+    width: 100%; background: var(--bg3); border: 1px solid var(--border-red);
+    color: var(--text); padding: 10px 14px; font-family: var(--font-ui); font-size: 14px; outline: none;
+  }
+  .form-input:focus { border-color: var(--red); box-shadow: var(--glow-red); }
+
+  .add-inline { display: flex; gap: 12px; margin-bottom: 12px; }
+  .add-inline input {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border-red); color: var(--text);
+    padding: 12px 16px; font-family: var(--font-ui); font-size: 14px; outline: none;
+  }
+  .add-inline input:focus { border-color: var(--red); }
+
+  .empty-state { text-align: center; padding: 80px; font-family: var(--font-mono); color: var(--text-dim); }
+</style>
+
+<div class="page-header">
+  <div>
+    <div class="section-tag">Taxonomy Control</div>
+    <h2 class="section-title glitch">CATEGORY REGISTRY</h2>
+  </div>
+  <a href="/Admin/Dashboard" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Dashboard</a>
+</div>
+
+<div style="background: var(--bg2); border: 1px solid var(--border-red); padding: 28px 32px; margin-bottom: 32px;">
+  <div style="font-family: var(--font-mono); font-size: 12px; color: var(--red); letter-spacing: 2px; margin-bottom: 16px;">> INJECT NEW CATEGORY</div>
+  <form method="post" asp-page-handler="Add">
+    @Html.AntiForgeryToken()
+    <div class="add-inline">
+      <input type="text" name="Name" placeholder="Category name..." required maxlength="100"/>
+      <button type="submit" class="btn btn-primary">+ ADD</button>
+    </div>
+  </form>
+  @if (!string.IsNullOrEmpty(Model.Message))
+  {
+    <div style="font-family: var(--font-mono); font-size: 12px; color: @(Model.IsError ? "var(--red)" : "#4ade80"); margin-top: 8px;">
+      [ @Model.Message ]
+    </div>
+  }
+</div>
+
+<div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
+  [ @Model.Categories.Count CATEGORIES LOADED ]
+</div>
+
+@if (Model.Categories.Any())
+{
+  <div class="cat-grid">
+    @foreach (var cat in Model.Categories)
+    {
+      <div class="cat-card">
+        <div>
+          <div class="cat-name">@cat.Name</div>
+          <div class="cat-count">@cat.GameCategories.Count GAME(S) LINKED</div>
+        </div>
+        <div class="cat-actions">
+          <button class="btn btn-secondary" style="padding:5px 10px; font-size:11px;"
+            onclick="openEditModal('@cat.Id', '@cat.Name')">EDIT</button>
+          @if (cat.GameCategories.Count == 0)
+          {
+            <form method="post" asp-page-handler="Delete" asp-route-id="@cat.Id" style="display:inline;"
+              onsubmit="return confirm('DELETE category: @cat.Name?')">
+              @Html.AntiForgeryToken()
+              <button type="submit" class="btn btn-primary" style="padding:5px 10px; font-size:11px;">DEL</button>
+            </form>
+          }
+          else
+          {
+            <button class="btn btn-secondary" style="padding:5px 10px; font-size:11px; opacity:0.4; cursor:not-allowed;" disabled title="Cannot delete — has linked games">DEL</button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}
+else
+{
+  <div class="empty-state">[ NO CATEGORIES FOUND ]</div>
+}
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div class="modal-title">EDIT CATEGORY</div>
+    <div class="modal-tag">> MODIFY TAXONOMY NODE</div>
+    <form method="post" asp-page-handler="Edit">
+      @Html.AntiForgeryToken()
+      <input type="hidden" name="Id" id="editId"/>
+      <div class="form-group">
+        <label class="form-label">Category Name //</label>
+        <input type="text" name="Name" id="editName" class="form-input" required maxlength="100"/>
+      </div>
+      <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:24px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">ABORT</button>
+        <button type="submit" class="btn btn-primary">UPDATE</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openEditModal(id, name) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editName').value = name;
+    document.getElementById('editModal').classList.add('active');
+  }
+  function closeModal() {
+    document.getElementById('editModal').classList.remove('active');
+  }
+  document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>

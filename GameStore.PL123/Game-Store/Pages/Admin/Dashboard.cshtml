@@ -1,0 +1,99 @@
+@page
+@model GameStore.PL.Pages.Admin.DashboardModel
+@{
+    ViewData["Title"] = "System Status";
+    Layout = "_AdminLayout";
+}
+
+<style>
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--border-red); margin-top: 40px; }
+  .stat-card { background: var(--bg2); padding: 48px 32px; text-align: center; position: relative; overflow: hidden; transition: all 0.3s; }
+  .stat-card:hover { background: rgba(230,57,70,0.04); }
+  .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--red), transparent); transform: scaleX(0); transition: transform 0.3s; }
+  .stat-card:hover::after { transform: scaleX(1); }
+  .stat-icon { width: 48px; height: 48px; margin: 0 auto 20px; border: 1px solid var(--border-red); display: flex; align-items: center; justify-content: center; background: rgba(230,57,70,0.06); font-size: 20px; }
+  .stat-big { font-family: var(--font-display); font-size: 52px; font-weight: 900; line-height: 1; margin-bottom: 10px; color: var(--red); text-shadow: 0 0 30px rgba(230,57,70,0.4); }
+  .stat-small { font-family: var(--font-mono); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
+  .stat-link { display: inline-block; margin-top: 16px; font-family: var(--font-mono); font-size: 11px; color: var(--red); letter-spacing: 1px; text-decoration: none; border: 1px solid var(--border-red); padding: 4px 12px; transition: all 0.2s; }
+  .stat-link:hover { background: rgba(230,57,70,0.1); color: white; }
+
+  .quick-actions { margin-top: 40px; }
+  .qa-title { font-family: var(--font-mono); font-size: 12px; color: var(--red); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
+  .qa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 2px; background: var(--border-red); }
+  .qa-card {
+    background: var(--bg2); padding: 24px 28px; text-decoration: none;
+    display: flex; align-items: center; gap: 14px; transition: background 0.2s; position: relative;
+  }
+  .qa-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red); transform: scaleY(0); transition: transform 0.2s; transform-origin: bottom; }
+  .qa-card:hover { background: rgba(230,57,70,0.04); }
+  .qa-card:hover::before { transform: scaleY(1); }
+  .qa-icon { font-size: 22px; flex-shrink: 0; }
+  .qa-text { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: white; letter-spacing: 1px; }
+  .qa-sub  { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+</style>
+
+<div class="section-header">
+  <div class="section-tag">Main Console</div>
+  <h2 class="section-title glitch">NETWORK STATISTICS</h2>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-big">@Model.TotalUsers</div>
+        <div class="stat-small">Total Users</div>
+        <a href="/Admin/ManageUsers" class="stat-link">MANAGE &rarr;</a>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-controller"></i></div>
+        <div class="stat-big">@Model.TotalGames</div>
+        <div class="stat-small">Total Games</div>
+        <a href="/Admin/ManageGames" class="stat-link">MANAGE &rarr;</a>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-credit-card"></i></div>
+        <div class="stat-big">@Model.TotalOrders</div>
+        <div class="stat-small">Total Orders</div>
+        <a href="/Admin/Orders" class="stat-link">VIEW ALL &rarr;</a>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">&#36;</div>
+        <div class="stat-big">$@Model.TotalRevenue.ToString("0")</div>
+        <div class="stat-small">Total Revenue</div>
+        <a href="/Admin/Orders" class="stat-link">LEDGER &rarr;</a>
+    </div>
+</div>
+
+<div class="quick-actions">
+  <div class="qa-title">> QUICK ACCESS TERMINALS</div>
+  <div class="qa-grid">
+    <a href="/Admin/ManageUsers" class="qa-card">
+      <div class="qa-icon"><i class="bi bi-people-fill"></i></div>
+      <div><div class="qa-text">USERS</div><div class="qa-sub">Manage accounts & roles</div></div>
+    </a>
+    <a href="/Admin/ManageGames" class="qa-card">
+      <div class="qa-icon"><i class="bi bi-controller"></i></div>
+      <div><div class="qa-text">GAMES</div><div class="qa-sub">Add / edit / remove titles</div></div>
+    </a>
+    <a href="/Admin/ManageCategories" class="qa-card">
+      <div class="qa-icon"><i class="bi bi-tag"></i></div>
+      <div><div class="qa-text">CATEGORIES</div><div class="qa-sub">Taxonomy control</div></div>
+    </a>
+    <a href="/Admin/Orders" class="qa-card">
+      <div class="qa-icon"><i class="bi bi-credit-card"></i></div>
+      <div><div class="qa-text">ORDERS</div><div class="qa-sub">Transaction ledger</div></div>
+    </a>
+    <a href="/Admin/ManageReviews" class="qa-card">
+      <div class="qa-icon"><i class="bi bi-star-fill"></i></div>
+      <div><div class="qa-text">REVIEWS</div><div class="qa-sub">Content moderation</div></div>
+    </a>
+    <a href="/" class="qa-card">
+      <div class="qa-icon"><i class="bi bi-arrow-return-left"></i></div>
+      <div><div class="qa-text">STORE FRONT</div><div class="qa-sub">Return to public view</div></div>
+    </a>
+  </div>
+</div>
+

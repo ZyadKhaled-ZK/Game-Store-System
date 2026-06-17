@@ -1,0 +1,265 @@
+@page
+@model GameStore.PL.Pages.Developer.EditGameModel
+@{
+    ViewData["Title"] = "Edit Game";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Edit Game — Dev Portal</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <style>
+        :root { --bg:#1b2838; --bg2:#16202d; --bg3:#1e2a39; --accent:#66c0f4; --border:rgba(102,192,244,0.15); --text:#c6d4df; --text2:#8f98a0; --bright:#fff; }
+        body { background:var(--bg); color:var(--text); font-family:Arial,sans-serif; margin:0; }
+        .dev-nav { background:#171a21; border-bottom:1px solid rgba(0,0,0,0.5); padding:0 24px; height:52px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+        .dev-nav-brand { font-weight:700; color:var(--bright); font-size:1rem; text-decoration:none; }
+        .dev-nav-brand span { color:var(--accent); }
+        .nav-links { display:flex; gap:6px; align-items:center; }
+        .nav-btn { color:var(--text2); text-decoration:none; padding:5px 12px; border-radius:3px; font-size:0.85rem; transition:all 0.15s; }
+        .nav-btn:hover { color:var(--bright); background:rgba(255,255,255,0.06); }
+        .page-wrap { max-width:960px; margin:32px auto; padding:0 24px 60px; }
+        .page-header { margin-bottom:24px; }
+        .page-header h1 { font-size:1.5rem; font-weight:700; color:var(--bright); margin-bottom:4px; }
+        .page-header p { color:var(--text2); font-size:0.88rem; }
+        .card-section { background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:24px 28px; margin-bottom:16px; }
+        .section-label { font-size:0.72rem; text-transform:uppercase; letter-spacing:2px; color:var(--accent); margin-bottom:20px; font-weight:600; }
+        label.form-label { color:var(--text); font-size:0.88rem; font-weight:600; margin-bottom:5px; }
+        .form-control, .form-select { background:var(--bg2); border:1px solid rgba(255,255,255,0.1); color:var(--text); border-radius:3px; font-size:0.88rem; }
+        .form-control:focus, .form-select:focus { background:var(--bg2); border-color:var(--accent); color:var(--bright); box-shadow:0 0 0 2px rgba(102,192,244,0.2); }
+        .input-group-text { background:var(--bg2); border:1px solid rgba(255,255,255,0.1); color:var(--text2); }
+        .hint { color:var(--text2); font-size:0.78rem; margin-top:4px; }
+        .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
+        .cat-item { background:var(--bg2); border:1px solid rgba(255,255,255,0.1); border-radius:3px; padding:8px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.15s; }
+        .cat-item:hover { border-color:var(--accent); }
+        .cat-item input { accent-color:var(--accent); width:15px; height:15px; }
+        .cat-item span { font-size:0.85rem; }
+        .drop-zone { border:1px dashed rgba(102,192,244,0.35); border-radius:4px; background:rgba(102,192,244,0.03); padding:18px; text-align:center; transition:all 0.15s; position:relative; }
+        .drop-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+        .drop-zone:hover { border-color:var(--accent); }
+        .ss-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+        .ss-item { position:relative; }
+        .ss-item img { width:90px; height:64px; object-fit:cover; border-radius:3px; border:1px solid var(--border); }
+        .ss-remove { position:absolute; top:-6px; right:-6px; background:#ef4444; color:white; border:none; border-radius:50%; width:18px; height:18px; font-size:0.65rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .file-existing { display:flex; align-items:center; gap:12px; background:rgba(102,192,244,0.07); border:1px solid rgba(102,192,244,0.2); border-radius:4px; padding:12px 16px; margin-bottom:12px; }
+        .btn-publish { background:linear-gradient(135deg,#4c6b22,#5a7a28); color:#a4d007; border:none; font-weight:700; padding:10px 28px; font-size:0.95rem; border-radius:3px; cursor:pointer; }
+        .btn-publish:hover { opacity:0.88; }
+        .alert-err { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#fca5a5; border-radius:3px; padding:10px 16px; margin-bottom:16px; font-size:0.88rem; }
+        .alert-ok { background:rgba(164,208,7,0.1); border:1px solid rgba(164,208,7,0.3); color:#a4d007; border-radius:3px; padding:10px 16px; margin-bottom:16px; font-size:0.88rem; }
+        .cover-preview { max-width:100%; max-height:160px; object-fit:cover; border-radius:4px; border:1px solid var(--border); display:block; margin-top:10px; }
+    </style>
+</head>
+<body>
+<nav class="dev-nav">
+    <a href="/Developer/Dashboard" class="dev-nav-brand">Game<span>Store</span> <span style="color:var(--text2);font-size:0.8rem;font-weight:400;">Dev Portal</span></a>
+    <div class="nav-links">
+        <a href="/Developer/ManageGames" class="nav-btn">Manage Games</a>
+        <a href="/Developer/Dashboard" class="nav-btn">Dashboard</a>
+        <a href="/Auth/Logout" class="nav-btn" style="color:#fc8181;">Logout</a>
+    </div>
+</nav>
+
+<div class="page-wrap">
+    <div class="page-header">
+        <h1><i class="bi bi-pencil"></i> Edit Game</h1>
+        <p>Update details, replace media, or swap the game file.</p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    { <div class="alert-err">⚠ @Model.ErrorMessage</div> }
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    { <div class="alert-ok">✓ @Model.StatusMessage</div> }
+
+    <form method="post" asp-route-id="@Model.GameId" enctype="multipart/form-data">
+        <div asp-validation-summary="ModelOnly" class="alert-err"></div>
+
+        <!-- CORE DETAILS -->
+        <div class="card-section">
+            <div class="section-label"><i class="bi bi-clipboard"></i> Core Details</div>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label asp-for="Input.Title" class="form-label">Game Title *</label>
+                    <input asp-for="Input.Title" class="form-control"/>
+                    <span asp-validation-for="Input.Title" class="text-danger" style="font-size:0.78rem;"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.Developer" class="form-label">Developer / Studio *</label>
+                    <input asp-for="Input.Developer" class="form-control"/>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Price *</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="Input.Price" type="number" step="0.01" min="0" class="form-control"/>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.ReleaseDate" class="form-label">Release Date *</label>
+                    <input asp-for="Input.ReleaseDate" type="date" class="form-control"/>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Input.TrailerUrl" class="form-label">YouTube Trailer URL</label>
+                    <input asp-for="Input.TrailerUrl" class="form-control" placeholder="https://youtu.be/..."/>
+                    <span asp-validation-for="Input.TrailerUrl" class="text-danger" style="font-size:0.78rem;"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Input.Description" class="form-label">Description *</label>
+                    <textarea asp-for="Input.Description" class="form-control" rows="5"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORIES -->
+        <div class="card-section">
+            <div class="section-label"><i class="bi bi-tags"></i> Categories</div>
+            <div class="cat-grid">
+                @foreach (var cat in Model.AvailableCategories)
+                {
+                    <label class="cat-item">
+                        <input type="checkbox" name="Input.SelectedCategoryIds" value="@cat.Id"
+                               @(Model.Input.SelectedCategoryIds.Contains(cat.Id) ? "checked" : "")/>
+                        <span>@cat.Name</span>
+                    </label>
+                }
+            </div>
+        </div>
+
+        <!-- GAME FILE -->
+        <div class="card-section">
+            <div class="section-label"><i class="bi bi-box-seam"></i> Game File</div>
+            @if (!string.IsNullOrEmpty(Model.ExistingGameFileName))
+            {
+                <div class="file-existing">
+                    <i class="bi bi-box-seam" style="font-size:1.8rem;"></i>
+                    <div style="flex:1;">
+                        <div style="font-weight:600;color:var(--bright);">@Model.ExistingGameFileName</div>
+                        @if (Model.ExistingGameFileSizeBytes > 0)
+                        {
+                            <div style="font-size:0.78rem;color:var(--text2);" id="existingSizeLabel"></div>
+                        }
+                    </div>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#fc8181;font-size:0.82rem;">
+                        <input type="checkbox" asp-for="Input.RemoveGameFile" style="accent-color:#ef4444;"/>
+                        Remove file
+                    </label>
+                </div>
+                <div class="hint" style="margin-bottom:12px;">Upload a new file below to replace it.</div>
+            }
+            <div class="drop-zone" style="padding:24px;">
+                <input asp-for="Input.GameFile" type="file" accept=".exe,.zip,.rar,.7z,.msi,.apk" onchange="onFileChange(this)"/>
+                <div style="font-size:2rem;margin-bottom:6px;"><i class="bi bi-box-seam"></i></div>
+                <div style="color:var(--text);font-weight:600;font-size:0.9rem;">Drop game file or click to browse</div>
+                <div style="color:var(--text2);font-size:0.78rem;">.exe · .zip · .rar · .7z · .msi · .apk</div>
+                <div id="newFileInfo" style="color:var(--accent);font-size:0.82rem;margin-top:8px;font-weight:600;"></div>
+            </div>
+        </div>
+
+        <!-- MEDIA -->
+        <div class="card-section">
+            <div class="section-label"><i class="bi bi-image"></i> Media</div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Cover Image</label>
+                    @if (!string.IsNullOrEmpty(Model.ExistingCoverUrl))
+                    {
+                        <img src="@Model.ExistingCoverUrl" class="cover-preview" alt="Current cover" id="coverPreview"/>
+                        <div class="hint" style="margin:6px 0;">Upload new image to replace:</div>
+                    }
+                    else
+                    {
+                        <img id="coverPreview" class="cover-preview" style="display:none;"/>
+                    }
+                    <div class="drop-zone">
+                        <input asp-for="Input.CoverImage" type="file" accept="image/*" onchange="onCoverChange(this)"/>
+                    <div style="font-size:1.5rem;"><i class="bi bi-image"></i></div>
+                    <div style="font-size:0.85rem;color:var(--text);">Cover / hero image</div>
+                        <div style="font-size:0.75rem;color:var(--text2);">PNG, JPG, WebP</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Current Screenshots</label>
+                    @if (Model.ExistingScreenshots.Any())
+                    {
+                        <div class="ss-grid" id="ssGrid">
+                            @foreach (var url in Model.ExistingScreenshots)
+                            {
+                                <div class="ss-item" id="ss_@url.GetHashCode()">
+                                    <img src="@url" alt="screenshot"/>
+                                    <button type="button" class="ss-remove" onclick="removeScreenshot('@url','ss_@url.GetHashCode()')">✕</button>
+                                </div>
+                            }
+                        </div>
+                        <div id="removedInputs"></div>
+                    }
+                    <div class="drop-zone" style="margin-top:8px;">
+                        <input asp-for="Input.Images" type="file" multiple accept="image/*" onchange="onShotsChange(this)"/>
+                        <div style="font-size:1.5rem;"><i class="bi bi-camera"></i></div>
+                        <div style="font-size:0.85rem;color:var(--text);">Add more screenshots</div>
+                        <div id="shotsSelected" style="color:var(--accent);font-size:0.8rem;margin-top:4px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="/Developer/ManageGames" style="color:var(--text2);font-size:0.88rem;text-decoration:none;">← Back without saving</a>
+            <button type="submit" class="btn-publish"><i class="bi bi-floppy"></i> Save Changes</button>
+        </div>
+    </form>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    function fmtSize(b) {
+        if (!b) return '';
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+        if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+        return (b/1073741824).toFixed(2) + ' GB';
+    }
+
+    // Show existing file size
+    const existingSize = @Model.ExistingGameFileSizeBytes;
+    const existingSizeEl = document.getElementById('existingSizeLabel');
+    if (existingSizeEl && existingSize > 0) existingSizeEl.textContent = fmtSize(existingSize);
+
+    function onFileChange(input) {
+        const el = document.getElementById('newFileInfo');
+        if (input.files.length > 0) {
+            const f = input.files[0];
+            el.textContent = `✓ ${f.name}  (${fmtSize(f.size)})`;
+        } else el.textContent = '';
+    }
+
+    function onCoverChange(input) {
+        if (input.files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById('coverPreview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function onShotsChange(input) {
+        document.getElementById('shotsSelected').textContent = input.files.length > 0 ? `${input.files.length} file(s) selected` : '';
+    }
+
+    function removeScreenshot(url, divId) {
+        const el = document.getElementById(divId);
+        if (el) el.remove();
+        const inp = document.createElement('input');
+        inp.type = 'hidden';
+        inp.name = 'Input.ScreenshotsToRemove';
+        inp.value = url;
+        document.getElementById('removedInputs').appendChild(inp);
+    }
+</script>
+</body>
+</html>

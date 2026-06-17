@@ -1,0 +1,150 @@
+/* ── Cyber Theme Global Utilities ── */
+
+html {
+    font-size: 14px;
+    scroll-behavior: smooth;
+}
+
+@media (min-width: 768px) {
+    html { font-size: 16px; }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--red-dim); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--red); }
+
+/* ── Selection ── */
+::selection { background: var(--red); color: white; }
+
+/* ── Ripple Effect ── */
+.ripple {
+    position: relative;
+    overflow: hidden;
+}
+.ripple::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    width: 100px; height: 100px;
+    margin-left: -50px; margin-top: -50px;
+    left: var(--mx, 0); top: var(--my, 0);
+    transform: scale(0);
+    opacity: 1;
+    pointer-events: none;
+}
+.ripple:active::after {
+    animation: rippleAnim 0.5s ease-out forwards;
+}
+@keyframes rippleAnim {
+    to { transform: scale(4); opacity: 0; }
+}
+
+/* ── Glow Pulse Animations ── */
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: var(--glow-red); }
+    50% { box-shadow: 0 0 30px rgba(230,57,70,0.6), 0 0 60px rgba(230,57,70,0.2); }
+}
+
+/* ── Improved Form Interactions ── */
+.form-control {
+    border-radius: 10px;
+    border: 1px solid #334155;
+    background-color: #1e293b;
+    color: #e2e8f0;
+    transition: all 0.3s ease;
+}
+.form-control:hover {
+    border-color: var(--red-dim);
+}
+.form-control:focus {
+    border-color: var(--red) !important;
+    background-color: #0f172a;
+    box-shadow: 0 0 0 2px #070709, 0 0 12px 2px rgba(230,57,70,0.4) !important;
+}
+
+/* ── Glassy Cards ── */
+.card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(230,57,70,0.15);
+}
+
+/* ── Links ── */
+a { transition: all 0.2s ease; }
+
+/* ── Footer ── */
+.footer {
+    background: rgba(7,7,9,0.9);
+    border-top: 1px solid var(--border-red) !important;
+    color: var(--text-dim) !important;
+    backdrop-filter: blur(20px);
+}
+.footer a {
+    color: var(--red) !important;
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+.footer a:hover {
+    color: white !important;
+    text-shadow: var(--glow-red);
+}
+
+/* ── Page Transitions ── */
+main {
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Loading Spinner ── */
+.spinner-cyber {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 2px solid var(--border-red);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Tooltip Cyber ── */
+[data-tip] {
+    position: relative;
+}
+[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background: var(--bg2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border: 1px solid var(--border-red);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.15s ease;
+}
+[data-tip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
