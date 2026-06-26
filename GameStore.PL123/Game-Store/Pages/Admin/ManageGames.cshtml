@@ -93,6 +93,13 @@
   </span>
 </div>
 
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+  <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); color: white; padding: 10px 16px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 12px;">
+    @Model.Message
+  </div>
+}
+
 <div class="table-responsive">
 <table class="cyber-table" id="gamesTable">
   <thead>
@@ -183,11 +190,11 @@
 
       <div class="form-group">
         <label class="form-label">Game Title //</label>
-        <input type="text" name="Title" id="fTitle" class="form-input" placeholder="Enter game title" required/>
+        <input type="text" name="Title" id="fTitle" class="form-input" placeholder="Enter game title" required maxlength="200"/>
       </div>
       <div class="form-group">
         <label class="form-label">Description //</label>
-        <textarea name="Description" id="fDescription" class="form-textarea" placeholder="Game description..."></textarea>
+        <textarea name="Description" id="fDescription" class="form-textarea" placeholder="Game description..." maxlength="4000"></textarea>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -201,15 +208,28 @@
       </div>
       <div class="form-group">
         <label class="form-label">Developer //</label>
-        <input type="text" name="Developer" id="fDeveloper" class="form-input" placeholder="Studio / Developer name"/>
+        <input type="text" name="Developer" id="fDeveloper" class="form-input" placeholder="Studio / Developer name" maxlength="200"/>
       </div>
       <div class="form-group">
         <label class="form-label">Cover Image URL //</label>
-        <input type="url" name="CoverImageUrl" id="fCoverImageUrl" class="form-input" placeholder="https://..."/>
+        <input type="url" name="CoverImageUrl" id="fCoverImageUrl" class="form-input" placeholder="https://..." maxlength="500"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Game File (ZIP/RAR/EXE) //</label>
+        <input type="file" name="GameFile" id="fGameFile" class="form-input" style="padding:8px 14px;" accept=".zip,.rar,.7z,.exe,.msi,.apk"/>
+        <div id="currentFileInfo" style="display:none; margin-top:8px; font-family:var(--font-mono); font-size:12px; color:var(--text-dim); padding:8px 12px; background:var(--bg3); border:1px solid var(--border-red);">
+          <span style="color:var(--gold);">CURRENT FILE:</span>
+          <span id="currentFileName"></span>
+          <span id="currentFileSize" style="margin-left:12px;"></span>
+          <label style="margin-left:16px; cursor:pointer; color:var(--red);">
+            <input type="checkbox" name="RemoveGameFile" value="true" id="fRemoveGameFile" style="accent-color:var(--red);"/>
+            REMOVE FILE
+          </label>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Trailer URL //</label>
-        <input type="url" name="TrailerUrl" id="fTrailerUrl" class="form-input" placeholder="https://youtube.com/..."/>
+        <input type="url" name="TrailerUrl" id="fTrailerUrl" class="form-input" placeholder="https://youtube.com/..." maxlength="500"/>
       </div>
       <div class="form-group">
         <label class="form-label">Categories //</label>
@@ -223,6 +243,16 @@
           }
         </div>
       </div>
+
+      <div class="form-group" id="screenshotsSection" style="display:none;">
+        <label class="form-label">Screenshots //</label>
+        <div id="screenshotsList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
+        <div style="display:flex; gap:8px;">
+          <input type="url" id="newScreenshotUrl" class="form-input" placeholder="https://..." style="flex:1;" maxlength="500"/>
+          <button type="button" class="btn btn-secondary" style="padding:8px 16px; font-size:11px;" onclick="addScreenshot()">+ ADD</button>
+        </div>
+        <input type="hidden" name="ScreenshotUrl" id="hiddenScreenshotUrl"/>
+      </div>
       <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:28px;">
         <button type="button" class="btn btn-secondary" onclick="closeModal()">ABORT</button>
         <button type="submit" id="submitBtn" class="btn btn-primary">INJECT RECORD</button>
@@ -234,6 +264,14 @@
 <script>
   const gamesData = @Html.Raw(Model.GameDataJson);
 
+  function fmtSize(bytes) {
+    if (!bytes || bytes === 0) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    if (bytes < 1024*1024*1024) return (bytes/(1024*1024)).toFixed(1) + ' MB';
+    return (bytes/(1024*1024*1024)).toFixed(2) + ' GB';
+  }
+
   function openModal() {
     document.getElementById('modalTitle').textContent = 'ADD GAME';
     document.getElementById('modalTag').textContent = '> NEW RECORD INJECTION';
@@ -241,6 +279,8 @@
     document.getElementById('gameForm').action = '?handler=Add';
     document.getElementById('gameId').value = '';
     document.getElementById('gameForm').reset();
+    document.getElementById('currentFileInfo').style.display = 'none';
+    document.getElementById('fRemoveGameFile').checked = false;
     document.getElementById('gameModal').classList.add('active');
   }
 
@@ -258,13 +298,60 @@
     document.getElementById('fTrailerUrl').value = data.trailerUrl;
     document.getElementById('fCoverImageUrl').value = data.coverImageUrl;
     document.getElementById('fReleaseDate').value = data.releaseDate;
+    document.getElementById('fGameFile').value = '';
+
+    if (data.hasFile) {
+      document.getElementById('currentFileInfo').style.display = 'block';
+      document.getElementById('currentFileName').textContent = data.fileName || 'GAME FILE';
+      document.getElementById('currentFileSize').textContent = fmtSize(data.fileSizeBytes) + ' OK';
+    } else {
+      document.getElementById('currentFileInfo').style.display = 'none';
+    }
+    document.getElementById('fRemoveGameFile').checked = false;
 
     const catIds = new Set(data.categoryIds);
     document.querySelectorAll('.cat-checkbox').forEach(cb => {
       cb.checked = catIds.has(cb.value);
     });
 
+    // Load screenshots
+    const screenshots = data.screenshots || [];
+    const screenshotsSection = document.getElementById('screenshotsSection');
+    const screenshotsList = document.getElementById('screenshotsList');
+    screenshotsSection.style.display = screenshots.length > 0 || true ? 'block' : 'none';
+    screenshotsList.innerHTML = screenshots.map((url, i) =>
+      `<div style="position:relative; display:inline-block;">
+        <img src="${url}" style="height:60px; border:1px solid var(--border-red); object-fit:cover;"/>
+        <button type="button" style="position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; background:var(--red); color:white; border:none; font-size:10px; line-height:1; cursor:pointer; padding:0;" onclick="removeScreenshot('${data.id}', '${url}')">&times;</button>
+      </div>`
+    ).join('');
+
     document.getElementById('gameModal').classList.add('active');
+  }
+
+  function addScreenshot() {
+    const url = document.getElementById('newScreenshotUrl').value.trim();
+    if (!url) return;
+    const gameId = document.getElementById('gameId').value;
+    if (!gameId) return;
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.innerHTML = '@Html.AntiForgeryToken()<input name="GameId" value="' + gameId + '"/><input name="ScreenshotUrl" value="' + url + '"/>';
+    form.action = '?handler=AddScreenshot';
+    form.style.display = 'none';
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function removeScreenshot(gameId, url) {
+    if (!confirm('Remove this screenshot?')) return;
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.innerHTML = '@Html.AntiForgeryToken()<input name="GameId" value="' + gameId + '"/><input name="ScreenshotUrl" value="' + url + '"/>';
+    form.action = '?handler=RemoveScreenshot';
+    form.style.display = 'none';
+    document.body.appendChild(form);
+    form.submit();
   }
 
   function closeModal() {

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 60" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="100%" stop-color="#e63946"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e63946"/>
+      <stop offset="100%" stop-color="#8a1c24"/>
+    </linearGradient>
+    <linearGradient id="scan" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e63946" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#e63946" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#e63946" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow">
+      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#e63946" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes pulseGlow { 0%,100% { opacity: 1; filter: drop-shadow(0 0 4px #e63946); } 50% { opacity: 0.7; filter: drop-shadow(0 0 12px #e63946); } }
+    @keyframes slideScan { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+    @keyframes glitchText { 0%,100% { transform: translate(0); } 5% { transform: translate(-2px,1px); } 10% { transform: translate(2px,-1px); } 15% { transform: translate(0); } }
+    @keyframes loadingBar { 0% { width: 0; } 100% { width: 100%; } }
+    .dpad { animation: spin 4s linear infinite; transform-origin: 24px 30px; }
+    .dpad-inner { animation: spin 4s linear infinite reverse; transform-origin: 24px 30px; }
+    .gs-text { animation: pulseGlow 2s ease-in-out infinite, glitchText 8s ease-in-out infinite; }
+    .scan-line { animation: slideScan 3s linear infinite; }
+    .load-bar { animation: loadingBar 2s ease-in-out infinite alternate; transform-origin: left; }
+  </style>
+
+  <!-- D-pad outer ring -->
+  <polygon class="dpad" points="12,30 24,18 36,30 24,42" fill="url(#g2)" filter="url(#glow)"/>
+  <!-- D-pad inner -->
+  <polygon class="dpad-inner" points="18,30 24,24 30,30 24,36" fill="#070709"/>
+
+  <!-- GS text -->
+  <text class="gs-text" x="52" y="40" font-family="'Orbitron',monospace" font-size="32" font-weight="900" fill="url(#g)" letter-spacing="3">GS</text>
+
+  <!-- scanning line on text -->
+  <line class="scan-line" x1="52" y1="16" x2="130" y2="16" stroke="url(#scan)" stroke-width="16" opacity="0.15"/>
+
+  <!-- loading bar -->
+  <rect x="52" y="46" width="0" height="2" rx="1" fill="#e63946" class="load-bar" opacity="0.6"/>
+</svg>

@@ -53,6 +53,13 @@
   </span>
 </div>
 
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+  <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); color: white; padding: 10px 16px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 12px;">
+    @Model.Message
+  </div>
+}
+
 <div class="table-responsive">
 <table class="cyber-table" id="reviewsTable">
   <thead>

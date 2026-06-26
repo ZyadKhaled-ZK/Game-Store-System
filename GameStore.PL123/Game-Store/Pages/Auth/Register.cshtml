@@ -1,0 +1,98 @@
+@page
+@model GameStore.PL.Pages.Auth.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+    Layout = "_Layout";
+}
+
+<style>
+  .register-box {
+    background: var(--bg2);
+    border: 1px solid var(--border-red);
+    padding: 40px;
+    box-shadow: var(--glow-red);
+    animation: loginIn 0.4s ease;
+    position: relative;
+  }
+  .register-box::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--red), transparent, var(--red)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .register-box:hover::before { opacity: 1; }
+
+  .reg-input {
+    background: var(--bg3) !important;
+    border: 1px solid var(--border-red) !important;
+    color: var(--text) !important;
+    border-radius: 0 !important;
+    transition: all 0.25s !important;
+    padding: 12px 16px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 13px !important;
+  }
+  .reg-input:hover { border-color: var(--red-dim) !important; box-shadow: 0 0 14px rgba(230,57,70,0.1) !important; }
+  .reg-input:focus { border-color: var(--red) !important; box-shadow: 0 0 0 2px #070709, 0 0 16px 3px rgba(230,57,70,0.35) !important; background: #0a0a0e !important; }
+  .reg-input::placeholder { color: var(--text-dim) !important; font-family: var(--font-mono); font-size: 12px; }
+</style>
+
+<div class="row w-100 justify-content-center mt-5 pt-5">
+  <div class="col-md-5">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title glitch">REGISTER</h2>
+      <div class="section-tag d-inline-flex">Create New Account</div>
+    </div>
+
+    <div class="register-box">
+      <div style="color: var(--red); border: 1px solid var(--red); padding: 5px 15px; display: inline-block; font-size: 12px; margin-bottom: 20px; font-family: var(--font-mono);">
+        NEW USER
+      </div>
+
+      @if (!string.IsNullOrEmpty(Model.Message))
+      {
+        <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); color: white; padding: 10px; margin-bottom: 15px; font-family: var(--font-mono); font-size: 12px;">
+          @(Model.IsError ? "[ERROR]" : "[OK]") @Model.Message
+        </div>
+      }
+
+      <form method="post">
+        <div class="mb-3">
+          <label asp-for="Username" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">Username //:</label>
+          <input asp-for="Username" class="form-control reg-input" placeholder="Choose a username (3-100 chars)" required maxlength="100"/>
+          <span asp-validation-for="Username" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
+        </div>
+        <div class="mb-3">
+          <label asp-for="Email" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">Email //:</label>
+          <input asp-for="Email" type="email" class="form-control reg-input" placeholder="you@example.com" required maxlength="200"/>
+          <span asp-validation-for="Email" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
+        </div>
+        <div class="mb-4">
+          <label asp-for="Password" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">Password //:</label>
+          <input asp-for="Password" type="password" class="form-control reg-input" placeholder="Min 6 characters" required maxlength="100"/>
+          <span asp-validation-for="Password" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 d-block text-center mt-4 ripple">CREATE ACCOUNT</button>
+      </form>
+
+      <div style="margin-top: 20px; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); text-align: center;">
+        Already have an account? <a href="/Auth/Login" style="color: var(--gold);">LOGIN</a>
+      </div>
+    </div>
+
+    <div class="text-center mt-3">
+      <a href="/" style="color: var(--text-dim); font-family: var(--font-mono); text-decoration: none; transition: all 0.2s;"
+         onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">
+        &lt; BACK
+      </a>
+    </div>
+  </div>
+</div>

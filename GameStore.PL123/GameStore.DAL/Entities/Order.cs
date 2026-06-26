@@ -13,8 +13,6 @@ namespace GameStore.DAL.Entities
         [Required, Column(TypeName = "decimal(10,2)")]
         public decimal TotalPrice { get; set; }
 
-        public OrderStatus Status { get; set; } = OrderStatus.PENDING;
-
         // ── Navigation Properties ─────────────────────────────────────────
         [ForeignKey(nameof(UserId))]
         public User User { get; set; } = null!;

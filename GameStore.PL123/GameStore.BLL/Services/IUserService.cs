@@ -1,3 +1,5 @@
+using GameStore.BLL.Models;
+
 namespace GameStore.BLL.Services
 {
     public interface IUserService
@@ -7,5 +9,7 @@ namespace GameStore.BLL.Services
         Task<(bool Success, string Error)> ChangeRoleAsync(string id, Role newRole, string? currentUserId = null);
         Task<(bool Success, string Error)> DeleteAsync(string id, string? currentUserId = null);
         Task<int> GetTotalUsersAsync();
+        Task<List<UsersByRole>> GetUsersByRoleAsync();
+        Task<List<UsersByMonth>> GetUsersByMonthAsync(int months = 12);
     }
 }

@@ -2,16 +2,16 @@ namespace GameStore.BLL.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly GameStoreDbContext _context;
+        private readonly IUnitOfWork _uow;
 
-        public OrderService(GameStoreDbContext context)
+        public OrderService(IUnitOfWork uow)
         {
-            _context = context;
+            _uow = uow;
         }
 
         public async Task<List<Order>> GetAllWithDetailsAsync()
         {
-            return await _context.Orders
+            return await _uow.Repository<Order>().Query()
                 .Include(o => o.User)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Game)
@@ -19,31 +19,77 @@ namespace GameStore.BLL.Services
                 .ToListAsync();
         }
 
-        public async Task<bool> UpdateStatusAsync(string orderId, OrderStatus status)
+        public async Task<(bool Success, string Message)> PlaceOrderAsync(string userId)
         {
-            var order = await _context.Orders.FindAsync(orderId);
-            if (order == null) return false;
+            var cart = await _uow.Repository<Cart>().Query()
+                .Include(c => c.CartItems).ThenInclude(ci => ci.Game)
+                .FirstOrDefaultAsync(c => c.UserId == userId);
 
-            order.Status = status;
-            await _context.SaveChangesAsync();
-            return true;
+            if (cart == null || !cart.CartItems.Any())
+                return (false, "Your cart is empty.");
+
+            var order = new Order
+            {
+                UserId = userId,
+                TotalPrice = cart.CartItems.Sum(ci => ci.Game?.Price ?? 0),
+            };
+
+            await _uow.Repository<Order>().AddAsync(order);
+
+            foreach (var cartItem in cart.CartItems)
+            {
+                await _uow.Repository<OrderItem>().AddAsync(new OrderItem
+                {
+                    OrderId = order.Id,
+                    GameId = cartItem.GameId,
+                    PriceAtPurchase = cartItem.Game?.Price ?? 0
+                });
+            }
+
+            var library = await _uow.Repository<Library>().Query()
+                .Include(l => l.LibraryGames)
+                .FirstOrDefaultAsync(l => l.UserId == userId);
+
+            if (library == null)
+            {
+                library = new Library { UserId = userId };
+                await _uow.Repository<Library>().AddAsync(library);
+                await _uow.SaveChangesAsync();
+            }
+
+            foreach (var cartItem in cart.CartItems)
+            {
+                if (!library.LibraryGames.Any(lg => lg.GameId == cartItem.GameId))
+                {
+                    await _uow.Repository<LibraryGame>().AddAsync(new LibraryGame
+                    {
+                        LibraryId = library.Id,
+                        GameId = cartItem.GameId
+                    });
+                }
+            }
+
+            _uow.Repository<CartItem>().RemoveRange(cart.CartItems);
+            await _uow.SaveChangesAsync();
+
+            return (true, "Order placed successfully!");
         }
 
-        public async Task<int> GetTotalOrdersAsync()
+        public async Task<Order?> GetOrderByIdAsync(string orderId)
         {
-            return await _context.Orders.CountAsync();
+            return await _uow.Repository<Order>().Query()
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Game)
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
-        public async Task<int> GetCompletedOrdersAsync()
+        public async Task<List<Order>> GetOrdersByUserAsync(string userId)
         {
-            return await _context.Orders.CountAsync(o => o.Status == OrderStatus.COMPLETED);
-        }
-
-        public async Task<decimal> GetTotalRevenueAsync()
-        {
-            return await _context.Orders
-                .Where(o => o.Status == OrderStatus.COMPLETED)
-                .SumAsync(o => o.TotalPrice);
+            return await _uow.Repository<Order>().Query()
+                .Include(o => o.OrderItems).ThenInclude(oi => oi.Game)
+                .Where(o => o.UserId == userId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
         }
     }
 }

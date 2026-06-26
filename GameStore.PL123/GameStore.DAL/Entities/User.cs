@@ -18,6 +18,8 @@ namespace GameStore.DAL.Entities
 
         public string? Bio { get; set; }
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public Role Role { get; set; } = Role.CUSTOMER;
 
         // Navigation Properties
@@ -25,5 +27,6 @@ namespace GameStore.DAL.Entities
         public Library? Library { get; set; }
         public ICollection<Order> Orders { get; set; } = new List<Order>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<WishlistItem> WishlistItems { get; set; } = new List<WishlistItem>();
     }
 }

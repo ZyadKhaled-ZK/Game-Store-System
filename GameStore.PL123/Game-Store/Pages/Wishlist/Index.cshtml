@@ -1,0 +1,97 @@
+@page
+@model GameStore.PL.Pages.Wishlist.IndexModel
+@{
+    ViewData["Title"] = "Wishlist";
+    Layout = "_Layout";
+}
+
+<style>
+  .wishlist-page { max-width: 1000px; margin: 0 auto; }
+  .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 24px; }
+  .wishlist-card {
+    background: var(--bg2); border: 1px solid var(--border-red); position: relative;
+    transition: all 0.2s;
+  }
+  .wishlist-card:hover { border-color: var(--red); transform: translateY(-3px); box-shadow: var(--glow-red); }
+  .wishlist-card-img { width: 100%; height: 120px; object-fit: cover; border-bottom: 1px solid var(--border-red); }
+  .wishlist-card-placeholder { width: 100%; height: 120px; background: var(--bg3); display: flex; align-items: center; justify-content: center; color: var(--red); font-size: 2rem; border-bottom: 1px solid var(--border-red); }
+  .wishlist-card-body { padding: 12px; }
+  .wishlist-card-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: white; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wishlist-card-dev { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); margin-bottom: 8px; }
+  .wishlist-card-actions { display: flex; gap: 6px; }
+  .wishlist-card-actions form { flex: 1; }
+  .wishlist-card-actions button { width: 100%; padding: 6px 8px; font-size: 10px; }
+  .wishlist-remove {
+    position: absolute; top: 6px; right: 6px; width: 24px; height: 24px;
+    background: rgba(0,0,0,0.7); border: 1px solid var(--red); color: var(--red);
+    cursor: pointer; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; z-index: 2;
+  }
+  .wishlist-remove:hover { background: var(--red); color: white; }
+  .empty-wishlist { text-align: center; padding: 80px; font-family: var(--font-mono); color: var(--text-dim); }
+</style>
+
+<div class="wishlist-page">
+  <div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:32px;">
+    <div>
+      <div class="section-tag">Collection</div>
+      <h2 class="section-title glitch">WISHLIST</h2>
+    </div>
+    <a href="/" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> BROWSE GAMES</a>
+  </div>
+
+  @if (!string.IsNullOrEmpty(Model.Message))
+  {
+    <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); color: white; padding: 10px 16px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 12px;">
+      @Model.Message
+    </div>
+  }
+
+  @if (!Model.WishlistItems.Any())
+  {
+    <div class="empty-wishlist">
+      <div style="font-size:3rem; margin-bottom:16px; color:var(--red);">&hearts;</div>
+      <h3 style="font-family:var(--font-display); color:white; margin-bottom:8px;">YOUR WISHLIST IS EMPTY</h3>
+      <p>No saved games. <a href="/" style="color:var(--gold);">BROWSE GAMES &rarr;</a></p>
+    </div>
+  }
+  else
+  {
+    <div style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim); margin-bottom:8px;">
+      [ @Model.WishlistItems.Count ITEMS ]
+    </div>
+    <div class="wishlist-grid">
+      @foreach (var item in Model.WishlistItems)
+      {
+        <div class="wishlist-card">
+          <form method="post" asp-page-handler="Remove" asp-route-id="@item.Id">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="wishlist-remove" title="Remove from wishlist">&times;</button>
+          </form>
+          @if (!string.IsNullOrEmpty(item.Game?.CoverImageUrl))
+          {
+            <img class="wishlist-card-img" src="@item.Game.CoverImageUrl" alt="@item.Game.Title" />
+          }
+          else if (item.Game?.ScreenshotUrls.Any() == true)
+          {
+            <img class="wishlist-card-img" src="@item.Game.ScreenshotUrls[0]" alt="@item.Game.Title" />
+          }
+          else
+          {
+            <div class="wishlist-card-placeholder">&#9829;</div>
+          }
+          <div class="wishlist-card-body">
+            <div class="wishlist-card-title">@(item.Game?.Title ?? "Unknown")</div>
+            <div class="wishlist-card-dev">@(item.Game?.Developer ?? "Anon")</div>
+            <div class="wishlist-card-actions">
+              <form method="post" asp-page-handler="AddToCart" asp-route-gameId="@item.GameId">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-primary" style="padding:6px 12px;font-size:10px;">+ CART</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -17,6 +17,8 @@ namespace GameStore.DAL.DataBase
         public DbSet<Library>       Libraries      { get; set; }
         public DbSet<LibraryGame>   LibraryGames   { get; set; }
         public DbSet<Review>        Reviews        { get; set; }
+        public DbSet<WishlistItem>  WishlistItems  { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -108,7 +110,6 @@ namespace GameStore.DAL.DataBase
             {
                 e.HasKey(o => o.Id);
                 e.Property(o => o.TotalPrice).HasColumnType("decimal(10,2)");
-                e.Property(o => o.Status).HasConversion<int>();
 
                 e.HasOne(o => o.User)
                  .WithMany(u => u.Orders)
@@ -159,6 +160,35 @@ namespace GameStore.DAL.DataBase
                  .WithMany(g => g.LibraryGames)
                  .HasForeignKey(lg => lg.GameId)
                  .OnDelete(DeleteBehavior.Restrict); // keep game in libraries even if somehow detached
+            });
+
+            // ── PasswordResetToken ────────────────────────────────────────
+            modelBuilder.Entity<PasswordResetToken>(e =>
+            {
+                e.HasKey(p => p.Id);
+                e.HasIndex(p => p.Token).IsUnique();
+
+                e.HasOne(p => p.User)
+                 .WithMany()
+                 .HasForeignKey(p => p.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── WishlistItem ───────────────────────────────────────────────
+            modelBuilder.Entity<WishlistItem>(e =>
+            {
+                e.HasKey(w => w.Id);
+                e.HasIndex(w => new { w.UserId, w.GameId }).IsUnique();
+
+                e.HasOne(w => w.User)
+                 .WithMany(u => u.WishlistItems)
+                 .HasForeignKey(w => w.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(w => w.Game)
+                 .WithMany(g => g.WishlistItems)
+                 .HasForeignKey(w => w.GameId)
+                 .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ── Review ───────────────────────────────────────────────────────

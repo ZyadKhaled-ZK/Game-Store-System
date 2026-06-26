@@ -6,16 +6,68 @@
 }
 
 <style>
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--border-red); margin-top: 40px; }
-  .stat-card { background: var(--bg2); padding: 48px 32px; text-align: center; position: relative; overflow: hidden; transition: all 0.3s; }
+  .welcome-overlay {
+    position: fixed; inset: 0; z-index: 10000;
+    background: #070709;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  .welcome-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  .welcome-overlay canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.15; }
+  .welcome-content { position: relative; z-index: 1; text-align: center; }
+  .welcome-logo { width: 110px; height: 110px; margin: 0 auto 18px; position: relative; }
+  .welcome-logo svg { width: 100%; height: 100%; filter: drop-shadow(0 0 20px rgba(230,57,70,0.6)); }
+  .welcome-title { font-family: var(--font-display); font-size: 3.2rem; font-weight: 900; color: white; letter-spacing: 6px; text-shadow: 0 0 40px rgba(230,57,70,0.5), 0 0 80px rgba(230,57,70,0.2); margin-bottom: 6px; }
+  .welcome-title span { color: var(--red); text-shadow: 0 0 30px rgba(230,57,70,0.8); }
+  .welcome-sub { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim); letter-spacing: 8px; text-transform: uppercase; margin-bottom: 30px; }
+  .welcome-sub .blink { animation: blink 0.6s step-end infinite; }
+  @@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  .welcome-boot { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-dim); margin-top: 20px; letter-spacing: 3px; }
+  .welcome-boot .bar { display: inline-block; width: 180px; height: 2px; background: rgba(255,255,255,0.08); vertical-align: middle; margin-left: 10px; overflow: hidden; border-radius: 1px; }
+  .welcome-boot .bar span { display: block; height: 100%; width: 0; background: var(--red); box-shadow: 0 0 10px var(--red); animation: bootLoad 2.2s ease-in-out forwards; }
+  @@keyframes bootLoad { 0% { width: 0; } 70% { width: 70%; } 85% { width: 85%; } 100% { width: 100%; } }
+  .welcome-gltch {
+    position: fixed; inset: 0; z-index: 99999; pointer-events: none;
+    background: black; opacity: 0; transition: opacity 0.15s;
+  }
+  .welcome-gltch.active { opacity: 1; }
+  .welcome-particle {
+    position: fixed; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--red); pointer-events: none; z-index: 99998;
+    animation: partFly 0.8s ease-out forwards;
+  }
+  @@keyframes partFly { 0% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(var(--px),var(--py)) scale(0); } }
+  .welcome-scan {
+    position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;
+  }
+  .welcome-scan::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 200%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+    animation: scanMove 3s linear infinite;
+  }
+  @@keyframes scanMove { 0% { top: -2px; } 100% { top: 100%; } }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; background: var(--border-red); margin-top: 40px; }
+  .stat-card { background: var(--bg2); padding: 32px 20px; text-align: center; position: relative; overflow: hidden; transition: all 0.3s; }
   .stat-card:hover { background: rgba(230,57,70,0.04); }
   .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--red), transparent); transform: scaleX(0); transition: transform 0.3s; }
   .stat-card:hover::after { transform: scaleX(1); }
-  .stat-icon { width: 48px; height: 48px; margin: 0 auto 20px; border: 1px solid var(--border-red); display: flex; align-items: center; justify-content: center; background: rgba(230,57,70,0.06); font-size: 20px; }
-  .stat-big { font-family: var(--font-display); font-size: 52px; font-weight: 900; line-height: 1; margin-bottom: 10px; color: var(--red); text-shadow: 0 0 30px rgba(230,57,70,0.4); }
-  .stat-small { font-family: var(--font-mono); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
-  .stat-link { display: inline-block; margin-top: 16px; font-family: var(--font-mono); font-size: 11px; color: var(--red); letter-spacing: 1px; text-decoration: none; border: 1px solid var(--border-red); padding: 4px 12px; transition: all 0.2s; }
+  .stat-icon { width: 40px; height: 40px; margin: 0 auto 14px; border: 1px solid var(--border-red); display: flex; align-items: center; justify-content: center; background: rgba(230,57,70,0.06); font-size: 18px; }
+  .stat-big { font-family: var(--font-display); font-size: 36px; font-weight: 900; line-height: 1; margin-bottom: 6px; color: var(--red); text-shadow: 0 0 30px rgba(230,57,70,0.4); }
+  .stat-small { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
+  .stat-link { display: inline-block; margin-top: 12px; font-family: var(--font-mono); font-size: 10px; color: var(--red); letter-spacing: 1px; text-decoration: none; border: 1px solid var(--border-red); padding: 3px 10px; transition: all 0.2s; }
   .stat-link:hover { background: rgba(230,57,70,0.1); color: white; }
+
+  .chart-row { display: grid; gap: 2px; background: var(--border-red); margin-top: 40px; }
+  .chart-row.two-col { grid-template-columns: 1fr 1fr; }
+  .chart-row.three-col { grid-template-columns: 2fr 1fr; }
+  .chart-box { background: var(--bg2); padding: 28px; position: relative; }
+  .chart-title { font-family: var(--font-mono); font-size: 11px; color: var(--red); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .chart-title::before { content: ''; width: 20px; height: 2px; background: var(--red); }
+  .chart-canvas-wrap { position: relative; height: 260px; }
+  .chart-canvas-wrap.tall { height: 320px; }
+  .chart-canvas-wrap.short { height: 200px; }
 
   .quick-actions { margin-top: 40px; }
   .qa-title { font-family: var(--font-mono); font-size: 12px; color: var(--red); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; }
@@ -30,7 +82,39 @@
   .qa-icon { font-size: 22px; flex-shrink: 0; }
   .qa-text { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: white; letter-spacing: 1px; }
   .qa-sub  { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+  .recent-orders-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 11px; }
+  .recent-orders-table th { text-align: left; padding: 8px 10px; color: var(--text-dim); border-bottom: 1px solid var(--border-red); letter-spacing: 1px; }
+  .recent-orders-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .ro-user { color: var(--gold); }
+  .ro-total { color: var(--gold); font-weight: 700; }
+  .ro-date { color: var(--text-dim); font-size: 10px; }
 </style>
+
+<div class="welcome-gltch" id="welcomeGlitch"></div>
+
+<div class="welcome-overlay" id="welcomeSplash">
+  <canvas id="welcomeCanvas"></canvas>
+  <div class="welcome-scan"></div>
+  <div class="welcome-content">
+    <div class="welcome-logo">
+      <svg viewBox="0 0 120 120" fill="none">
+        <polygon points="60,10 90,40 60,70 30,40" fill="#e63946">
+          <animateTransform attributeName="transform" type="rotate" from="0 60 40" to="360 60 40" dur="5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0.8;1;0.9;1" dur="0.3s" begin="2.3s" fill="freeze"/>
+        </polygon>
+        <polygon points="60,25 75,40 60,55 45,40" fill="#070709"/>
+        <text x="60" y="95" font-family="'Orbitron',monospace" font-size="36" font-weight="900" fill="white" text-anchor="middle" letter-spacing="2">
+          GS
+          <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+        </text>
+      </svg>
+    </div>
+    <div class="welcome-title"><span>W</span>ELCOME <span>B</span>ACK</div>
+    <div class="welcome-sub"><span class="blink">_</span> ACCESS GRANTED <span class="blink">_</span></div>
+    <div class="welcome-boot">INITIALIZING ADMIN PANEL <span class="bar"><span id="bootBar"></span></span></div>
+  </div>
+</div>
 
 <div class="section-header">
   <div class="section-tag">Main Console</div>
@@ -44,27 +128,115 @@
         <div class="stat-small">Total Users</div>
         <a href="/Admin/ManageUsers" class="stat-link">MANAGE &rarr;</a>
     </div>
-
     <div class="stat-card">
         <div class="stat-icon"><i class="bi bi-controller"></i></div>
         <div class="stat-big">@Model.TotalGames</div>
         <div class="stat-small">Total Games</div>
         <a href="/Admin/ManageGames" class="stat-link">MANAGE &rarr;</a>
     </div>
-
+    <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-gift"></i></div>
+        <div class="stat-big">@Model.FreeGamesCount</div>
+        <div class="stat-small">Free Games</div>
+        <a href="/Admin/ManageGames" class="stat-link">VIEW &rarr;</a>
+    </div>
     <div class="stat-card">
         <div class="stat-icon"><i class="bi bi-credit-card"></i></div>
         <div class="stat-big">@Model.TotalOrders</div>
         <div class="stat-small">Total Orders</div>
         <a href="/Admin/Orders" class="stat-link">VIEW ALL &rarr;</a>
     </div>
-
     <div class="stat-card">
         <div class="stat-icon">&#36;</div>
         <div class="stat-big">$@Model.TotalRevenue.ToString("0")</div>
         <div class="stat-small">Total Revenue</div>
         <a href="/Admin/Orders" class="stat-link">LEDGER &rarr;</a>
     </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-bar-chart"></i></div>
+        <div class="stat-big" style="font-size:28px;">$@Model.AverageOrderValue.ToString("0.00")</div>
+        <div class="stat-small">Avg Order Value</div>
+        <a href="/Admin/Orders" class="stat-link">DETAILS &rarr;</a>
+    </div>
+</div>
+
+@* ── ROW 1: Revenue Trend + Mini KPIs ── *@
+<div class="chart-row three-col" style="margin-top:40px;">
+  <div class="chart-box">
+    <div class="chart-title">Revenue Trend (12 Months)</div>
+    <div class="chart-canvas-wrap tall">
+      <canvas id="revenueChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-box" style="display:flex; flex-direction:column; justify-content:center; gap:24px; padding:40px 28px;">
+    <div style="text-align:center;">
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Total Revenue</div>
+      <div style="font-family:var(--font-display);font-size:44px;font-weight:900;color:var(--gold);text-shadow:0 0 30px rgba(245,197,66,0.3);">$@Model.TotalRevenue.ToString("0.00")</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="text-align:center;padding:16px;background:var(--bg3);border:1px solid var(--border-red);">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">Total Orders</div>
+        <div style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--red);">@Model.TotalOrders</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:var(--bg3);border:1px solid var(--border-red);">
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">Avg / Order</div>
+        <div style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--gold);">$@Model.AverageOrderValue.ToString("0.00")</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+@* ── ROW 2: Orders by Day + Top Selling Games ── *@
+<div class="chart-row two-col">
+  <div class="chart-box">
+    <div class="chart-title">Orders per Day (Last 30 Days)</div>
+    <div class="chart-canvas-wrap">
+      <canvas id="ordersChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">Top 5 Best Sellers</div>
+    <div class="chart-canvas-wrap">
+      <canvas id="topGamesChart"></canvas>
+    </div>
+  </div>
+</div>
+
+@* ── ROW 3: Revenue by Category + Users by Role ── *@
+<div class="chart-row two-col">
+  <div class="chart-box">
+    <div class="chart-title">Revenue by Category</div>
+    <div class="chart-canvas-wrap">
+      <canvas id="categoryRevenueChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">Users by Role</div>
+    <div class="chart-canvas-wrap">
+      <canvas id="usersRoleChart"></canvas>
+    </div>
+  </div>
+</div>
+
+@* ── ROW 4: User Registration Trend + Recent Orders ── *@
+<div class="chart-row two-col">
+  <div class="chart-box">
+    <div class="chart-title">User Registration Trend</div>
+    <div class="chart-canvas-wrap">
+      <canvas id="usersMonthChart"></canvas>
+    </div>
+  </div>
+  <div class="chart-box">
+    <div class="chart-title">Recent Orders</div>
+    <div style="max-height:260px;overflow-y:auto;">
+      <table class="recent-orders-table" id="recentOrdersTable">
+        <thead>
+          <tr><th>User</th><th>Items</th><th>Total</th><th>Date</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <div class="quick-actions">
@@ -97,3 +269,309 @@
   </div>
 </div>
 
+<script>
+(function() {
+    const canvas = document.getElementById('welcomeCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ADMIN';
+    const fontSize = 14;
+    const cols = Math.floor(canvas.width / fontSize);
+    const drops = Array(cols).fill(1);
+    function draw() {
+        ctx.fillStyle = 'rgba(7,7,9,0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#e63946';
+        ctx.font = fontSize + 'px monospace';
+        for (let i = 0; i < drops.length; i++) {
+            const text = chars[Math.floor(Math.random() * chars.length)];
+            ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    let ri = setInterval(draw, 40);
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+
+    function burstParticles(cx, cy) {
+        const colors = ['#e63946', '#f5c542', '#ff6b6b', '#fff'];
+        for (let i = 0; i < 40; i++) {
+            const p = document.createElement('div');
+            p.className = 'welcome-particle';
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 80 + Math.random() * 200;
+            p.style.cssText = `left:${cx}px;top:${cy}px;background:${colors[i%4]};--px:${Math.cos(angle)*dist}px;--py:${Math.sin(angle)*dist}px`;
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 800);
+        }
+    }
+
+    function glitchFlash() {
+        const g = document.getElementById('welcomeGlitch');
+        g.classList.add('active');
+        setTimeout(() => g.classList.remove('active'), 150);
+    }
+
+    function dismissSplash() {
+        glitchFlash();
+        burstParticles(window.innerWidth/2, window.innerHeight/2);
+        clearInterval(ri);
+        setTimeout(() => {
+            document.getElementById('welcomeSplash').classList.add('hidden');
+            sessionStorage.setItem('gs_welcomed', 'true');
+        }, 200);
+    }
+
+    if (sessionStorage.getItem('gs_welcomed')) {
+        document.getElementById('welcomeSplash').classList.add('hidden');
+    } else {
+        setTimeout(dismissSplash, 2500);
+    }
+})();
+</script>
+
+@section Scripts {
+<script>
+// ── Color Palette ──
+const COLORS = {
+    red: '#e63946',
+    redDim: '#9b1d25',
+    gold: '#f5c542',
+    goldDim: '#b8922e',
+    text: '#e8e8f0',
+    textDim: '#7a7a99',
+    bg3: '#111118'
+};
+const chartColors = ['#e63946','#f5c542','#4ade80','#60a5fa','#c084fc','#fb923c','#34d399','#f472b6','#a78bfa','#22d3ee'];
+const chartColorsAlpha = chartColors.map(c => c + '88');
+
+// ── Shared Chart Defaults ──
+Chart.defaults.color = COLORS.textDim;
+Chart.defaults.font.family = "'Share Tech Mono', monospace";
+Chart.defaults.font.size = 10;
+
+// ── 1. Revenue Trend (Line) ──
+const revenueData = @Html.Raw(Model.RevenueByMonthJson);
+if (revenueData.length) {
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: revenueData.map(d => d.label),
+            datasets: [{
+                label: 'Revenue',
+                data: revenueData.map(d => d.revenue),
+                borderColor: COLORS.gold,
+                backgroundColor: COLORS.gold + '22',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: COLORS.gold,
+                pointBorderColor: '#070709',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { maxRotation: 45 } },
+                y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { callback: v => '$' + v } }
+            }
+        }
+    });
+}
+
+// ── 2. Orders by Day (Bar) ──
+const ordersData = @Html.Raw(Model.OrdersByDayJson);
+if (ordersData.length) {
+    new Chart(document.getElementById('ordersChart'), {
+        type: 'bar',
+        data: {
+            labels: ordersData.map(d => d.date?.slice(5) || ''),
+            datasets: [{
+                label: 'Orders',
+                data: ordersData.map(d => d.count),
+                backgroundColor: COLORS.red + '99',
+                borderColor: COLORS.red,
+                borderWidth: 1,
+                borderRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 8 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+}
+
+// ── 3. Top Selling Games (Horizontal Bar) ──
+const topGamesData = @Html.Raw(Model.TopSellingGamesJson);
+if (topGamesData.length) {
+    new Chart(document.getElementById('topGamesChart'), {
+        type: 'bar',
+        data: {
+            labels: topGamesData.map(d => d.title?.length > 20 ? d.title.slice(0,17) + '...' : d.title),
+            datasets: [{
+                label: 'Sold',
+                data: topGamesData.map(d => d.count),
+                backgroundColor: topGamesData.map((_,i) => chartColors[i % chartColors.length] + '99'),
+                borderColor: topGamesData.map((_,i) => chartColors[i % chartColors.length]),
+                borderWidth: 1,
+                borderRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: ctx => {
+                            const d = topGamesData[ctx.dataIndex];
+                            return 'Revenue: $' + (d.revenue || 0).toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { stepSize: 1 } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+}
+
+// ── 4. Revenue by Category (Doughnut) ──
+const catRevData = @Html.Raw(Model.RevenueByCategoryJson);
+if (catRevData.length) {
+    new Chart(document.getElementById('categoryRevenueChart'), {
+        type: 'doughnut',
+        data: {
+            labels: catRevData.map(d => d.category),
+            datasets: [{
+                data: catRevData.map(d => d.revenue),
+                backgroundColor: chartColors.slice(0, catRevData.length),
+                borderColor: '#070709',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 10 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const total = ctx.dataset.data.reduce((a,b) => a + b, 0);
+                            const pct = ((ctx.parsed / total) * 100).toFixed(1);
+                            return ' $' + ctx.parsed.toFixed(2) + ' (' + pct + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ── 5. Users by Role (Pie) ──
+const usersRoleData = @Html.Raw(Model.UsersByRoleJson);
+if (usersRoleData.length) {
+    new Chart(document.getElementById('usersRoleChart'), {
+        type: 'pie',
+        data: {
+            labels: usersRoleData.map(d => d.role),
+            datasets: [{
+                data: usersRoleData.map(d => d.count),
+                backgroundColor: chartColors.slice(0, usersRoleData.length),
+                borderColor: '#070709',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const total = ctx.dataset.data.reduce((a,b) => a + b, 0);
+                            const pct = ((ctx.parsed / total) * 100).toFixed(1);
+                            return ' ' + ctx.parsed + ' users (' + pct + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ── 6. User Registration Trend (Line) ──
+const usersMonthData = @Html.Raw(Model.UsersByMonthJson);
+if (usersMonthData.length) {
+    new Chart(document.getElementById('usersMonthChart'), {
+        type: 'line',
+        data: {
+            labels: usersMonthData.map(d => d.label),
+            datasets: [{
+                label: 'New Users',
+                data: usersMonthData.map(d => d.count),
+                borderColor: '#e63946',
+                backgroundColor: 'rgba(230,57,70,0.1)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#e63946',
+                pointRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 9 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { beginAtZero: true, stepSize: 1 } }
+            }
+        }
+    });
+}
+
+// ── 7. Recent Orders Table ──
+const recentOrders = @Html.Raw(Model.RecentOrdersJson);
+const tbody = document.querySelector('#recentOrdersTable tbody');
+if (recentOrders.length) {
+    tbody.innerHTML = recentOrders.map(o => {
+        const itemsStr = o.items.map(i => i.game).join(', ');
+        return `<tr>
+            <td class="ro-user">${o.user}</td>
+            <td style="color:var(--text-dim);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${itemsStr}">${itemsStr}</td>
+            <td class="ro-total">$${o.totalPrice.toFixed(2)}</td>
+            <td class="ro-date">${o.createdAt}</td>
+        </tr>`;
+    }).join('');
+} else {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:40px;">[ NO ORDERS YET ]</td></tr>';
+}
+</script>
+}

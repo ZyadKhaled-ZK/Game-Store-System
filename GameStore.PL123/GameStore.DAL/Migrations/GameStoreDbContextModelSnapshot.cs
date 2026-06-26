@@ -189,9 +189,6 @@ namespace GameStore.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(10,2)");
 
@@ -229,6 +226,35 @@ namespace GameStore.DAL.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens");
                 });
 
             modelBuilder.Entity("GameStore.DAL.Entities.Review", b =>
@@ -274,6 +300,9 @@ namespace GameStore.DAL.Migrations
                     b.Property<string>("Bio")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -297,6 +326,32 @@ namespace GameStore.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.WishlistItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("GameId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
+
+                    b.HasIndex("UserId", "GameId")
+                        .IsUnique();
+
+                    b.ToTable("WishlistItems");
                 });
 
             modelBuilder.Entity("GameStore.DAL.Entities.Cart", b =>
@@ -408,6 +463,17 @@ namespace GameStore.DAL.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("GameStore.DAL.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("GameStore.DAL.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("GameStore.DAL.Entities.Review", b =>
                 {
                     b.HasOne("GameStore.DAL.Entities.Game", "Game")
@@ -418,6 +484,25 @@ namespace GameStore.DAL.Migrations
 
                     b.HasOne("GameStore.DAL.Entities.User", "User")
                         .WithMany("Reviews")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.WishlistItem", b =>
+                {
+                    b.HasOne("GameStore.DAL.Entities.Game", "Game")
+                        .WithMany("WishlistItems")
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GameStore.DAL.Entities.User", "User")
+                        .WithMany("WishlistItems")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -448,6 +533,8 @@ namespace GameStore.DAL.Migrations
                     b.Navigation("OrderItems");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("WishlistItems");
                 });
 
             modelBuilder.Entity("GameStore.DAL.Entities.Library", b =>
@@ -469,6 +556,8 @@ namespace GameStore.DAL.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("WishlistItems");
                 });
 #pragma warning restore 612, 618
         }

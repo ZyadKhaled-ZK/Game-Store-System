@@ -28,13 +28,19 @@ builder.Services.AddDbContext<GameStoreDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("GameStoreConnection")));
 
-builder.Services.AddHttpClient<ClaudeService>();
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderAnalyticsService, OrderAnalyticsService>();
+builder.Services.AddScoped<IGameFileService, GameFileService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ILibraryService, LibraryService>();
+builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<SeedService>();
 
 // Session-based auth (8-hour idle timeout)
 builder.Services.AddDistributedMemoryCache();
@@ -58,44 +64,8 @@ using (var scope = app.Services.CreateScope())
         db.Database.Migrate();
     }
 
-    // Seed categories
-    if (!db.Categories.Any())
-    {
-        var categories = new[]
-        {
-            "Action", "Adventure", "RPG", "Strategy", "Simulation",
-            "Sports", "Racing", "Indie", "Puzzle", "Horror",
-            "Shooter", "Fighting"
-        };
-        db.Categories.AddRange(categories.Select(name => new Category { Name = name }));
-        db.SaveChanges();
-    }
-
-    // Seed default Developer account
-    if (!db.Users.Any(u => u.Role == GameStore.DAL.Enum.Role.DEVELOPER))
-    {
-        db.Users.Add(new User
-        {
-            Username     = "Developer",
-            Email        = "dev@gamestore.com",
-            PasswordHash = AuthService.HashPassword("Dev@1234"),
-            Role         = GameStore.DAL.Enum.Role.DEVELOPER
-        });
-        db.SaveChanges();
-    }
-
-    // Seed default Admin account
-    if (!db.Users.Any(u => u.Role == GameStore.DAL.Enum.Role.ADMIN))
-    {
-        db.Users.Add(new User
-        {
-            Username     = "Admin",
-            Email        = "admin@gamestore.com",
-            PasswordHash = AuthService.HashPassword("Admin@1234"),
-            Role         = GameStore.DAL.Enum.Role.ADMIN
-        });
-        db.SaveChanges();
-    }
+    var seeder = scope.ServiceProvider.GetRequiredService<SeedService>();
+    await seeder.SeedAsync();
 }
 
 // ── Middleware pipeline ─────────────────────────────────────────────────────

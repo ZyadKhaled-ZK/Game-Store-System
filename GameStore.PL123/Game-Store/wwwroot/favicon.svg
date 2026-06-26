@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e63946"/>
+      <stop offset="100%" stop-color="#8a1c24"/>
+    </linearGradient>
+    <filter id="glow">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#e63946" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+  <rect width="32" height="32" rx="4" fill="#070709"/>
+  <polygon points="16,6 24,14 16,22 8,14" fill="url(#g)" filter="url(#glow)"/>
+  <text x="16" y="26" font-family="'Orbitron',monospace" font-size="11" font-weight="900" fill="white" text-anchor="middle">GS</text>
+</svg>

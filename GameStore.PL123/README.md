@@ -15,7 +15,6 @@ Built with **Razor Pages** (storefront + admin panel), **MVC** (utility pages), 
 - [Pages & Routes](#pages--routes)
 - [Services Layer](#services-layer)
 - [Admin Panel](#admin-panel)
-- [Claude AI Integration](#claude-ai-integration)
 - [File Uploads](#file-uploads)
 - [NuGet Packages](#nuget-packages)
 - [Configuration](#configuration)
@@ -102,7 +101,6 @@ GameStore.PL123/
 ├── Game-Store/                          ← Web Application
 │   ├── Pages/
 │   │   ├── Index.cshtml                 ← Public storefront (browse games)
-│   │   ├── Claude.cshtml                ← Claude AI chat interface
 │   │   ├── _ViewImports.cshtml          ← Shared usings + tag helpers
 │   │   ├── _ViewStart.cshtml            ← Default layout config
 │   │   ├── Auth/
@@ -135,7 +133,7 @@ GameStore.PL123/
 │   │
 │   ├── AdminOnlyFilter.cs               ← Auth filter for /Admin routes
 │   ├── Program.cs                       ← App entry point + DI + pipeline
-│   ├── appsettings.json                 ← Connection strings + Claude config
+│   ├── appsettings.json                 ← Connection strings
 │   └── wwwroot/
 │       ├── css/, js/, lib/              ← Static assets
 │       └── uploads/games/               ← Uploaded cover images, screenshots, files
@@ -143,7 +141,6 @@ GameStore.PL123/
 ├── GameStore.BLL/                       ← Business Logic Layer
 │   └── Services/
 │       ├── AuthService.cs               ← Login, register, password hashing
-│       ├── ClaudeService.cs             ← Anthropic Claude API integration
 │       ├── GameService.cs               ← Game CRUD operations
 │       ├── UserService.cs               ← User management + role changes
 │       ├── CategoryService.cs           ← Category CRUD
@@ -277,7 +274,6 @@ Non-admin users are redirected to `/Auth/Login`.
 | `/Index` | `Pages/Index.cshtml` | Same as `/` |
 | `/Auth/Login` | `Pages/Auth/Login.cshtml` | Sign in with email + password |
 | `/Auth/Logout` | `Pages/Auth/Logout.cshtml` | Clear session, redirect to login |
-| `/Claude` | `Pages/Claude.cshtml` | Chat with Claude AI (requires API key) |
 
 ### Admin (ADMIN role required)
 
@@ -357,14 +353,6 @@ Non-admin users are redirected to `/Auth/Login`.
 | `GetAllWithDetailsAsync()` | All reviews with user + game details |
 | `DeleteAsync(id)` | Remove review |
 
-### ClaudeService
-
-| Method | Description |
-|--------|-------------|
-| `AskAsync(prompt)` | Send prompt to Anthropic Claude API, return response text |
-
-Requires `Claude:ApiKey` in `appsettings.json`. Uses `HttpClient` registered via `AddHttpClient<ClaudeService>()`.
-
 ---
 
 ## Admin Panel
@@ -388,23 +376,6 @@ The "Edit Game" modal uses a **pre-serialized JSON dataset** (`GameDataJson`) to
 - **Total Revenue** — `OrderService.GetTotalRevenueAsync()` (sum of COMPLETED orders)
 
 ---
-
-## Claude AI Integration
-
-A chat page at `/Claude` that sends prompts to Anthropic's Claude API.
-
-**Configuration** (in `appsettings.json`):
-```json
-{
-  "Claude": {
-    "ApiKey": "YOUR_CLAUDE_API_KEY_HERE",
-    "BaseUrl": "https://api.anthropic.com/",
-    "Model": "claude-sonnet-4-5-20250929"
-  }
-}
-```
-
-The service is registered as an `HttpClient` via `AddHttpClient<ClaudeService>()` for proper connection pooling.
 
 ---
 
@@ -470,11 +441,6 @@ builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 2L * 1024 * 
 {
   "ConnectionStrings": {
     "GameStoreConnection": "Server=(localdb)\\mssqllocaldb;Database=GameStoreDB;Trusted_Connection=True;"
-  },
-  "Claude": {
-    "ApiKey": "YOUR_CLAUDE_API_KEY_HERE",
-    "BaseUrl": "https://api.anthropic.com/",
-    "Model": "claude-sonnet-4-5-20250929"
   },
   "AllowedHosts": "*"
 }

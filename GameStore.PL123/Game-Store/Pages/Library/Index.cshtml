@@ -1,0 +1,103 @@
+@page
+@model GameStore.PL.Pages.Library.IndexModel
+@{
+    ViewData["Title"] = "My Library";
+    Layout = "_Layout";
+    var isLoggedIn = !string.IsNullOrEmpty(HttpContext.Session.GetString("UserId"));
+}
+
+<style>
+  .lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-top: 24px; }
+  .lib-card {
+    background: var(--bg2); border: 1px solid var(--border-red); padding: 20px;
+    display: flex; flex-direction: column; gap: 12px; transition: all 0.2s;
+  }
+  .lib-card:hover { border-color: var(--red); box-shadow: var(--glow-red); }
+  .lib-img { width: 100%; height: 140px; object-fit: cover; border: 1px solid var(--border-red); }
+  .lib-img-placeholder { width: 100%; height: 140px; background: var(--bg3); border: 1px solid var(--border-red); display: flex; align-items: center; justify-content: center; color: var(--red); font-size: 2rem; }
+  .lib-title { font-family: var(--font-display); font-weight: 700; color: white; font-size: 0.95rem; }
+  .lib-dev { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+  .lib-added { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+  .empty-lib { text-align: center; padding: 80px; font-family: var(--font-mono); color: var(--text-dim); }
+</style>
+
+<div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:32px;">
+  <div>
+    <div class="section-tag">Collection</div>
+    <h2 class="section-title glitch">MY LIBRARY</h2>
+  </div>
+  <a href="/" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> BROWSE STORE</a>
+</div>
+
+<div style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim); margin-bottom:12px;">
+  [ <span id="libCount">@Model.LibraryGames.Count</span> TITLE(S) IN LIBRARY ]
+</div>
+
+<div style="margin-bottom:20px; max-width:400px;">
+  <input type="text" id="libSearch" class="gs-search" placeholder="Search your library..." oninput="filterLibrary()" style="width:100%;" />
+</div>
+
+@if (isLoggedIn && Model.LibraryGames.Any())
+{
+  <div class="lib-grid" id="libGrid">
+    @foreach (var lg in Model.LibraryGames)
+    {
+      <div class="lib-card" data-title="@(lg.Game?.Title?.ToLower() ?? "")" data-dev="@(lg.Game?.Developer?.ToLower() ?? "")">
+        @if (!string.IsNullOrEmpty(lg.Game?.CoverImageUrl))
+        {
+          <img src="@lg.Game.CoverImageUrl" alt="@lg.Game.Title" class="lib-img"/>
+        }
+        else if (lg.Game?.ScreenshotUrls.Any() == true)
+        {
+          <img src="@lg.Game.ScreenshotUrls[0]" alt="@lg.Game.Title" class="lib-img"/>
+        }
+        else
+        {
+          <div class="lib-img-placeholder">⊗</div>
+        }
+        <div>
+          <div class="lib-title">@(lg.Game?.Title ?? "Unknown")</div>
+          <div class="lib-dev">@((lg.Game?.Developer ?? "Anon").ToUpper())</div>
+          <div class="lib-added">ADDED: @lg.AddedAt.ToString("yyyy-MM-dd")</div>
+        </div>
+        @if (lg.Game?.GameFileUrl != null)
+        {
+          <a href="/Index?handler=Download&id=@lg.GameId" class="btn btn-primary" style="text-align:center; justify-content:center; padding:10px; font-size:12px; width:100%;">⬇ DOWNLOAD</a>
+        }
+        else
+        {
+          <div class="btn btn-secondary" style="text-align:center; justify-content:center; padding:10px; font-size:12px; width:100%; opacity:0.5; cursor:not-allowed;" disabled>NO FILE</div>
+        }
+      </div>
+    }
+  </div>
+  <script>
+    function filterLibrary() {
+      const q = document.getElementById('libSearch').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.lib-card');
+      let count = 0;
+      cards.forEach(c => {
+        const match = !q || c.dataset.title.includes(q) || c.dataset.dev.includes(q);
+        c.style.display = match ? '' : 'none';
+        if (match) count++;
+      });
+      document.getElementById('libCount').textContent = count;
+    }
+  </script>
+}
+else
+{
+  <div class="empty-lib">
+    <div style="font-size:3rem; margin-bottom:16px; color:var(--red);">📚</div>
+    @if (isLoggedIn)
+    {
+      <h3 style="font-family:var(--font-display); color:white; margin-bottom:8px;">LIBRARY EMPTY</h3>
+      <p>No titles owned yet. <a href="/" style="color:var(--gold);">BROWSE STORE →</a></p>
+    }
+    else
+    {
+      <h3 style="font-family:var(--font-display); color:white; margin-bottom:8px;">LOGIN REQUIRED</h3>
+      <p><a href="/Auth/Login" style="color:var(--gold);">LOGIN</a> or <a href="/Auth/Register" style="color:var(--gold);">REGISTER</a> to see your library.</p>
+    }
+  </div>
+}
