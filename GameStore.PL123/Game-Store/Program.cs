@@ -1,4 +1,3 @@
-using GameStore.PL;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,13 +15,7 @@ builder.WebHost.ConfigureKestrel(o =>
 // ── Services ────────────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddRazorPages(options =>
-{
-    options.Conventions.AddFolderApplicationModelConvention("/Admin", model =>
-    {
-        model.Filters.Add(new AdminOnlyFilter());
-    });
-});
+builder.Services.AddScoped<AdminOnlyFilter>();
 
 builder.Services.AddDbContext<GameStoreDbContext>(options =>
     options.UseSqlServer(
@@ -82,9 +75,11 @@ app.UseSession();
 app.UseAuthorization();
 
 app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.MapRazorPages();
 
 app.Run();

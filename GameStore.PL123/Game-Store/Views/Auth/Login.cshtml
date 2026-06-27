@@ -1,0 +1,261 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Dev Login";
+}
+
+<style>
+  .login-box {
+    background: var(--bg2);
+    border: 1px solid var(--border-red);
+    padding: 40px;
+    box-shadow: var(--glow-red);
+    animation: loginIn 0.4s ease;
+    position: relative;
+  }
+  .login-box::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--red), transparent, var(--red)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .login-box:hover::before { opacity: 1; }
+
+  @Html.Raw("@keyframes loginIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }")
+
+  .login-input {
+    background: var(--bg3) !important;
+    border: 1px solid var(--border-red) !important;
+    color: var(--text) !important;
+    border-radius: 0 !important;
+    transition: all 0.25s !important;
+    padding: 12px 16px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 13px !important;
+  }
+  .login-input:hover {
+    border-color: var(--red-dim) !important;
+    box-shadow: 0 0 14px rgba(230,57,70,0.1) !important;
+  }
+  .login-input:focus {
+    border-color: var(--red) !important;
+    box-shadow: 0 0 0 2px #070709, 0 0 16px 3px rgba(230,57,70,0.35) !important;
+    background: #0a0a0e !important;
+  }
+  .login-input::placeholder {
+    color: var(--text-dim) !important;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .gs-submit-btn {
+    all: unset;
+    cursor: pointer;
+    width: 100%;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #fff;
+    position: relative;
+    transition: transform .2s ease;
+    margin-top: 1.5rem;
+    display: block;
+    text-align: center;
+  }
+
+  .gs-submit-btn::before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom right, #9b1d25, var(--red));
+    transform: scale(1);
+    border-radius: 0;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .gs-submit-btn span:nth-child(2) {
+    position: relative;
+    padding: 14px 24px;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    display: block;
+    transition: transform 0.2s ease;
+  }
+
+  .gs-submit-btn span:nth-child(1),
+  .gs-submit-btn span:nth-child(3) {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .gs-submit-btn:hover {
+    transform: scale(1.02);
+  }
+
+  .gs-submit-btn:hover::before {
+    transform: scale(1.04);
+    background: linear-gradient(to bottom right, var(--red), #ff4757);
+    box-shadow: 0 0 30px rgba(230,57,70,0.5);
+  }
+
+  .gs-submit-btn:hover span:nth-child(2) {
+    transform: scale(0.96);
+  }
+
+  .gs-submit-btn:active {
+    transform: scale(0.98);
+  }
+
+  .gs-submit-btn:active::before {
+    transform: scale(0.96);
+    box-shadow: 0 0 15px rgba(230,57,70,0.3);
+  }
+
+  .gs-submit-btn:active span:nth-child(2) {
+    transform: scale(0.92);
+  }
+
+  .gs-submit-btn span:nth-child(1)::before,
+  .gs-submit-btn span:nth-child(1)::after,
+  .gs-submit-btn span:nth-child(3)::before,
+  .gs-submit-btn span:nth-child(3)::after {
+    content: "";
+    display: block;
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    font-family: "bootstrap-icons";
+  }
+
+  .gs-submit-btn:hover span:nth-child(1)::before,
+  .gs-submit-btn:hover span:nth-child(1)::after,
+  .gs-submit-btn:hover span:nth-child(3)::before,
+  .gs-submit-btn:hover span:nth-child(3)::after {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  .gs-submit-btn:active span:nth-child(1)::before,
+  .gs-submit-btn:active span:nth-child(1)::after,
+  .gs-submit-btn:active span:nth-child(3)::before,
+  .gs-submit-btn:active span:nth-child(3)::after {
+    transform: scale(0.7) rotate(15deg);
+    opacity: 0.8;
+  }
+
+  .gs-submit-btn span:nth-child(1)::before {
+    width: 1.5em;
+    height: 1.5em;
+    top: -0.8em;
+    left: -0.4em;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23e63946' d='M11.5 0a1 1 0 0 1 .8.4l1.5 2a1 1 0 0 1 .2.6v1.5a.5.5 0 0 1-.5.5h-.5v.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V5h-.5a.5.5 0 0 1-.5-.5V3a1 1 0 0 1 .2-.6l1.5-2a1 1 0 0 1 .8-.4h6.5Zm-2 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm-3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z'/%3E%3C/svg%3E") no-repeat center / contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)) saturate(1.5);
+  }
+
+  .gs-submit-btn span:nth-child(1)::after {
+    width: 1em;
+    height: 1em;
+    top: 0.5em;
+    left: -0.6em;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23f5c542' d='M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6Zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Z'/%3E%3C/svg%3E") no-repeat center / contain;
+    filter: blur(1px) drop-shadow(0 2px 4px rgba(0,0,0,0.3)) saturate(1.5);
+  }
+
+  .gs-submit-btn span:nth-child(3)::before {
+    width: 1.2em;
+    height: 1.2em;
+    top: -0.6em;
+    right: -0.2em;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23f5c542' d='M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6Zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5Z'/%3E%3C/svg%3E") no-repeat center / contain;
+    filter: blur(1px) drop-shadow(0 2px 4px rgba(0,0,0,0.3)) saturate(1.5);
+  }
+
+  .gs-submit-btn span:nth-child(3)::after {
+    width: 1.5em;
+    height: 1.5em;
+    top: 0.8em;
+    right: -0.8em;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23e63946' d='M11.5 0a1 1 0 0 1 .8.4l1.5 2a1 1 0 0 1 .2.6v1.5a.5.5 0 0 1-.5.5h-.5v.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V5h-.5a.5.5 0 0 1-.5-.5V3a1 1 0 0 1 .2-.6l1.5-2a1 1 0 0 1 .8-.4h6.5Zm-2 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm-3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z'/%3E%3C/svg%3E") no-repeat center / contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)) saturate(1.5);
+  }
+</style>
+
+<div class="row w-100 justify-content-center mt-5 pt-5">
+    <div class="col-md-5">
+        <div class="section-header text-center mb-4">
+            <h2 class="section-title glitch">DEV LOGIN</h2>
+            <div class="section-tag d-inline-flex">Authentication Node</div>
+        </div>
+
+        <div class="login-box">
+            <div style="color: var(--red); border: 1px solid var(--red); padding: 5px 15px; display: inline-block; font-size: 12px; margin-bottom: 20px; font-family: var(--font-mono);">
+                ACCESS REQUIRED
+            </div>
+
+            @if (!string.IsNullOrEmpty(ViewData["ErrorMessage"] as string))
+            {
+                <div style="background: rgba(230,57,70,0.1); border: 1px solid var(--red); color: white; padding: 10px; margin-bottom: 15px; font-family: var(--font-mono); font-size: 12px;">
+                    [ERROR] @ViewData["ErrorMessage"]
+                </div>
+            }
+
+            <form method="post">
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">Email_Address //:</label>
+                    <input asp-for="Email" type="email" class="form-control login-input" placeholder="dev@gamestore.com" autocomplete="email" maxlength="200"/>
+                    <span asp-validation-for="Email" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="Password" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">Access_Code //:</label>
+                    <input asp-for="Password" type="password" class="form-control login-input" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password"/>
+                    <span asp-validation-for="Password" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
+                </div>
+
+                <div style="text-align:right; margin-bottom:16px;">
+                  <a href="/Auth/ForgotPassword" style="color:var(--text-dim); font-family:var(--font-mono); font-size:11px; text-decoration:none; transition:color 0.2s;"
+                     onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-dim)'">FORGOT PASSWORD?</a>
+                </div>
+                <button type="submit" class="gs-submit-btn">
+                  <span></span>
+                  <span>INITIALIZE LOGIN</span>
+                  <span></span>
+                </button>
+            </form>
+
+            <div style="margin-top: 30px; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                <strong style="color: var(--gold);">DEFAULT LOGIN</strong><br/>
+                dev@gamestore.com | Dev@1234
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="/" style="color: var(--text-dim); font-family: var(--font-mono); text-decoration: none; transition: all 0.2s;"
+               onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">
+                &lt; BACK
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

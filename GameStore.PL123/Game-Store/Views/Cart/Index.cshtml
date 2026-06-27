@@ -1,0 +1,111 @@
+@model CartViewModel
+@{
+    ViewData["Title"] = "Cart";
+}
+
+<style>
+  .cart-table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+  .cart-table th { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 2px; padding: 12px 16px; border-bottom: 1px solid var(--border-red); text-align: left; text-transform: uppercase; }
+  .cart-table td { padding: 16px; border-bottom: 1px solid rgba(230,57,70,0.1); vertical-align: middle; }
+  .cart-table tr:hover td { background: rgba(230,57,70,0.02); }
+  .cart-cover { width: 60px; height: 40px; object-fit: cover; border: 1px solid var(--border-red); }
+  .cart-cover-placeholder { width: 60px; height: 40px; background: var(--bg3); border: 1px solid var(--border-red); display: flex; align-items: center; justify-content: center; color: var(--red); font-size: 18px; }
+  .cart-total { font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; color: var(--gold); }
+  .empty-cart { text-align: center; padding: 80px; font-family: var(--font-mono); color: var(--text-dim); }
+</style>
+
+<div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:32px;">
+  <div>
+    <div class="section-tag">Shopping</div>
+    <h2 class="section-title glitch">YOUR CART</h2>
+  </div>
+  <a href="/" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> CONTINUE BROWSING</a>
+</div>
+
+@{
+    var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("UserId"));
+}
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+  <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); color: white; padding: 10px 16px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 12px;">
+    @(Model.IsError ? "[ERROR]" : "[OK]") @Model.Message
+  </div>
+}
+
+@if (isLoggedIn && Model.CartItems.Any())
+{
+  <div class="table-responsive">
+  <table class="cart-table">
+    <thead>
+      <tr>
+        <th>Game</th>
+        <th>Title</th>
+        <th>Price</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (var item in Model.CartItems)
+      {
+        <tr>
+          <td>
+            @if (!string.IsNullOrEmpty(item.Game?.CoverImageUrl))
+            {
+              <img src="@item.Game.CoverImageUrl" alt="@item.Game.Title" class="cart-cover"/>
+            }
+            else
+            {
+              <div class="cart-cover-placeholder"><i class="bi bi-play-fill"></i></div>
+            }
+          </td>
+          <td style="font-family:var(--font-display); font-weight:700; color:white;">@(item.Game?.Title ?? "Unknown")</td>
+          <td>
+            @if (item.Game?.Price == 0)
+            {
+              <span style="color:var(--text-dim); font-style:italic;">FREE</span>
+            }
+            else
+            {
+              <span style="font-family:var(--font-display); font-weight:700; color:var(--gold);">$@(item.Game?.Price.ToString("N2") ?? "0.00")</span>
+            }
+          </td>
+          <td>
+            <form method="post" asp-action="Remove" asp-route-id="@item.Id">
+              @Html.AntiForgeryToken()
+              <button type="submit" class="btn btn-primary" style="padding:6px 12px; font-size:11px;">REMOVE</button>
+            </form>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  </div>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:32px; padding:24px 32px; background:var(--bg2); border:1px solid var(--border-red);">
+    <div>
+      <div style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim); letter-spacing:1px;">TOTAL</div>
+      <div class="cart-total">$@Model.TotalPrice.ToString("N2")</div>
+    </div>
+    <form method="post" asp-action="Checkout" onsubmit="return confirm('Confirm purchase of @Model.CartItems.Count game(s) for $@Model.TotalPrice.ToString("N2")?')">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="btn btn-primary" style="padding:14px 36px; font-size:14px;">PROCEED TO CHECKOUT</button>
+    </form>
+  </div>
+}
+else
+{
+  <div class="empty-cart">
+    <div style="font-size:3rem; margin-bottom:16px; color:var(--red);">🛒</div>
+    @if (isLoggedIn)
+    {
+      <h3 style="font-family:var(--font-display); color:white; margin-bottom:8px;">YOUR CART IS EMPTY</h3>
+      <p>No items in queue. <a href="/" style="color:var(--gold);">BROWSE GAMES →</a></p>
+    }
+    else
+    {
+      <h3 style="font-family:var(--font-display); color:white; margin-bottom:8px;">LOGIN REQUIRED</h3>
+      <p><a href="/Auth/Login" style="color:var(--gold);">LOGIN</a> or <a href="/Auth/Register" style="color:var(--gold);">REGISTER</a> to start shopping.</p>
+    }
+  </div>
+}

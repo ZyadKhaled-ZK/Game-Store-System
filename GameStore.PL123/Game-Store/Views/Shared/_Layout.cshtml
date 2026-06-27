@@ -282,38 +282,38 @@
                         @if (role == "ADMIN")
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Admin/Dashboard">Admin</a>
+                                <a class="nav-link" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Admin</a>
                             </li>
                         }
                         @if (!string.IsNullOrEmpty(role))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Cart/Index">Cart</a>
+                                <a class="nav-link" asp-area="" asp-controller="Cart" asp-action="Index">Cart</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Wishlist/Index">Wishlist</a>
+                                <a class="nav-link" asp-area="" asp-controller="Wishlist" asp-action="Index">Wishlist</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Library/Index">Library</a>
+                                <a class="nav-link" asp-area="" asp-controller="Library" asp-action="Index">Library</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Orders/Index">Orders</a>
+                                <a class="nav-link" asp-area="" asp-controller="Orders" asp-action="Index">Orders</a>
                             </li>
                             <li class="nav-item" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);align-self:center;">
-                                <a href="/Auth/Profile" style="color:var(--text-dim);text-decoration:none;transition:color 0.2s;"
+                                <a asp-area="" asp-controller="Auth" asp-action="Profile" style="color:var(--text-dim);text-decoration:none;transition:color 0.2s;"
                                    onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">[ @username ]</a>
                             </li>
                             <li class="nav-item ms-2">
-                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-page="/Auth/Logout">Logout</a>
+                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-controller="Auth" asp-action="Logout">Logout</a>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item ms-2">
-                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-page="/Auth/Register">Register</a>
+                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-controller="Auth" asp-action="Register">Register</a>
                             </li>
                             <li class="nav-item ms-2">
-                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-page="/Auth/Login">Login</a>
+                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-controller="Auth" asp-action="Login">Login</a>
                             </li>
                         }
                     </ul>

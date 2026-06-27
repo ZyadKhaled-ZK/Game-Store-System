@@ -1,0 +1,110 @@
+@model AdminOrdersViewModel
+@{
+    ViewData["Title"] = "Order Ledger";
+}
+
+<style>
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 40px; }
+  .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 28px; }
+  .gs-search-input {
+    background: var(--bg2); border: 1px solid var(--border-red); color: var(--text);
+    padding: 10px 16px; font-family: var(--font-mono); font-size: 12px; width: 260px; outline: none;
+  }
+  .gs-search-input:focus { border-color: var(--red); }
+  .gs-search-input::placeholder { color: var(--text-dim); }
+
+  .order-row td { vertical-align: middle; }
+  .items-list { list-style: none; padding: 0; margin: 0; }
+  .items-list li { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .items-list li strong { color: var(--text); }
+
+  .summary-row {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 2px;
+    background: var(--border-red); margin-bottom: 32px;
+  }
+  .summary-card { background: var(--bg2); padding: 28px 24px; text-align: center; }
+  .summary-val { font-family: var(--font-display); font-size: 2rem; font-weight: 900; color: var(--red); text-shadow: 0 0 20px rgba(230,57,70,0.3); }
+  .summary-lbl { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-top: 6px; }
+
+  .order-row { transition: background 0.2s; }
+  .order-row td { transition: color 0.2s; }
+  .order-row:hover td { color: white; }
+</style>
+
+<div class="page-header">
+  <div>
+    <div class="section-tag">Transaction Log</div>
+    <h2 class="section-title glitch">ORDER LEDGER</h2>
+  </div>
+  <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+<div class="summary-row">
+  <div class="summary-card">
+    <div class="summary-val">@Model.TotalOrders</div>
+    <div class="summary-lbl">Total Orders</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-val">$@Model.TotalRevenue.ToString("N2")</div>
+    <div class="summary-lbl">Total Revenue</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <input type="text" id="searchInput" class="gs-search-input" placeholder="Search by user or order ID..."/>
+</div>
+
+<div class="table-responsive">
+<table class="cyber-table" id="ordersTable">
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>User</th>
+      <th>Items</th>
+      <th>Total</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var order in Model.Orders)
+    {
+      <tr class="order-row" data-search="@order.Id.ToLower() @order.User?.Username?.ToLower()">
+        <td style="opacity:0.6; font-size:12px;">...@(order.Id.Length > 8 ? order.Id.Substring(order.Id.Length - 8) : order.Id)</td>
+        <td style="color: var(--gold);">@(order.User?.Username ?? "UNKNOWN")</td>
+        <td>
+          <ul class="items-list">
+            @foreach (var item in order.OrderItems.Take(3))
+            {
+              <li><strong>@(item.Game?.Title ?? "??")</strong> — $@item.PriceAtPurchase.ToString("N2")</li>
+            }
+            @if (order.OrderItems.Count > 3)
+            {
+              <li style="color: var(--red);">+@(order.OrderItems.Count - 3) more...</li>
+            }
+          </ul>
+        </td>
+        <td style="color: var(--gold); font-family: var(--font-display); font-weight: 700;">$@order.TotalPrice.ToString("N2")</td>
+        <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">@order.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+      </tr>
+    }
+  </tbody>
+</table>
+</div>
+
+@if (!Model.Orders.Any())
+{
+  <div style="text-align: center; padding: 80px; font-family: var(--font-mono); color: var(--text-dim);">
+    [ NO ORDERS FOUND IN DATABASE ]
+  </div>
+}
+
+<script>
+  const searchInput  = document.getElementById('searchInput');
+  const rows = document.querySelectorAll('.order-row');
+  searchInput.addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    rows.forEach(row => {
+      row.style.display = !q || row.dataset.search.includes(q) ? '' : 'none';
+    });
+  });
+</script>

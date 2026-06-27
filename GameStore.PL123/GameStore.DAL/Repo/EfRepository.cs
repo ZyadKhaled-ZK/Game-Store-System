@@ -1,5 +1,6 @@
 namespace GameStore.DAL.Repo
 {
+
     public class EfRepository<T> : IRepository<T> where T : class
     {
         private readonly DbSet<T> _dbSet;
