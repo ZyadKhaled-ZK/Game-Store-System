@@ -31,6 +31,7 @@ else
                     <th>TITLE</th>
                     <th>PRICE</th>
                     <th>RELEASED</th>
+                    <th>PUBLISHED</th>
                     <th>CATEGORIES</th>
                     <th>FILE</th>
                     <th>ACTIONS</th>
@@ -43,6 +44,7 @@ else
                         <td style="color:var(--gold);">@game.Title</td>
                         <td style="font-family:var(--font-mono);">@(game.Price == 0 ? "FREE" : $"${game.Price:F2}")</td>
                         <td style="font-size:11px;">@game.ReleaseDate.ToString("yyyy-MM-dd")</td>
+                        <td style="font-size:11px;color:var(--text-dim);">@game.CreatedAt.ToString("yyyy-MM-dd")</td>
                         <td>
                             @if (game.GameCategories.Any())
                             {
@@ -79,15 +81,15 @@ else
 }
 
 <!-- Create Modal -->
-<div id="createModal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;justify-content:center;align-items:center;">
-  <div class="modal-box" style="background:var(--bg2);border:1px solid var(--border-cyan);max-width:600px;width:90%;max-height:90vh;overflow-y:auto;">
-    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid var(--border-cyan);">
-      <span class="modal-title" style="font-family:var(--font-display);font-size:16px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;">New Game</span>
-      <span class="modal-close" onclick="closeCreateModal()" style="cursor:pointer;font-size:24px;color:var(--text-dim);">&times;</span>
+<div id="createModal" class="modal-overlay">
+  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto;text-align:left;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(0,229,255,0.1);margin-bottom:4px;">
+      <span style="font-family:var(--font-display);font-size:15px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;">New Game</span>
+      <span onclick="closeCreateModal()" style="cursor:pointer;font-size:22px;color:var(--text-dim);line-height:1;opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">&times;</span>
     </div>
     <form method="post" asp-action="Create" enctype="multipart/form-data">
       @Html.AntiForgeryToken()
-      <div style="padding:20px;">
+      <div style="margin-top:16px;">
         <div class="form-group">
             <label>Title *</label>
             <input type="text" name="Title" class="form-control" required maxlength="200" />
@@ -112,7 +114,7 @@ else
         </div>
         <div class="form-group">
             <label>Game File (ZIP/RAR/EXE)</label>
-            <input type="file" name="GameFile" class="form-control" style="padding:8px 14px;" accept=".zip,.rar,.7z,.exe,.msi,.apk" />
+            <input type="file" name="GameFile" class="form-control" accept=".zip,.rar,.7z,.exe,.msi,.apk" />
         </div>
         <div class="form-group">
             <label>Trailer URL</label>
@@ -123,7 +125,7 @@ else
             <div style="display:flex;flex-wrap:wrap;gap:10px;">
                 @foreach (var cat in categories)
                 {
-                    <label style="font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                    <label style="font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);">
                         <input type="checkbox" name="CategoryIds" value="@cat.Id" />
                         @cat.Name
                     </label>
@@ -131,7 +133,7 @@ else
             </div>
         </div>
       </div>
-      <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding:20px;border-top:1px solid var(--border-cyan);">
+      <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:18px;border-top:1px solid rgba(0,229,255,0.1);margin-top:4px;">
         <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">CANCEL</button>
         <button type="submit" class="btn btn-primary">PUBLISH</button>
       </div>
@@ -140,16 +142,16 @@ else
 </div>
 
 <!-- Edit Modal -->
-<div id="editModal" class="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;justify-content:center;align-items:center;">
-  <div class="modal-box" style="background:var(--bg2);border:1px solid var(--border-cyan);max-width:600px;width:90%;max-height:90vh;overflow-y:auto;">
-    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid var(--border-cyan);">
-      <span class="modal-title" style="font-family:var(--font-display);font-size:16px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;">Edit Game</span>
-      <span class="modal-close" onclick="closeEditModal()" style="cursor:pointer;font-size:24px;color:var(--text-dim);">&times;</span>
+<div id="editModal" class="modal-overlay">
+  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto;text-align:left;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(0,229,255,0.1);margin-bottom:4px;">
+      <span style="font-family:var(--font-display);font-size:15px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;">Edit Game</span>
+      <span onclick="closeEditModal()" style="cursor:pointer;font-size:22px;color:var(--text-dim);line-height:1;opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">&times;</span>
     </div>
     <form method="post" asp-action="Edit" enctype="multipart/form-data">
       @Html.AntiForgeryToken()
       <input type="hidden" name="GameId" id="editGameId" />
-      <div style="padding:20px;">
+      <div style="margin-top:16px;">
         <div class="form-group">
             <label>Title *</label>
             <input type="text" name="Title" id="editTitle" class="form-control" required maxlength="200" />
@@ -174,11 +176,11 @@ else
         </div>
         <div class="form-group">
             <label>Game File (ZIP/RAR/EXE)</label>
-            <input type="file" name="GameFile" id="editGameFile" class="form-control" style="padding:8px 14px;" accept=".zip,.rar,.7z,.exe,.msi,.apk" />
-            <div id="currentFileInfo" style="display:none; margin-top:8px; font-family:var(--font-mono); font-size:12px; color:var(--text-dim); padding:8px 12px; background:var(--bg3); border:1px solid var(--border-cyan);">
+            <input type="file" name="GameFile" id="editGameFile" class="form-control" accept=".zip,.rar,.7z,.exe,.msi,.apk" />
+            <div id="currentFileInfo" style="display:none;margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:8px 12px;background:rgba(7,7,9,0.6);border:1px solid rgba(0,229,255,0.12);border-radius:var(--radius-sm);">
               <span style="color:var(--cyan);">CURRENT FILE:</span>
               <span id="currentFileName"></span>
-              <label style="margin-left:16px; cursor:pointer; color:var(--red);">
+              <label style="margin-left:16px;cursor:pointer;color:var(--red);">
                 <input type="checkbox" name="RemoveGameFile" value="true" id="editRemoveGameFile" style="accent-color:var(--red);"/>
                 REMOVE FILE
               </label>
@@ -193,7 +195,7 @@ else
             <div style="display:flex;flex-wrap:wrap;gap:10px;">
                 @foreach (var cat in categories)
                 {
-                    <label style="font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;">
+                    <label style="font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);">
                         <input type="checkbox" name="CategoryIds" value="@cat.Id" class="edit-cat" data-cat-id="@cat.Id" />
                         @cat.Name
                     </label>
@@ -201,7 +203,7 @@ else
             </div>
         </div>
       </div>
-      <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding:20px;border-top:1px solid var(--border-cyan);">
+      <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:18px;border-top:1px solid rgba(0,229,255,0.1);margin-top:4px;">
         <button type="button" class="btn btn-secondary" onclick="closeEditModal()">CANCEL</button>
         <button type="submit" class="btn btn-primary">UPDATE</button>
       </div>
@@ -219,9 +221,8 @@ function fmtSize(bytes) {
     return (bytes/(1024*1024*1024)).toFixed(2) + ' GB';
 }
 
-function openCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
-function closeCreateModal() { document.getElementById('createModal').style.display = 'none'; }
-document.getElementById('createModal').addEventListener('click', function(e) { if (e.target === this) closeCreateModal(); });
+function openCreateModal() { showModal('createModal'); }
+function closeCreateModal() { closeModal('createModal'); }
 
 function openEditModal(id, title, desc, price, releaseDate, cover, trailer, catIds, fileUrl, fileName, fileSize) {
     document.getElementById('editGameId').value = id;
@@ -249,7 +250,6 @@ function openEditModal(id, title, desc, price, releaseDate, cover, trailer, catI
     }
     document.getElementById('editModal').style.display = 'flex';
 }
-function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
-document.getElementById('editModal').addEventListener('click', function(e) { if (e.target === this) closeEditModal(); });
+function closeEditModal() { closeModal('editModal'); }
 </script>
 }

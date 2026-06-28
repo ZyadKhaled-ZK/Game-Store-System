@@ -14,6 +14,7 @@ namespace GameStore.BLL.Services
         public async Task<List<Game>> GetAllWithCategoriesAsync()
         {
             return await _uow.Repository<Game>().Query()
+                .Include(g => g.DeveloperNav)
                 .Include(g => g.GameCategories)
                     .ThenInclude(gc => gc.Category)
                 .Where(g => g.DeveloperId == null || g.DeveloperNav == null || g.DeveloperNav.IsActive)
@@ -29,6 +30,7 @@ namespace GameStore.BLL.Services
             if (pageSize > 100) pageSize = 100;
 
             var query = _uow.Repository<Game>().Query()
+                .Include(g => g.DeveloperNav)
                 .Include(g => g.GameCategories).ThenInclude(gc => gc.Category)
                 .Where(g => g.DeveloperId == null || g.DeveloperNav == null || g.DeveloperNav.IsActive)
                 .OrderByDescending(g => g.ReleaseDate)
@@ -52,14 +54,16 @@ namespace GameStore.BLL.Services
         public async Task<Game?> GetByIdAsync(string id)
         {
             return await _uow.Repository<Game>().Query()
+                .Include(g => g.DeveloperNav)
                 .Include(g => g.GameCategories)
                 .FirstOrDefaultAsync(g => g.Id == id);
         }
 
         public async Task<Game> CreateAsync(Game game, List<string> categoryIds)
         {
+            game.CreatedAt = DateTime.UtcNow;
+            game.UpdatedAt = DateTime.UtcNow;
             await _uow.Repository<Game>().AddAsync(game);
-            await _uow.SaveChangesAsync();
 
             if (categoryIds != null)
             {
@@ -67,9 +71,9 @@ namespace GameStore.BLL.Services
                 {
                     await _uow.Repository<GameCategory>().AddAsync(new GameCategory { GameId = game.Id, CategoryId = catId });
                 }
-                await _uow.SaveChangesAsync();
             }
 
+            await _uow.SaveChangesAsync();
             return game;
         }
 
@@ -89,6 +93,7 @@ namespace GameStore.BLL.Services
             game.DeveloperId = update.DeveloperId;
             game.CoverImageUrl = update.CoverImageUrl;
             game.TrailerUrl = update.TrailerUrl;
+            game.UpdatedAt = DateTime.UtcNow;
 
             _uow.Repository<GameCategory>().RemoveRange(game.GameCategories);
             if (categoryIds != null)

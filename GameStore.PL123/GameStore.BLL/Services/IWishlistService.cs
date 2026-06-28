@@ -5,7 +5,7 @@ namespace GameStore.BLL.Services
         Task<List<WishlistItem>> GetWishlistAsync(string userId);
         Task<bool> IsInWishlistAsync(string userId, string gameId);
         Task<(bool Success, string Error)> AddToWishlistAsync(string userId, string gameId);
-        Task<bool> RemoveFromWishlistAsync(string wishlistItemId);
+        Task<bool> RemoveFromWishlistAsync(string wishlistItemId, string userId);
         Task<int> GetWishlistCountAsync(string userId);
     }
 }

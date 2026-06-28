@@ -42,9 +42,10 @@ namespace GameStore.BLL.Services
             return (true, string.Empty);
         }
 
-        public async Task<bool> RemoveFromWishlistAsync(string wishlistItemId)
+        public async Task<bool> RemoveFromWishlistAsync(string wishlistItemId, string userId)
         {
-            var item = await _uow.Repository<WishlistItem>().GetByIdAsync(wishlistItemId);
+            var item = await _uow.Repository<WishlistItem>().Query()
+                .FirstOrDefaultAsync(w => w.Id == wishlistItemId && w.UserId == userId);
             if (item == null) return false;
 
             _uow.Repository<WishlistItem>().Delete(item);

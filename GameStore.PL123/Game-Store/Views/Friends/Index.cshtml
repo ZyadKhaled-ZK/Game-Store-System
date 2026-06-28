@@ -1,520 +1,629 @@
 @model GameStore.PL.Models.Friends.FriendsIndexViewModel
 @{
-    ViewData["Title"] = "Friends";
+    ViewData["Title"] = "Social";
 }
 
 @section Styles {
 <style>
-.friends-container { max-width: 960px; margin: 0 auto; transition: all 0.3s; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
-.glitch-text { font-family: var(--font-display); font-size: 32px; letter-spacing: 4px; }
-.search-box { position: relative; }
-.search-box input { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; font-family: var(--font-mono); font-size: 12px; width: 260px; }
-.search-box input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(245,197,66,0.15); }
-.search-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg2); border: 1px solid var(--border); z-index: 100; max-height: 300px; overflow-y: auto; }
-.search-result { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
-.search-result:hover { background: rgba(245,197,66,0.04); }
-.search-result span { font-family: var(--font-mono); font-size: 12px; }
-.no-results { padding: 14px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
-.requests-section, .friends-section, .suggestions-section { margin-bottom: 40px; }
-.requests-section h2, .friends-section h2, .suggestions-section h2 { font-family: var(--font-display); font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; color: var(--red); }
-.requests-section h2 .badge, .friends-section h2 .badge, .suggestions-section h2 .badge { background: var(--red); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 0; vertical-align: middle; margin-left: 8px; }
-.requests-grid, .friends-grid { display: grid; gap: 12px; }
-.requests-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-.friends-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-.suggestions-grid { display: flex; gap: 10px; flex-wrap: wrap; }
-.request-card { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg3); border: 1px solid var(--border); transition: all 0.2s; }
-.request-card:hover { border-color: var(--gold); }
-.request-info { flex: 1; }
-.request-info .request-user { font-family: var(--font-mono); font-size: 13px; display: block; }
-.request-info .request-date { font-size: 10px; color: var(--text-dim); }
-.request-actions { display: flex; gap: 6px; flex-shrink: 0; }
-.friend-card { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--bg3); border: 1px solid var(--border); transition: all 0.2s; }
-.friend-card:hover { border-color: var(--red); transform: translateX(4px); }
-.friend-avatar { position: relative; flex-shrink: 0; }
-.avatar-placeholder { width: 44px; height: 44px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 18px; color: var(--red); background: rgba(230,57,70,0.08); }
-.status-dot { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border: 2px solid var(--bg3); border-radius: 50%; }
-.status-dot.online { background: #4ade80; }
-.status-dot.offline { background: var(--text-dim); }
-.friend-info { flex: 1; }
-.friend-name { font-family: var(--font-mono); font-size: 14px; color: var(--text); text-decoration: none; }
-.friend-name:hover { color: var(--red); }
-.friend-status { display: block; font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 2px; }
-.friend-actions { display: flex; gap: 6px; }
-.empty-state { text-align: center; padding: 80px 20px; border: 1px dashed var(--border); background: rgba(245,197,66,0.02); }
-.empty-state i { font-size: 3rem; color: var(--gold); opacity: 0.4; margin-bottom: 16px; }
-.empty-state p { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
-.btn-cyber { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-.btn-cyber:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,197,66,0.06); }
-.btn-cyber.btn-sm { padding: 6px 12px; font-size: 10px; }
-.btn-cyber.btn-xs { padding: 4px 10px; font-size: 10px; }
-.btn-cyber.btn-add { background: rgba(245,197,66,0.08); border-color: var(--gold); color: var(--gold); padding: 6px 14px; font-size: 11px; }
-.btn-cyber.btn-add:hover { background: rgba(245,197,66,0.18); box-shadow: 0 0 12px rgba(245,197,66,0.2); }
-.btn-cyber.btn-danger { border-color: var(--border-red); color: var(--red); }
-.btn-cyber.btn-danger:hover { border-color: var(--red); background: rgba(230,57,70,0.1); }
-.suggestion-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg3); border: 1px solid var(--border); transition: all 0.2s; min-width: 200px; }
-.suggestion-card:hover { border-color: var(--gold); }
-.suggestion-card .avatar-placeholder { width: 36px; height: 36px; font-size: 14px; }
-.suggestion-card .friend-name { font-size: 13px; }
-.suggestions-section h2 .badge-gold { background: var(--gold); color: #000; font-size: 10px; padding: 2px 8px; border-radius: 0; vertical-align: middle; margin-left: 8px; }
+:root {
+  --sidebar-w: 340px;
+}
+.friends-app { display: flex; height: calc(100vh - 180px); border: 1px solid var(--border); background: var(--bg2); border-radius: 4px; overflow: hidden; }
 
-/* ── Chat Panel ── */
-.chat-panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-.chat-panel-overlay.show { opacity: 1; pointer-events: auto; }
-.chat-panel { position: fixed; top: 0; right: -420px; width: 420px; height: 100%; background: var(--bg2); border-left: 1px solid var(--border); z-index: 2001; display: flex; flex-direction: column; transition: right 0.3s ease; }
-.chat-panel.show { right: 0; }
-.chat-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--bg3); flex-shrink: 0; }
-.chat-panel-user { display: flex; align-items: center; gap: 12px; }
-.chat-panel-avatar { width: 40px; height: 40px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 16px; color: var(--red); background: rgba(230,57,70,0.06); flex-shrink: 0; }
-.chat-panel-name { font-family: var(--font-mono); font-size: 15px; }
-.chat-panel-status { font-size: 11px; font-family: var(--font-mono); }
-.chat-panel-status .indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-.chat-panel-status .indicator.online { background: #4ade80; }
-.chat-panel-status .indicator.offline { background: var(--text-dim); }
-.chat-panel-close { background: none; border: none; color: var(--text-dim); font-size: 24px; cursor: pointer; padding: 4px 8px; transition: color 0.2s; }
-.chat-panel-close:hover { color: var(--red); }
-.chat-panel-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-.chat-panel-msg { display: flex; }
-.chat-panel-msg.mine { justify-content: flex-end; }
-.chat-panel-msg.theirs { justify-content: flex-start; }
-.chat-panel-msg .bubble { max-width: 80%; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border); }
-.chat-panel-msg.mine .bubble { background: rgba(230,57,70,0.06); border-color: var(--border-red); }
-.chat-panel-msg .bubble-text { font-size: 13px; font-family: var(--font-mono); word-break: break-word; }
-.chat-panel-msg .bubble-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-.chat-panel-msg .bubble-time { font-size: 10px; color: var(--text-dim); }
-.chat-panel-msg .read-receipt { color: var(--cyan); font-size: 10px; }
-.chat-panel-input-area { padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg3); flex-shrink: 0; }
-.chat-panel-typing { padding: 4px 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); font-style: italic; }
-.chat-panel-form { display: flex; gap: 10px; }
-.chat-panel-form input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; font-family: var(--font-mono); font-size: 12px; }
-.chat-panel-form input:focus { border-color: var(--red); outline: none; }
-.chat-panel-form .btn-send { padding: 10px 18px; }
-.chat-panel-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); padding: 40px; }
-.chat-panel-empty i { opacity: 0.3; margin-bottom: 12px; }
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--border); }
-::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+/* ── Sidebar ── */
+.friends-sidebar { width: var(--sidebar-w); border-right: 1px solid var(--border); display: flex; flex-direction: column; background: linear-gradient(180deg, var(--bg3) 0%, rgba(17,17,24,0.98) 100%); flex-shrink: 0; }
+.sidebar-head { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.sidebar-head h2 { font-family: var(--font-display); font-size: 12px; letter-spacing: 2.5px; margin: 0; color: var(--red); }
+.sidebar-head .total-badge { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); background: rgba(255,255,255,0.03); padding: 3px 12px; border: 1px solid var(--border); border-radius: 2px; }
+.sidebar-search { padding: 12px 18px; border-bottom: 1px solid var(--border); }
+.sidebar-search input { width: 100%; background: rgba(7,7,9,0.6); border: 1px solid var(--border); color: var(--text); padding: 9px 14px; font-family: var(--font-mono); font-size: 12px; box-sizing:border-box; transition: border-color 0.2s, box-shadow 0.2s; }
+.sidebar-search input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 12px rgba(245,197,66,0.08); }
+.sidebar-search input::placeholder { color: var(--text-dim); opacity: 0.5; }
+.search-results-sidebar { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg2); border: 1px solid var(--border); border-top: none; z-index: 100; max-height: 280px; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,0.5); }
+.sidebar-scroll { flex: 1; overflow-y: auto; }
+.sidebar-scroll::-webkit-scrollbar { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Section collapsible */
+.section-toggle { display: flex; align-items: center; gap: 8px; padding: 12px 18px 10px; cursor: pointer; font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s; border-bottom: 1px solid rgba(255,255,255,0.03); user-select: none; }
+.section-toggle:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+.section-toggle .arrow { font-size: 9px; transition: transform 0.25s; color: var(--text-dim); }
+.section-toggle .arrow.open { transform: rotate(90deg); }
+.section-toggle .sec-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 8px; padding: 2px 8px; letter-spacing: 0; border-radius: 2px; }
+.section-toggle .sec-badge.gold { background: rgba(245,197,66,0.15); color: var(--gold); border: 1px solid rgba(245,197,66,0.2); }
+.section-body { overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* Friend list item */
+.fl-item { display: flex; align-items: center; gap: 12px; padding: 10px 18px; cursor: pointer; transition: all 0.18s; border-left: 3px solid transparent; text-decoration: none; color: var(--text); border-bottom: 1px solid rgba(255,255,255,0.02); }
+.fl-item:hover { background: rgba(230,57,70,0.04); border-left-color: rgba(230,57,70,0.3); }
+.fl-item.active { background: rgba(230,57,70,0.07); border-left-color: var(--red); }
+.fl-item:last-child { border-bottom: none; }
+.fl-avatar { position: relative; flex-shrink: 0; }
+.fl-avatar .av { width: 40px; height: 40px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 16px; color: var(--red); background: rgba(230,57,70,0.06); transition: border-color 0.2s, box-shadow 0.2s; }
+.fl-item.active .fl-avatar .av { border-color: rgba(230,57,70,0.4); box-shadow: 0 0 16px rgba(230,57,70,0.08); }
+.fl-avatar .dot { position: absolute; bottom: -1px; right: -1px; width: 12px; height: 12px; border: 2.5px solid var(--bg3); border-radius: 50%; transition: all 0.2s; }
+.fl-avatar .dot.online { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.5); }
+.fl-avatar .dot.offline { background: var(--text-dim); }
+.fl-info { flex: 1; min-width: 0; }
+.fl-name { font-family: var(--font-mono); font-size: 13px; color: var(--text); transition: color 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fl-item:hover .fl-name { color: rgba(255,255,255,0.9); }
+.fl-preview { font-size: 10px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.fl-meta { flex-shrink: 0; display: flex; align-items: center; gap: 4px; opacity: 0.7; transition: opacity 0.2s; }
+.fl-item:hover .fl-meta, .fl-item.active .fl-meta { opacity: 1; }
+.fl-time { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); }
+.unread-dot { width: 8px; height: 8px; background: var(--cyan); border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px rgba(0,229,255,0.4); }
+
+/* Request list item */
+.rl-item { display: flex; align-items: center; gap: 12px; padding: 10px 18px 10px 22px; border-bottom: 1px solid rgba(255,255,255,0.025); transition: background 0.15s; }
+.rl-item:hover { background: rgba(245,197,66,0.02); }
+.rl-item .av { width: 32px; height: 32px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 12px; color: var(--gold); background: rgba(245,197,66,0.05); flex-shrink: 0; }
+.rl-item .info { flex: 1; min-width: 0; }
+.rl-item .info .name { font-family: var(--font-mono); font-size: 12px; }
+.rl-item .info .date { font-size: 9px; color: var(--text-dim); margin-top: 2px; }
+.rl-item .acts { display: flex; gap: 4px; flex-shrink: 0; }
+
+/* Suggestion list item */
+.sl-item { display: flex; align-items: center; gap: 12px; padding: 10px 18px 10px 22px; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.015); }
+.sl-item:hover { background: rgba(230,57,70,0.025); }
+.sl-item:last-child { border-bottom: none; }
+.sl-item .av { width: 32px; height: 32px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 12px; color: var(--red); background: rgba(230,57,70,0.05); flex-shrink: 0; }
+.sl-item .info { flex: 1; min-width: 0; }
+.sl-item .info .name { font-family: var(--font-mono); font-size: 12px; color: var(--text); transition: color 0.2s; text-decoration: none; }
+.sl-item .info .name:hover { color: var(--red); }
+
+/* Mini cyber buttons for sidebar */
+.btn-mini { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.02); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; transition: all 0.18s; font-size: 10px; text-decoration: none; border-radius: 3px; }
+.btn-mini:hover { background: rgba(255,255,255,0.04); transform: translateY(-1px); }
+.btn-mini:active { transform: translateY(0); }
+.btn-mini[title="View Profile"]:hover { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px rgba(245,197,66,0.08); }
+.btn-mini.danger:hover { border-color: var(--red); color: var(--red); background: rgba(230,57,70,0.08); box-shadow: 0 0 10px rgba(230,57,70,0.1); }
+.btn-mini.add:hover { border-color: #4ade80; color: #4ade80; background: rgba(74,222,128,0.06); }
+.btn-mini.chat-open:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,0.06); box-shadow: 0 0 10px rgba(0,229,255,0.08); }
+
+/* Empty sidebar area */
+.sidebar-empty { padding: 48px 24px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.sidebar-empty i { font-size: 2.2rem; opacity: 0.15; margin-bottom: 12px; display: block; color: var(--red); }
+
+/* ── Main Chat Area ── */
+.chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg2); }
+.chat-header { padding: 16px 22px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(17,17,24,0.95) 0%, var(--bg3) 100%); display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.chat-header .av { width: 40px; height: 40px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 16px; color: var(--red); background: rgba(230,57,70,0.06); flex-shrink: 0; }
+.chat-header .info { flex: 1; }
+.chat-header .info .name { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+.chat-header .info .status { font-size: 11px; font-family: var(--font-mono); display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+.chat-header .info .status .ind { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.chat-header .info .status .ind.online { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.5); }
+.chat-header .info .status .ind.offline { background: var(--text-dim); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 24px 22px; display: flex; flex-direction: column; gap: 12px; background: radial-gradient(ellipse at 50% 0%, rgba(230,57,70,0.02) 0%, transparent 70%); }
+.chat-messages::-webkit-scrollbar { width: 5px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.msg { display: flex; animation: msgSlide 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+@@keyframes msgSlide { from { opacity: 0; transform: translateY(10px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.msg.mine { justify-content: flex-end; }
+.msg.theirs { justify-content: flex-start; }
+.msg .bubble { max-width: 70%; padding: 12px 18px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); position: relative; transition: border-color 0.2s, box-shadow 0.2s; border-radius: 4px; }
+.msg .bubble:hover { border-color: rgba(245,197,66,0.25); box-shadow: 0 0 16px rgba(245,197,66,0.03); }
+.msg.mine .bubble { background: linear-gradient(135deg, rgba(230,57,70,0.1), rgba(230,57,70,0.04)); border-color: var(--border-red); }
+.msg.mine .bubble:hover { border-color: var(--red); box-shadow: 0 0 18px rgba(230,57,70,0.08); }
+.msg .bubble .text { font-size: 13px; font-family: var(--font-mono); word-break: break-word; line-height: 1.6; color: var(--text); }
+.msg .bubble .meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.msg .bubble .time { font-size: 9px; color: var(--text-dim); font-family: var(--font-mono); letter-spacing: 0.3px; }
+.msg .bubble .receipt { font-size: 10px; transition: color 0.3s, opacity 0.3s; display: inline-flex; align-items: center; }
+.msg .bubble .receipt.sending { color: var(--text-dim); opacity: 0.5; }
+.msg .bubble .receipt.sent { color: var(--text-dim); opacity: 0.7; }
+.msg .bubble .receipt.read { color: var(--cyan); opacity: 1; }
+.msg .bubble .receipt.error { color: var(--red); opacity: 1; }
+.chat-input-area { padding: 16px 22px; border-top: 1px solid var(--border); background: linear-gradient(0deg, rgba(17,17,24,0.95) 0%, var(--bg3) 100%); flex-shrink: 0; }
+.chat-typing { padding: 4px 0 8px; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); font-style: italic; min-height: 0; }
+.chat-form { display: flex; gap: 8px; }
+.chat-form input { flex: 1; background: rgba(7,7,9,0.6); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; font-family: var(--font-mono); font-size: 12px; transition: border-color 0.2s; border-radius: 3px; }
+.chat-form input:focus { border-color: var(--red); outline: none; box-shadow: 0 0 12px rgba(230,57,70,0.06); }
+.chat-form .btn-send { padding: 10px 20px; background: rgba(230,57,70,0.08); border: 1px solid var(--border-red); color: var(--red); cursor: pointer; font-size: 14px; transition: all 0.2s; display: flex; align-items: center; border-radius: 3px; }
+.chat-form .btn-send:hover { background: rgba(230,57,70,0.18); box-shadow: 0 0 16px rgba(230,57,70,0.12); transform: translateY(-1px); }
+.chat-form .btn-send:active { transform: translateY(0); }
+
+/* Empty chat state */
+.chat-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); font-family: var(--font-mono); text-align: center; padding: 48px; }
+.chat-empty i { opacity: 0.12; margin-bottom: 16px; color: var(--red); font-size: 3rem; }
+.chat-empty h3 { font-family: var(--font-display); font-size: 14px; letter-spacing: 2.5px; color: var(--text); margin: 0 0 8px; }
+.chat-empty p { font-size: 11px; margin: 0; opacity: 0.6; }
+
+/* Responsive */
+@@media (max-width: 768px) {
+  .friends-sidebar { width: 100%; }
+  .chat-main { display: none; }
+  .chat-main.show { display: flex; }
+}
 </style>
 }
 
-<div class="friends-container" id="friendsContainer">
-    <div class="page-header">
-        <h1 class="glitch-text" data-text="FRIENDS">FRIENDS</h1>
-        <div class="header-actions">
-            <div class="search-box">
-                <input type="text" id="friendSearch" placeholder="Search users..." autocomplete="off" />
-                <div id="searchResults" class="search-results" style="display:none;"></div>
-            </div>
-        </div>
-    </div>
-
-    @if (Model.PendingRequests.Any())
-    {
-        <div class="requests-section">
-            <h2>Pending Requests <span class="badge">@Model.PendingRequests.Count</span></h2>
-            <div class="requests-grid">
-                @foreach (var req in Model.PendingRequests)
-                {
-                    <div class="request-card" data-id="@req.FriendshipId">
-                        <div class="request-info">
-                            <span class="request-user">@req.Username</span>
-                            <span class="request-date">@req.SentAt.ToString("MMM dd")</span>
-                        </div>
-                        <div class="request-actions">
-                            <button class="btn-cyber btn-sm accept-request" data-id="@req.FriendshipId">
-                                <i class="fas fa-check"></i> Accept
-                            </button>
-                            <button class="btn-cyber btn-sm btn-danger reject-request" data-id="@req.FriendshipId">
-                                <i class="fas fa-times"></i> Reject
-                            </button>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-
-    @if (Model.Suggestions.Any())
-    {
-        <div class="suggestions-section">
-            <h2>Suggestions <span class="badge-gold">@Model.Suggestions.Count</span></h2>
-            <div class="suggestions-grid">
-                @foreach (var sug in Model.Suggestions)
-                {
-                    <div class="suggestion-card" data-userid="@sug.UserId">
-                        <div class="friend-avatar">
-                            <div class="avatar-placeholder">@sug.Username[0]</div>
-                        </div>
-                        <div class="friend-info">
-                            <span class="friend-name">@sug.Username</span>
-                        </div>
-                        <button class="btn-cyber btn-add add-suggestion" data-username="@sug.Username">
-                            <i class="fas fa-user-plus"></i> Add
-                        </button>
-                    </div>
-                }
-            </div>
-        </div>
-    }
-
-    <div class="friends-section">
-        <h2>Your Friends <span class="badge">@Model.Friends.Count</span></h2>
-
-        @if (!Model.Friends.Any() && !Model.PendingRequests.Any())
-        {
-            <div class="empty-state">
-                <i class="fas fa-user-friends fa-3x"></i>
-                <p>No friends yet. Search for users or add from suggestions above!</p>
-            </div>
-        }
-
-        <div class="friends-grid">
-            @foreach (var friend in Model.Friends)
-            {
-                <div class="friend-card" data-id="@friend.FriendshipId">
-                    <div class="friend-avatar">
-                        <div class="avatar-placeholder">@friend.Username[0]</div>
-                        <span class="status-dot @(friend.IsOnline ? "online" : "offline")"></span>
-                    </div>
-                    <div class="friend-info">
-                        <span class="friend-name">@friend.Username</span>
-                        <span class="friend-status">@(friend.IsOnline ? "Online" : "Offline")</span>
-                    </div>
-                    <div class="friend-actions">
-                        <button class="btn-cyber btn-sm open-chat" data-userid="@friend.UserId" data-username="@friend.Username" title="Chat">
-                            <i class="fas fa-comment"></i>
-                        </button>
-                        <button class="btn-cyber btn-sm btn-danger remove-friend" data-id="@friend.FriendshipId" title="Remove">
-                            <i class="fas fa-user-minus"></i>
-                        </button>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</div>
-
-@* ── CSRF token for AJAX POSTs ── *@
 @Html.AntiForgeryToken()
 
-@* ── Chat Panel ── *@
-<div class="chat-panel-overlay" id="chatOverlay"></div>
-<div class="chat-panel" id="chatPanel">
-    <div class="chat-panel-header">
-        <div class="chat-panel-user">
-            <div class="chat-panel-avatar" id="chatPanelAvatar">?</div>
-            <div>
-                <div class="chat-panel-name" id="chatPanelName">—</div>
-                <div class="chat-panel-status" id="chatPanelStatus">
-                    <span class="indicator offline" id="chatPanelIndicator"></span>
-                    <span id="chatPanelStatusText">Offline</span>
-                </div>
-            </div>
-        </div>
-        <button class="chat-panel-close" id="chatPanelClose">&times;</button>
+<div class="friends-app" id="friendsApp">
+  @* ── Sidebar ── *@
+  <div class="friends-sidebar" id="friendsSidebar">
+    <div class="sidebar-head">
+      <h2><i class="fas fa-user-friends" style="margin-right:6px;font-size:12px;"></i> SOCIAL</h2>
+      <span class="total-badge">@Model.Friends.Count friends</span>
     </div>
-    <div class="chat-panel-messages" id="chatPanelMessages">
-        <div class="chat-panel-empty">
-            <i class="fas fa-comments fa-3x"></i>
-            <p>Select a friend to chat</p>
-        </div>
+    <div class="sidebar-search" style="position:relative;">
+      <input type="text" id="sidebarSearch" placeholder="Search users..." autocomplete="off" />
+      <div id="sidebarSearchResults" class="search-results-sidebar" style="display:none;"></div>
     </div>
-    <div class="chat-panel-input-area" id="chatPanelInputArea" style="display:none;">
-        <div class="chat-panel-typing" id="chatPanelTyping" style="display:none;">typing...</div>
-        <form class="chat-panel-form" id="chatPanelForm">
-            <input type="text" id="chatPanelInput" placeholder="Type a message..." autocomplete="off" />
-            <button type="submit" class="btn-cyber btn-send"><i class="fas fa-paper-plane"></i></button>
+    <div class="sidebar-scroll">
+      @* Pending Requests *@
+      @if (Model.PendingRequests.Any())
+      {
+      <div class="section-toggle" data-target="pendingSection">
+        <span class="arrow open">&rsaquo;</span>
+        <span>Pending Requests</span>
+        <span class="sec-badge">@Model.PendingRequests.Count</span>
+      </div>
+      <div class="section-body" id="pendingSection">
+        @foreach (var req in Model.PendingRequests)
+        {
+        <div class="rl-item" data-id="@req.FriendshipId">
+          <div class="av">@if (!string.IsNullOrEmpty(req.Avatar)) {<img src="@req.Avatar" style="width:30px;height:30px;object-fit:cover;" />} else {@req.Username[0]}</div>
+          <div class="info">
+            <div class="name">@req.Username</div>
+            <div class="date">@req.SentAt.ToString("MMM dd")</div>
+          </div>
+          <div class="acts">
+            <button class="btn-mini accept-request" data-id="@req.FriendshipId" title="Accept"><i class="fas fa-check"></i></button>
+            <button class="btn-mini danger reject-request" data-id="@req.FriendshipId" title="Reject"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+        }
+      </div>
+      }
+
+      @* Suggestions *@
+      @if (Model.Suggestions.Any())
+      {
+      <div class="section-toggle" data-target="suggestSection">
+        <span class="arrow open">&rsaquo;</span>
+        <span>Suggestions</span>
+        <span class="sec-badge gold">@Model.Suggestions.Count</span>
+      </div>
+      <div class="section-body" id="suggestSection">
+        @foreach (var sug in Model.Suggestions)
+        {
+        <div class="sl-item" data-userid="@sug.UserId" data-online="@(sug.IsOnline ? "true" : "false")">
+          <div class="fl-avatar" style="flex-shrink:0;">
+            <div class="av" style="width:30px;height:30px;">@if (!string.IsNullOrEmpty(sug.Avatar)) {<img src="@sug.Avatar" style="width:30px;height:30px;object-fit:cover;" />} else {@sug.Username[0]}</div>
+            <span class="dot @(sug.IsOnline ? "online" : "offline")"></span>
+          </div>
+          <div class="info">
+            <a href="@Url.Action("Index", "Profile", new { username = sug.Username })" style="color:inherit;text-decoration:none;" class="name">@sug.Username</a>
+            <div class="fl-preview" style="font-size:10px;color:var(--text-dim);">@sug.MutualGamesCount @(sug.MutualGamesCount == 1 ? "mutual game" : "mutual games")</div>
+          </div>
+          <a href="@Url.Action("Index", "Profile", new { username = sug.Username })" class="btn-mini" title="View Profile"><i class="fas fa-user"></i></a>
+          <button class="btn-mini add add-suggestion" data-username="@sug.Username" title="Add Friend"><i class="fas fa-user-plus"></i></button>
+        </div>
+        }
+      </div>
+      }
+
+      @* Friends list *@
+      <div class="section-toggle" data-target="friendsSection" style="border-top:1px solid var(--border);">
+        <span class="arrow open">&rsaquo;</span>
+        <span>Friends — <span id="onlineCount">@Model.Friends.Count(f => f.IsOnline)</span> online</span>
+      </div>
+      <div class="section-body" id="friendsSection">
+        @if (!Model.Friends.Any())
+        {
+        <div class="sidebar-empty">
+          <i class="fas fa-user-friends"></i>
+          <p>No friends yet. Search for users above!</p>
+        </div>
+        }
+        @foreach (var friend in Model.Friends)
+        {
+        <div class="fl-item friend-entry" data-userid="@friend.UserId" data-username="@friend.Username" data-friendshipid="@friend.FriendshipId" data-online="@(friend.IsOnline ? "true" : "false")">
+          <div class="fl-avatar">
+            <div class="av">@if (!string.IsNullOrEmpty(friend.Avatar)) {<img src="@friend.Avatar" style="width:38px;height:38px;object-fit:cover;display:block;" />} else {@friend.Username[0]}</div>
+            <span class="dot @(friend.IsOnline ? "online" : "offline")"></span>
+          </div>
+          <div class="fl-info">
+            <div class="fl-name">@friend.Username</div>
+            <div class="fl-preview">@(friend.IsOnline ? "Online" : "Offline")</div>
+          </div>
+          <div class="fl-meta">
+            <a href="@Url.Action("Index", "Profile", new { username = friend.Username })" class="btn-mini" title="View Profile"><i class="fas fa-user"></i></a>
+            <button class="btn-mini chat-open open-chat" data-userid="@friend.UserId" data-username="@friend.Username" title="Chat"><i class="fas fa-comment"></i></button>
+            <button class="btn-mini danger remove-friend" data-id="@friend.FriendshipId" title="Remove"><i class="fas fa-user-minus"></i></button>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @* ── Main Chat Area ── *@
+  <div class="chat-main" id="chatMain">
+    <div class="chat-empty" id="chatEmptyState">
+      <i class="fas fa-comments fa-4x"></i>
+      <h3>Select a friend</h3>
+      <p>Choose someone from the sidebar to start chatting</p>
+    </div>
+
+    <div id="chatActiveArea" style="display:none;flex-direction:column;height:100%;">
+      <div class="chat-header">
+        <div class="av" id="chatActiveAvatar">?</div>
+        <div class="info">
+          <div class="name" id="chatActiveName">—</div>
+          <div class="status" id="chatActiveStatus">
+            <span class="ind offline" id="chatActiveIndicator"></span>
+            <span id="chatActiveStatusText">Offline</span>
+          </div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty" style="padding:30px;">
+          <i class="fas fa-comments fa-2x"></i>
+          <p>Start chatting!</p>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <div class="chat-typing" id="chatTypingIndicator" style="display:none;">typing...</div>
+        <form class="chat-form" id="chatForm">
+          <input type="text" id="chatInput" placeholder="Type a message..." autocomplete="off" />
+          <button type="submit" class="btn-send" title="Send"><i class="fas fa-paper-plane"></i></button>
         </form>
+      </div>
     </div>
+  </div>
 </div>
 
 @section Scripts {
-    <script>
-        let chatUserId = null;
-        let chatUsername = null;
-        const currentUserId = '@Context.Session.GetString("UserId")';
+<script>
+  // ── State ──
+  let activeUserId = null;
+  let activeUsername = null;
+  const currentUserId = '@Context.Session.GetString("UserId")';
+  let msgCounter = 0;
+  let pendingMessages = [];
 
-        // ── Search ──
-        let searchTimer;
-        $('#friendSearch').on('input', function() {
-            clearTimeout(searchTimer);
-            const q = $(this).val().trim();
-            if (q.length < 2) { $('#searchResults').hide(); return; }
-            searchTimer = setTimeout(() => {
-                $.get('@Url.Action("Search")', { q }, function(data) {
-                    const results = data.results;
-                    if (results.length === 0) {
-                        $('#searchResults').html('<div class="no-results">No users found</div>').show();
-                        return;
-                    }
-                    let html = '';
-                    results.forEach(function(u) {
-                        html += `<div class="search-result" data-username="${u.username}">
-                                    <span>${u.username}</span>
-                                    <button class="btn-cyber btn-xs add-friend" data-username="${u.username}">Add</button>
-                                 </div>`;
-                    });
-                    $('#searchResults').html(html).show();
-                });
-            }, 300);
-        });
+  // ── Section Toggle ──
+  document.querySelectorAll('.section-toggle').forEach(function(toggle) {
+    toggle.addEventListener('click', function() {
+      const target = document.getElementById(this.dataset.target);
+      const arrow = this.querySelector('.arrow');
+      if (!target) return;
+      const isOpen = target.style.maxHeight !== '0px' && target.style.maxHeight !== '';
+      if (isOpen) {
+        target.style.maxHeight = '0px';
+        if (arrow) arrow.classList.remove('open');
+      } else {
+        target.style.maxHeight = target.scrollHeight + 'px';
+        if (arrow) arrow.classList.add('open');
+      }
+    });
+    const target = document.getElementById(toggle.dataset.target);
+    if (target) { target.style.maxHeight = target.scrollHeight + 'px'; }
+  });
 
-        $(document).on('click', '.add-friend, .add-suggestion', function() {
-            const username = $(this).data('username');
-            const btn = $(this);
-            const origHtml = btn.html();
-            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i>');
-
-            $.post('@Url.Action("SendRequest")', {
-                username,
-                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-            }, function(data) {
-                if (data.success) {
-                    showToast('Success', data.message, 'success');
-                    if (btn.hasClass('add-suggestion')) {
-                        btn.closest('.suggestion-card')?.fadeOut(300);
-                    } else {
-                        $('#friendSearch').val('');
-                        $('#searchResults').hide();
-                    }
-                } else {
-                    showToast('Error', data.message, 'error');
-                }
-            }).fail(() => {
-                showToast('Error', 'Failed to send request', 'error');
-            }).always(() => {
-                btn.prop('disabled', false).html(origHtml);
-            });
-        });
-
-        // ── Pending: Accept / Reject ──
-        $(document).on('click', '.accept-request', function() {
-            const id = $(this).data('id');
-            const card = $(this).closest('.request-card');
-            $.post('@Url.Action("AcceptRequest")', {
-                friendshipId: id,
-                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-            }, function(data) {
-                if (data.success) {
-                    card.fadeOut(300, function() { $(this).remove(); });
-                    showToast('Success', data.message, 'success');
-                    location.reload();
-                } else {
-                    showToast('Error', data.message, 'error');
-                }
-            });
-        });
-
-        $(document).on('click', '.reject-request', function() {
-            const id = $(this).data('id');
-            const card = $(this).closest('.request-card');
-            $.post('@Url.Action("RejectRequest")', {
-                friendshipId: id,
-                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-            }, function(data) {
-                if (data.success) {
-                    card.fadeOut(300, function() { $(this).remove(); });
-                    showToast('Rejected', data.message, 'info');
-                } else {
-                    showToast('Error', data.message, 'error');
-                }
-            });
-        });
-
-        // ── Remove friend ──
-        $(document).on('click', '.remove-friend', function() {
-            if (!confirm('Remove this friend?')) return;
-            const id = $(this).data('id');
-            const card = $(this).closest('.friend-card');
-            $.post('@Url.Action("RemoveFriend")', {
-                friendshipId: id,
-                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-            }, function(data) {
-                if (data.success) {
-                    card.fadeOut(300, function() { $(this).remove(); });
-                    showToast('Removed', data.message, 'info');
-                } else {
-                    showToast('Error', data.message, 'error');
-                }
-            });
-        });
-
-        // ── Chat Panel ──
-        function openChat(userId, username) {
-            chatUserId = userId;
-            chatUsername = username;
-            $('#chatPanelAvatar').text(username[0] || '?');
-            $('#chatPanelName').text(username);
-            $('#chatPanelStatusText').text('Loading...');
-            $('#chatPanelIndicator').className = 'indicator offline';
-            $('#chatPanelMessages').html('<div class="chat-panel-empty"><i class="fas fa-spinner fa-pulse fa-3x"></i><p>Loading messages...</p></div>');
-            $('#chatPanelInputArea').hide();
-            $('#chatOverlay, #chatPanel').addClass('show');
-
-            loadMessages(userId);
+  // ── Search ──
+  let searchTimer;
+  $('#sidebarSearch').on('input', function() {
+    clearTimeout(searchTimer);
+    const q = $(this).val().trim();
+    if (q.length < 2) { $('#sidebarSearchResults').hide(); return; }
+    searchTimer = setTimeout(() => {
+      $.get('@Url.Action("Search")', { q }, function(data) {
+        const results = data.results;
+        if (results.length === 0) {
+          $('#sidebarSearchResults').html('<div style="padding:14px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">No users found</div>').show();
+          return;
         }
-
-        function closeChat() {
-            chatUserId = null;
-            chatUsername = null;
-            $('#chatOverlay, #chatPanel').removeClass('show');
-        }
-
-        function loadMessages(userId) {
-            $.get('@Url.Action("GetMessages", "Chat")', { userId, page: 1 }, function(data) {
-                const msgs = data.messages || [];
-                const area = $('#chatPanelMessages');
-                area.empty();
-
-                if (msgs.length === 0) {
-                    area.html('<div class="chat-panel-empty"><i class="fas fa-comments fa-3x"></i><p>Start chatting with ' + chatUsername + '!</p></div>');
-                } else {
-                    msgs.forEach(function(m) {
-                        area.append(renderMessage(m));
-                    });
-                }
-
-                $('#chatPanelInputArea').show();
-                scrollChat();
-                $('#chatPanelInput').focus();
-
-                if (window.chatConnection && window.chatConnection.state === 'Connected') {
-                    window.chatConnection.invoke('MarkRead', userId);
-                }
-            });
-        }
-
-        function renderMessage(m) {
-            const isMine = m.senderId === currentUserId;
-            const time = new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const receipt = isMine && m.readAt ? '<span class="read-receipt"><i class="fas fa-check-double"></i></span>' : '';
-            return `<div class="chat-panel-msg ${isMine ? 'mine' : 'theirs'}" data-id="${m.id}">
-                        <div class="bubble">
-                            <div class="bubble-text">${escapeHtml(m.content)}</div>
-                            <div class="bubble-meta">
-                                <span class="bubble-time">${time}</span>
-                                ${receipt}
-                            </div>
-                        </div>
-                    </div>`;
-        }
-
-        function appendMessage(msg) {
-            const area = $('#chatPanelMessages');
-            const empty = area.find('.chat-panel-empty');
-            if (empty.length) empty.remove();
-            area.append(renderMessage(msg));
-            scrollChat();
-        }
-
-        function scrollChat() {
-            const area = document.getElementById('chatPanelMessages');
-            if (area) area.scrollTop = area.scrollHeight;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Open chat from friend card
-        $(document).on('click', '.open-chat', function() {
-            const userId = $(this).data('userid');
-            const username = $(this).data('username');
-            openChat(userId, username);
+        let html = '';
+        results.forEach(function(u) {
+          var eu = escapeHtml(u.username);
+          var avHtml = u.avatar ? '<img src="' + u.avatar + '" style="width:38px;height:38px;object-fit:cover;display:block;" />' : eu[0];
+          html += '<div class="fl-item" style="cursor:default;">' +
+                    '<div class="fl-avatar"><div class="av">' + avHtml + '</div><span class="dot offline"></span></div>' +
+                    '<div class="fl-info"><a href="/Profile/Index?username=' + encodeURIComponent(u.username) + '" style="color:inherit;text-decoration:none;" class="fl-name">' + eu + '</a></div>' +
+                    '<a href="/Profile/Index?username=' + encodeURIComponent(u.username) + '" class="btn-mini" title="View Profile"><i class="fas fa-user"></i></a>' +
+                    '<button class="btn-mini add add-search-friend" data-username="' + eu + '" title="Add"><i class="fas fa-user-plus"></i></button>' +
+                  '</div>';
         });
+        $('#sidebarSearchResults').html(html).show();
+      });
+    }, 300);
+  });
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('.sidebar-search').length) $('#sidebarSearchResults').hide();
+  });
 
-        // Close chat
-        $('#chatPanelClose, #chatOverlay').on('click', function() {
-            closeChat();
-        });
+  // ── Add friend (search + suggestions) ──
+  $(document).on('click', '.add-search-friend, .add-suggestion', function() {
+    const username = $(this).data('username');
+    const btn = $(this);
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse" style="font-size:10px;"></i>');
+    $.post('@Url.Action("SendRequest")', {
+      username,
+      __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+    }, function(data) {
+      if (data.success) {
+        showToast('Friend request sent to ' + username, 'success');
+        btn.closest('.sl-item, .fl-item').fadeOut(200);
+      } else {
+        showToast(data.message, 'error');
+      }
+    }).fail(() => showToast('Failed to send request', 'error'))
+    .always(() => { if (btn.closest('.sl-item, .fl-item').length) btn.prop('disabled', false).html('<i class="fas fa-user-plus"></i>'); });
+  });
 
-        // Send message via SignalR
-        $('#chatPanelForm').on('submit', function(e) {
-            e.preventDefault();
-            const input = $('#chatPanelInput');
-            const content = input.val().trim();
-            if (!content || !chatUserId) return;
+  // ── Accept / Reject requests ──
+  $(document).on('click', '.accept-request', function() {
+    const id = $(this).data('id');
+    const item = $(this).closest('.rl-item');
+    $.post('@Url.Action("AcceptRequest")', {
+      friendshipId: id,
+      __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+    }, function(data) {
+      if (data.success) {
+        item.fadeOut(200, function() { $(this).remove(); });
+        showToast(data.message, 'success');
+        location.reload();
+      } else showToast(data.message, 'error');
+    });
+  });
+  $(document).on('click', '.reject-request', function() {
+    const id = $(this).data('id');
+    const item = $(this).closest('.rl-item');
+    $.post('@Url.Action("RejectRequest")', {
+      friendshipId: id,
+      __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+    }, function(data) {
+      if (data.success) {
+        item.fadeOut(200, function() { $(this).remove(); });
+        showToast(data.message, 'info');
+      } else showToast(data.message, 'error');
+    });
+  });
 
-            if (window.chatConnection && window.chatConnection.state === 'Connected') {
-                window.chatConnection.invoke('SendMessage', chatUserId, content)
-                    .catch(function(err) { console.error('Send failed:', err); });
-                input.val('');
-                $('#chatPanelTyping').hide();
-            }
-        });
+  // ── Remove friend ──
+  $(document).on('click', '.remove-friend', function() {
+    if (!confirm('Remove this friend?')) return;
+    const id = $(this).data('id');
+    const entry = $(this).closest('.friend-entry');
+    $.post('@Url.Action("RemoveFriend")', {
+      friendshipId: id,
+      __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+    }, function(data) {
+      if (data.success) {
+        entry.fadeOut(200, function() { $(this).remove(); });
+        showToast(data.message, 'info');
+        if ($('.friend-entry').length === 0) location.reload();
+      } else showToast(data.message, 'error');
+    });
+  });
 
-        // Typing indicator
-        let typingTimer;
-        $('#chatPanelInput').on('input', function() {
-            if (!window.chatConnection || !chatUserId) return;
-            window.chatConnection.invoke('Typing', chatUserId, true);
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(function() {
-                if (window.chatConnection) {
-                    window.chatConnection.invoke('Typing', chatUserId, false);
-                }
-            }, 2000);
-        });
+  // ── Open Chat ──
+  function openChat(userId, username) {
+    if (activeUserId === userId) return;
+    activeUserId = userId;
+    activeUsername = username;
 
-        // ── SignalR handlers (registered after connection ready) ──
-        $(document).on('chatConnectionReady', function() {
-            if (!window.chatConnection) return;
+    $('#chatEmptyState').hide();
+    $('#chatActiveArea').css('display', 'flex');
+    $('#chatActiveAvatar').text(username[0] || '?');
+    $('#chatActiveName').text(username);
 
-            window.chatConnection.on('ReceiveMessage', function(msg) {
-                // If chat is open for this sender
-                if (msg.senderId === chatUserId) {
-                    appendMessage(msg);
-                    if (window.chatConnection) {
-                        window.chatConnection.invoke('MarkRead', msg.senderId);
-                    }
-                }
-                // If we sent this message
-                if (msg.senderId === currentUserId && msg.receiverId === chatUserId) {
-                    // Already handled by MessageSent or ReceiveMessage
-                }
-            });
+    // Read online status from sidebar entry (friend or suggestion)
+    var entry = $('.friend-entry[data-userid="' + userId + '"]');
+    if (!entry.length) entry = $('.sl-item[data-userid="' + userId + '"]');
+    var isOnline = entry.length ? entry.data('online') === 'true' : false;
+    $('#chatActiveIndicator').attr('class', 'ind ' + (isOnline ? 'online' : 'offline'));
+    $('#chatActiveStatusText').text(isOnline ? 'Online' : 'Offline');
 
-            window.chatConnection.on('MessageSent', function(msg) {
-                if (msg.receiverId === chatUserId) {
-                    appendMessage({ id: msg.id, senderId: currentUserId, content: msg.content, sentAt: msg.sentAt, readAt: null });
-                }
-            });
+    $('#chatMessages').html('<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-dim);padding:40px;"><i class="fas fa-spinner fa-pulse fa-2x"></i></div>');
+    $('#chatTypingIndicator').hide();
+    $('#chatForm')[0]?.reset();
 
-            window.chatConnection.on('MessagesRead', function(data) {
-                if (data.byUserId === chatUserId) {
-                    $('#chatPanelMessages .chat-panel-msg.mine .read-receipt i').attr('class', 'fas fa-check-double');
-                }
-            });
+    // Mark active in sidebar
+    $('.friend-entry').removeClass('active');
+    entry.addClass('active');
 
-            window.chatConnection.on('UserTyping', function(data) {
-                if (data.userId === chatUserId) {
-                    $('#chatPanelTyping').css('display', data.isTyping ? 'block' : 'none');
-                }
-            });
+    loadMessages(userId);
+  }
 
-            window.chatConnection.on('UserOnline', function(data) {
-                if (data.userId === chatUserId) {
-                    $('#chatPanelIndicator').attr('class', 'indicator online');
-                    $('#chatPanelStatusText').text('Online');
-                }
-            });
+  function loadMessages(userId) {
+    $.get('@Url.Action("GetMessages", "Chat")', { userId, page: 1 }, function(data) {
+      const msgs = data.messages || [];
+      const area = $('#chatMessages');
+      area.empty();
+      if (msgs.length === 0) {
+        area.html('<div class="chat-empty" style="padding:30px;"><i class="fas fa-comments fa-2x"></i><p>Start chatting with ' + activeUsername + '!</p></div>');
+      } else {
+        msgs.forEach(function(m) { area.append(renderMsg(m)); });
+      }
+      scrollChat();
+      if (window.chatConnection && window.chatConnection.state === 'Connected') {
+        window.chatConnection.invoke('MarkRead', userId);
+      }
+    });
+  }
 
-            window.chatConnection.on('UserOffline', function(data) {
-                if (data.userId === chatUserId) {
-                    $('#chatPanelIndicator').attr('class', 'indicator offline');
-                    $('#chatPanelStatusText').text('Offline');
-                }
-            });
-        });
+  function renderMsg(m) {
+    const isMine = m.senderId === currentUserId;
+    const time = new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let receiptHtml = '';
+    if (isMine) {
+      const status = m.msgStatus || (m.readAt ? 'read' : 'sent');
+      if (status === 'sending') receiptHtml = '<span class="receipt sending"><i class="fas fa-clock"></i></span>';
+      else if (status === 'sent') receiptHtml = '<span class="receipt sent"><i class="fas fa-check"></i></span>';
+      else if (status === 'read') receiptHtml = '<span class="receipt read"><i class="fas fa-check-double"></i></span>';
+      else if (status === 'error') receiptHtml = '<span class="receipt error"><i class="fas fa-exclamation-circle"></i></span>';
+    }
+    return '<div class="msg ' + (isMine ? 'mine' : 'theirs') + '" data-id="' + m.id + '">' +
+      '<div class="bubble">' +
+        '<div class="text">' + escapeHtml(m.content) + '</div>' +
+        '<div class="meta">' +
+          '<span class="time">' + time + '</span>' +
+          receiptHtml +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
 
-        // Click outside search results
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('.search-box').length) {
-                $('#searchResults').hide();
-            }
-        });
-    </script>
+  function appendMsg(msg) {
+    const area = $('#chatMessages');
+    area.find('.chat-empty').remove();
+    area.append(renderMsg(msg));
+    scrollChat();
+  }
+
+  function scrollChat() {
+    const el = document.getElementById('chatMessages');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  function escapeHtml(text) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+  }
+
+  // Sidebar friend click → open chat
+  $(document).on('click', '.friend-entry', function(e) {
+    if ($(e.target).closest('button').length) return;
+    const userId = $(this).data('userid');
+    const username = $(this).data('username');
+    openChat(userId, username);
+  });
+
+  $(document).on('click', '.open-chat', function(e) {
+    e.stopPropagation();
+    openChat($(this).data('userid'), $(this).data('username'));
+  });
+
+  // ── Send message (optimistic UI) ──
+  $('#chatForm').on('submit', function(e) {
+    e.preventDefault();
+    const input = $('#chatInput');
+    const content = input.val().trim();
+    if (!content || !activeUserId) return;
+
+    const tempId = 'snd-' + (++msgCounter);
+    pendingMessages.push(tempId);
+    const now = new Date().toISOString();
+
+    // Show instantly
+    $('#chatMessages').find('.chat-empty').remove();
+    $('#chatMessages').append(renderMsg({ id: tempId, senderId: currentUserId, content, sentAt: now, msgStatus: 'sending' }));
+    scrollChat();
+    input.val('');
+    $('#chatTypingIndicator').hide();
+
+    if (window.chatConnection && window.chatConnection.state === 'Connected') {
+      window.chatConnection.invoke('SendMessage', activeUserId, content).catch(function(err) {
+        // Mark as error
+        $('.msg[data-id="' + tempId + '"] .receipt').attr('class', 'receipt error').html('<i class="fas fa-exclamation-circle"></i>');
+        console.error('Send fail:', err);
+      });
+    } else {
+      $('.msg[data-id="' + tempId + '"] .receipt').attr('class', 'receipt error').html('<i class="fas fa-exclamation-circle"></i>');
+    }
+  });
+
+  // ── Typing indicator ──
+  let typingTimer;
+  $('#chatInput').on('input', function() {
+    if (!window.chatConnection || !activeUserId) return;
+    window.chatConnection.invoke('Typing', activeUserId, true);
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(function() {
+      if (window.chatConnection) window.chatConnection.invoke('Typing', activeUserId, false);
+    }, 2000);
+  });
+
+  // ── SignalR handlers (register directly, not waiting for event) ──
+  function setupChatHandlers(conn) {
+    if (!conn) return;
+
+    conn.on('ReceiveMessage', function(msg) {
+      if (msg.senderId === activeUserId) {
+        appendMsg(msg);
+        if (window.chatConnection) window.chatConnection.invoke('MarkRead', msg.senderId);
+      }
+    });
+
+    conn.on('MessageSent', function(msg) {
+      if (msg.receiverId === activeUserId) {
+        var tempId = pendingMessages.shift();
+        if (tempId) {
+          var el = $('.msg[data-id="' + tempId + '"]');
+          if (el.length) {
+            el.attr('data-id', msg.id);
+            el.find('.receipt').attr('class', 'receipt sent').html('<i class="fas fa-check"></i>');
+          }
+        }
+      }
+    });
+
+    conn.on('MessagesRead', function(data) {
+      if (data.byUserId === activeUserId) {
+        $('#chatMessages .msg.mine .receipt')
+          .attr('class', 'receipt read')
+          .html('<i class="fas fa-check-double"></i>');
+      }
+    });
+
+    conn.on('UserTyping', function(data) {
+      if (data.userId === activeUserId) {
+        $('#chatTypingIndicator').css('display', data.isTyping ? 'block' : 'none');
+      }
+    });
+
+    function updateOnlineDot(userId, isOnline) {
+      var cls = isOnline ? 'dot online' : 'dot offline';
+      $('.friend-entry[data-userid="' + userId + '"]').find('.dot').attr('class', cls);
+      $('.sl-item[data-userid="' + userId + '"]').find('.dot').attr('class', cls);
+      if (userId === activeUserId) {
+        $('#chatActiveIndicator').attr('class', 'ind ' + (isOnline ? 'online' : 'offline'));
+        $('#chatActiveStatusText').text(isOnline ? 'Online' : 'Offline');
+      }
+    }
+
+    conn.on('UserOnline', function(data) {
+      updateOnlineDot(data.userId, true);
+    });
+
+    conn.on('UserOffline', function(data) {
+      updateOnlineDot(data.userId, false);
+    });
+  }
+
+  if (window.chatConnection) {
+    setupChatHandlers(window.chatConnection);
+  } else {
+    $(document).on('chatConnectionReady', function() { setupChatHandlers(window.chatConnection); });
+  }
+
+  // Auto-open chat from profile quick-chat link
+  var chatUserId = '@ViewBag.ChatUserId';
+  if (chatUserId) {
+    var entry = $('.friend-entry[data-userid="' + chatUserId + '"]');
+    var name = entry.data('username');
+    if (name) {
+      openChat(chatUserId, name);
+    } else {
+      // Not a friend? Load anyway via a one-time lookup
+      $.get('@Url.Action("Search")', { q: '' }).then(function() {
+        openChat(chatUserId, chatUserId);
+      });
+    }
+  }
+
+  // Responsive: on mobile, show sidebar
+  $(window).on('resize', function() {
+    if ($(window).width() <= 768 && activeUserId) {
+      // Could add a back button to sidebar
+    }
+  });
+</script>
 }

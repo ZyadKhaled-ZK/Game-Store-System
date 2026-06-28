@@ -43,7 +43,7 @@ public class WishlistController : Controller
             TempData["IsError"] = true;
             return RedirectToAction("Index");
         }
-        await _wishlistService.RemoveFromWishlistAsync(id);
+        await _wishlistService.RemoveFromWishlistAsync(id, UserId);
         TempData["Message"] = "Removed from wishlist.";
         TempData["IsError"] = false;
         return RedirectToAction("Index");

@@ -172,29 +172,4 @@ else
     </div>
 }
 
-@* ── Delete Confirmation Modal Template ── *@
-<div class="modal-overlay" id="confirmModal">
-    <div class="modal-box">
-        <h3 id="modalTitle">CONFIRM DELETE</h3>
-        <p id="modalMessage">Are you sure you want to proceed?</p>
-        <div class="modal-actions">
-            <button class="btn btn-danger" id="modalConfirmBtn" onclick="if(window.modalConfirmCb)window.modalConfirmCb()">DELETE</button>
-            <button class="btn btn-secondary" onclick="hideModal('confirmModal')">CANCEL</button>
-        </div>
-    </div>
-</div>
 
-<script>
-(function() {
-  window.confirmAction = function(title, message, cb) {
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('modalMessage').textContent = message;
-    window.modalConfirmCb = cb;
-    showModal('confirmModal');
-  };
-  window.hideModal = function(id) {
-    var el = document.getElementById(id);
-    if (el) el.classList.remove('show');
-  };
-})();
-</script>

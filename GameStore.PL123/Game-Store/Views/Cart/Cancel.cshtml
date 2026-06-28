@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Payment Cancelled";
+}
+
+<style>
+    .cancel-container { text-align: center; padding: 80px 20px; max-width: 500px; margin: 0 auto; }
+    .cancel-icon { font-size: 4rem; color: var(--text-dim); margin-bottom: 24px; display: block; }
+    .cancel-title { font-family: var(--font-display); font-size: 2rem; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
+    .cancel-sub { color: var(--text-dim); font-family: var(--font-mono); font-size: 13px; margin-bottom: 32px; }
+</style>
+
+<div class="cancel-container">
+    <span class="cancel-icon">&#10007;</span>
+    <h1 class="cancel-title">Payment Cancelled</h1>
+    <p class="cancel-sub">You cancelled the payment. Your cart items are still saved.</p>
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="/Cart" class="btn btn-primary" style="padding:12px 32px;">BACK TO CART</a>
+        <a href="/" class="btn btn-secondary" style="padding:12px 32px;">CONTINUE BROWSING</a>
+    </div>
+</div>

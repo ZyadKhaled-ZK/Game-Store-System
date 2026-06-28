@@ -42,7 +42,10 @@ builder.Services.AddScoped<SeedService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFriendService, FriendService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddSingleton<ConnectionTracker>();
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 builder.Services.AddSignalR();
 
 // Session-based auth (8-hour idle timeout)

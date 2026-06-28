@@ -9,24 +9,28 @@ public class FriendsController : Controller
 {
     private readonly IFriendService _friendService;
     private readonly IUserService _userService;
+    private readonly IChatService _chatService;
     private readonly ConnectionTracker _tracker;
     private readonly IHubContext<NotificationHub> _hub;
 
     public FriendsController(IFriendService friendService, IUserService userService,
-        ConnectionTracker tracker, IHubContext<NotificationHub> hub)
+        IChatService chatService, ConnectionTracker tracker, IHubContext<NotificationHub> hub)
     {
         _friendService = friendService;
         _userService = userService;
+        _chatService = chatService;
         _tracker = tracker;
         _hub = hub;
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? chatUserId)
     {
         var userId = HttpContext.Session.GetString("UserId");
         if (string.IsNullOrEmpty(userId))
             return RedirectToAction("Login", "Auth");
+
+        ViewBag.ChatUserId = chatUserId;
 
         var friends = await _friendService.GetFriendsAsync(userId);
         var pending = await _friendService.GetPendingRequestsAsync(userId);
@@ -42,6 +46,7 @@ public class FriendsController : Controller
                     FriendshipId = f.Id,
                     UserId = friendUser.Id,
                     Username = friendUser.Username,
+                    Avatar = friendUser.AvatarUrl,
                     IsOnline = _tracker.IsOnline(friendUser.Id),
                     LastSeen = _tracker.GetLastSeen(friendUser.Id)
                 };
@@ -51,12 +56,16 @@ public class FriendsController : Controller
                 FriendshipId = r.Id,
                 RequesterId = r.Requester.Id,
                 Username = r.Requester.Username,
+                Avatar = r.Requester.AvatarUrl,
                 SentAt = r.CreatedAt
             }).ToList(),
-            Suggestions = suggestions.Select(u => new SuggestionViewModel
+            Suggestions = suggestions.Select(s => new SuggestionViewModel
             {
-                UserId = u.Id,
-                Username = u.Username
+                UserId = s.User.Id,
+                Username = s.User.Username,
+                Avatar = s.User.AvatarUrl,
+                MutualGamesCount = s.MutualGamesCount,
+                IsOnline = _tracker.IsOnline(s.User.Id)
             }).ToList()
         };
 
@@ -147,6 +156,30 @@ public class FriendsController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> GetNotificationData()
+    {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+            return Json(new { pendingRequests = 0, unreadMessages = 0, requests = new List<object>() });
+
+        var pending = await _friendService.GetPendingRequestsAsync(userId);
+        var unread = await _chatService.GetUnreadCountAsync(userId);
+
+        return Json(new
+        {
+            pendingRequests = pending.Count,
+            unreadMessages = unread,
+            requests = pending.Select(r => new
+            {
+                friendshipId = r.Id,
+                username = r.Requester.Username,
+                avatar = r.Requester.AvatarUrl,
+                sentAt = r.CreatedAt.ToString("MMM dd")
+            })
+        });
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Search(string q)
     {
         var userId = HttpContext.Session.GetString("UserId");
@@ -158,7 +191,7 @@ public class FriendsController : Controller
 
         var results = users
             .Where(u => u.Id != userId && !friendIds.Contains(u.Id))
-            .Select(u => new { id = u.Id, username = u.Username })
+            .Select(u => new { id = u.Id, username = u.Username, avatar = u.AvatarUrl })
             .Take(10)
             .ToList();
 

@@ -5,7 +5,7 @@ namespace GameStore.BLL.Services
         Task<List<CartItem>> GetCartItemsAsync(string userId);
         Task<int> GetCartCountAsync(string userId);
         Task<(bool Success, string Error)> AddToCartAsync(string userId, string gameId);
-        Task<bool> RemoveFromCartAsync(string cartItemId);
+        Task<bool> RemoveFromCartAsync(string cartItemId, string userId);
         Task ClearCartAsync(string userId);
     }
 }

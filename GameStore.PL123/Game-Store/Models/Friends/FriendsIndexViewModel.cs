@@ -12,6 +12,9 @@ public class SuggestionViewModel
 {
     public string UserId { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
+    public string? Avatar { get; set; }
+    public int MutualGamesCount { get; set; }
+    public bool IsOnline { get; set; }
 }
 
 public class FriendViewModel

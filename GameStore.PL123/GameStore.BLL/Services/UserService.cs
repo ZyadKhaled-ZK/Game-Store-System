@@ -98,6 +98,30 @@ namespace GameStore.BLL.Services
                 .ToListAsync();
         }
 
+        public async Task<List<User>> GetUsersByIdsAsync(List<string> ids)
+        {
+            if (ids == null || ids.Count == 0) return new List<User>();
+            return await _uow.Repository<User>().Query()
+                .Where(u => ids.Contains(u.Id))
+                .ToListAsync();
+        }
+
+        public async Task<(bool Success, string Error)> UpdateProfileAsync(string userId, string? avatarUrl, string? bio)
+        {
+            var user = await _uow.Repository<User>().GetByIdAsync(userId);
+            if (user == null)
+                return (false, "User not found.");
+
+            if (avatarUrl != null)
+                user.AvatarUrl = avatarUrl;
+
+            if (bio != null)
+                user.Bio = bio;
+
+            await _uow.SaveChangesAsync();
+            return (true, string.Empty);
+        }
+
         public async Task<List<UsersByMonth>> GetUsersByMonthAsync(int months = 12)
         {
             var since = DateTime.UtcNow.AddMonths(-months);

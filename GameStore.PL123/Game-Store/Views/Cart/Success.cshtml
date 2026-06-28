@@ -1,0 +1,57 @@
+@model GameStore.DAL.Entities.Order
+@{
+    ViewData["Title"] = "Payment Success";
+}
+
+<style>
+    .success-container { text-align: center; padding: 80px 20px; max-width: 600px; margin: 0 auto; }
+    .success-icon { font-size: 4rem; color: #22c55e; margin-bottom: 24px; display: block; }
+    .success-title { font-family: var(--font-display); font-size: 2rem; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
+    .success-sub { color: var(--text-dim); font-family: var(--font-mono); font-size: 13px; margin-bottom: 32px; }
+    .success-order-box { background: var(--bg2); border: 1px solid rgba(34,197,94,0.15); border-radius: 8px; padding: 24px; margin-bottom: 32px; text-align: left; }
+    .success-order-row { display: flex; justify-content: space-between; padding: 8px 0; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .success-order-row:last-child { border-bottom: none; }
+    .success-order-row span:last-child { color: #fff; font-weight: 600; }
+</style>
+
+<div class="success-container">
+    <span class="success-icon">&#10003;</span>
+    <h1 class="success-title">Payment Successful!</h1>
+    <p class="success-sub">Your order has been confirmed and games added to your library.</p>
+
+    @if (Model != null)
+    {
+        <div class="success-order-box">
+            <div class="success-order-row">
+                <span>Order ID</span>
+                <span>@Model.Id</span>
+            </div>
+            <div class="success-order-row">
+                <span>Total Paid</span>
+                <span style="color:var(--gold);">$@Model.TotalPrice.ToString("N2")</span>
+            </div>
+            <div class="success-order-row">
+                <span>Date</span>
+                <span>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
+            </div>
+            @if (Model.OrderItems?.Any() == true)
+            {
+                <div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.06);">
+                    <div style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-bottom:8px;">GAMES</div>
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:12px; padding:4px 0; color:rgba(232,232,240,0.85);">
+                            <span>@(item.Game?.Title ?? "Unknown")</span>
+                            <span style="color:var(--gold);">$@item.PriceAtPurchase.ToString("N2")</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="/Library" class="btn btn-primary" style="padding:12px 32px;">GO TO LIBRARY</a>
+        <a href="/" class="btn btn-secondary" style="padding:12px 32px;">CONTINUE BROWSING</a>
+    </div>
+</div>

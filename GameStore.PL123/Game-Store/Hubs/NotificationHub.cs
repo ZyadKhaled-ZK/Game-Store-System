@@ -110,17 +110,10 @@ public class NotificationHub : Hub
 
     private async Task NotifyFriends(string userId, bool online)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var friendService = scope.ServiceProvider.GetRequiredService<IFriendService>();
-        var friendIds = await friendService.GetFriendIdsAsync(userId);
-
-        foreach (var friendId in friendIds)
+        await Clients.All.SendAsync(online ? "UserOnline" : "UserOffline", new
         {
-            await Clients.Group(friendId).SendAsync(online ? "UserOnline" : "UserOffline", new
-            {
-                userId,
-                lastSeen = online ? (DateTime?)null : DateTime.UtcNow
-            });
-        }
+            userId,
+            lastSeen = online ? (DateTime?)null : DateTime.UtcNow
+        });
     }
 }

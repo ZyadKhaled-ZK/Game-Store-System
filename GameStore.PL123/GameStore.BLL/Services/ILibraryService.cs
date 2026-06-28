@@ -4,5 +4,6 @@ namespace GameStore.BLL.Services
     {
         Task<List<LibraryGame>> GetLibraryGamesAsync(string userId);
         Task<bool> HasGame(string userId, string gameId);
+        Task AddGameToLibraryAsync(string userId, string gameId);
     }
 }

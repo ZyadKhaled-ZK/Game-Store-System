@@ -19,7 +19,16 @@ namespace GameStore.DAL.Repo
         public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
 
         public async Task BeginTransactionAsync()
-            => _transaction = await _context.Database.BeginTransactionAsync();
+        {
+            try
+            {
+                _transaction = await _context.Database.BeginTransactionAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // In-memory provider doesn't support transactions; skip gracefully.
+            }
+        }
 
         public async Task CommitAsync()
         {

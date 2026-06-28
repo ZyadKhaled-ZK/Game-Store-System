@@ -154,7 +154,7 @@ public class HomeController : Controller
         {
             var items = await _wishlistService.GetWishlistAsync(userId);
             var item = items.FirstOrDefault(w => w.GameId == gameId);
-            if (item != null) await _wishlistService.RemoveFromWishlistAsync(item.Id);
+            if (item != null) await _wishlistService.RemoveFromWishlistAsync(item.Id, userId);
             return Json(new { success = true, inWishlist = false });
         }
         else

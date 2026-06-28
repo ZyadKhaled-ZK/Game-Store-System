@@ -11,16 +11,18 @@ public class GamesController : Controller
     private readonly IGameService _gameService;
     private readonly ICategoryService _categoryService;
     private readonly IGameFileService _gameFileService;
+    private readonly ILibraryService _libraryService;
     private readonly IWebHostEnvironment _env;
 
     public GamesController(IDeveloperService devService, IGameService gameService,
         ICategoryService categoryService, IGameFileService gameFileService,
-        IWebHostEnvironment env)
+        ILibraryService libraryService, IWebHostEnvironment env)
     {
         _devService = devService;
         _gameService = gameService;
         _categoryService = categoryService;
         _gameFileService = gameFileService;
+        _libraryService = libraryService;
         _env = env;
     }
 
@@ -86,6 +88,7 @@ public class GamesController : Controller
         };
 
         await _gameService.CreateAsync(game, CategoryIds ?? new());
+        await _libraryService.AddGameToLibraryAsync(userId!, game.Id);
 
         if (GameFile != null)
         {

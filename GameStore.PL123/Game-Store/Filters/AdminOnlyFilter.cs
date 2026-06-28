@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace GameStore.PL.Filters;
 
-public class AdminOnlyFilter : IAuthorizationFilter
+public class AdminOnlyFilter : IAsyncAuthorizationFilter
 {
     private readonly IUserService _userService;
 
@@ -11,12 +11,12 @@ public class AdminOnlyFilter : IAuthorizationFilter
         _userService = userService;
     }
 
-    public void OnAuthorization(AuthorizationFilterContext context)
+    public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
         var userId = context.HttpContext.Session.GetString("UserId");
         if (!string.IsNullOrEmpty(userId))
         {
-            var user = _userService.GetByIdAsync(userId).GetAwaiter().GetResult();
+            var user = await _userService.GetByIdAsync(userId);
             if (user != null)
             {
                 var currentRole = user.Role.ToString();

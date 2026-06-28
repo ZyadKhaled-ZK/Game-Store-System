@@ -1,0 +1,120 @@
+@model PublicProfileViewModel
+@{
+    ViewData["Title"] = Model.Username + " - Profile";
+}
+
+<style>
+  .pp-container { max-width: 700px; margin: 0 auto; }
+  .pp-card { background: var(--bg2); border: 1px solid var(--border-red); padding: 40px; margin-bottom: 24px; }
+  .pp-avatar { width: 120px; height: 120px; object-fit: cover; border: 2px solid var(--border-red); }
+  .pp-avatar-initial { width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 44px; color: var(--red); background: rgba(230,57,70,0.06); border: 2px solid var(--border-red); }
+  .pp-online { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; }
+  .pp-online .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .pp-online .dot.online { background: #4ade80; }
+  .pp-online .dot.offline { background: var(--text-dim); }
+  .pp-bio { font-family: var(--font-mono); font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-top: 12px; }
+  .post-item { padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .post-item:last-child { border-bottom: none; }
+  .post-content { font-family: var(--font-mono); font-size: 13px; color: var(--text); line-height: 1.5; }
+  .post-meta { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 6px; }
+</style>
+
+<div class="pp-container mt-4 pt-4">
+  <div class="section-header text-center mb-4">
+    <h2 class="section-title glitch">@Model.Username.ToUpper()</h2>
+  </div>
+
+  <div class="pp-card text-center">
+    @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+    {
+      <img src="@Model.AvatarUrl" alt="Avatar" class="pp-avatar" />
+    }
+    else
+    {
+      <div class="pp-avatar-initial mx-auto">@Model.Username[0]</div>
+    }
+
+    <h3 style="font-family:var(--font-display);font-size:18px;letter-spacing:2px;margin-top:16px;">@Model.Username</h3>
+
+    <div class="pp-online justify-content-center mt-2">
+      <span class="dot @(Model.IsOnline ? "online" : "offline")"></span>
+      @(Model.IsOnline ? "Online" : "Offline")
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Bio))
+    {
+      <div class="pp-bio">@Model.Bio</div>
+    }
+
+    <div style="margin-top:16px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
+      @Model.PostCount post@(Model.PostCount != 1 ? "s" : "")
+    </div>
+
+    @if (!Model.IsOwn)
+    {
+      <div style="margin-top:16px;">
+        @if (Model.IsFriend)
+        {
+          <span style="color:var(--cyan);font-family:var(--font-mono);font-size:11px;border:1px solid var(--cyan);padding:4px 12px;">FRIEND</span>
+        }
+        else
+        {
+          <button class="btn btn-secondary btn-sm add-from-profile" data-username="@Model.Username"><i class="fas fa-user-plus"></i> ADD FRIEND</button>
+        }
+      </div>
+    }
+    else
+    {
+      <div style="margin-top:16px;">
+        <a asp-area="" asp-controller="Auth" asp-action="Profile" class="btn btn-primary btn-sm">EDIT PROFILE</a>
+      </div>
+    }
+  </div>
+
+  @* Posts *@
+  <div class="pp-card">
+    <div style="color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); padding: 5px 15px; display: inline-block; font-size: 12px; margin-bottom: 20px; font-family: var(--font-mono);">
+      POSTS — @Model.PostCount
+    </div>
+
+    @if (!Model.Posts.Any())
+    {
+      <div style="text-align:center;padding:20px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
+        @(Model.IsOwn ? "You haven't posted anything yet." : "No posts yet.")
+      </div>
+    }
+    @foreach (var post in Model.Posts)
+    {
+      <div class="post-item">
+        <div class="post-content">@post.Content</div>
+        <div class="post-meta">@post.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
+      </div>
+    }
+  </div>
+</div>
+
+@section Scripts {
+  @Html.AntiForgeryToken()
+  <script>
+    $(document).on('click', '.add-from-profile', function() {
+      var btn = $(this);
+      var username = btn.data('username');
+      btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i>');
+      $.post('@Url.Action("SendRequest", "Friends")', {
+        username,
+        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+      }, function(data) {
+        if (data.success) {
+          showToast('Friend request sent to ' + username, 'success');
+          btn.text('REQUEST SENT').prop('disabled', true).removeClass('add-from-profile');
+        } else {
+          showToast(data.message, 'error');
+          btn.prop('disabled', false).html('<i class="fas fa-user-plus"></i> ADD FRIEND');
+        }
+      }).fail(function() {
+        showToast('Failed to send request', 'error');
+        btn.prop('disabled', false).html('<i class="fas fa-user-plus"></i> ADD FRIEND');
+      });
+    });
+  </script>
+}

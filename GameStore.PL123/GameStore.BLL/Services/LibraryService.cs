@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace GameStore.BLL.Services
 {
     public class LibraryService : ILibraryService
@@ -22,6 +24,27 @@ namespace GameStore.BLL.Services
         public async Task<bool> HasGame(string userId, string gameId)
         {
             return await _uow.Repository<LibraryGame>().AnyAsync(lg => lg.Library!.UserId == userId && lg.GameId == gameId);
+        }
+
+        public async Task AddGameToLibraryAsync(string userId, string gameId)
+        {
+            if (await HasGame(userId, gameId)) return;
+
+            var libRepo = _uow.Repository<Library>();
+            var lib = await libRepo.Query().FirstOrDefaultAsync(l => l.UserId == userId);
+            if (lib == null)
+            {
+                lib = new Library { UserId = userId };
+                await libRepo.AddAsync(lib);
+            }
+
+            await _uow.Repository<LibraryGame>().AddAsync(new LibraryGame
+            {
+                LibraryId = lib.Id,
+                GameId = gameId,
+                AddedAt = DateTime.UtcNow
+            });
+            await _uow.SaveChangesAsync();
         }
     }
 }

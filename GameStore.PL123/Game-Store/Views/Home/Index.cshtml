@@ -31,6 +31,8 @@
     .hero-card:hover { box-shadow: 0 0 30px rgba(230,57,70,0.25); }
     .hero-card::after { content: ''; position: absolute; left: 0; bottom: 0; width: 0%; height: 3px; background: linear-gradient(90deg, var(--red), var(--gold)); transition: width 0.5s ease; z-index: 4; }
     .hero-card:hover::after { width: 100%; }
+    .hero-badge-new { position: absolute; top: 12px; left: 12px; z-index: 5; background: linear-gradient(135deg, var(--red), #ff6b35); color: #fff; font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 4px 12px; border-radius: 3px; box-shadow: 0 2px 12px rgba(230,57,70,0.4); animation: badgePop 0.4s cubic-bezier(0.4,0,0.2,1); pointer-events: none; }
+    @@keyframes badgePop { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
     .hero-img { width: 100%; height: 450px; object-fit: cover; display: block; opacity: 0.9; transition: transform 0.6s; filter: brightness(0.8); }
     .hero-card:hover .hero-img { transform: scale(1.02); filter: brightness(1); }
     .hero-placeholder { width: 100%; height: 450px; background: repeating-linear-gradient(45deg, var(--bg2) 0, var(--bg2) 10px, var(--bg3) 10px, var(--bg3) 20px); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--red); }
@@ -78,7 +80,8 @@
     .cat-pill:hover { border-color: var(--red); color: var(--red); background: rgba(230,57,70,0.05); }
     .cat-pill.active { background: var(--red); border-color: var(--red); color: white; font-weight: 700; box-shadow: var(--glow-red); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
     .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding-bottom: 60px; }
-    .game-card { background: var(--bg3); border: 1px solid var(--border-red); cursor: pointer; transition: 0.2s; position: relative; }
+    .game-card { background: var(--bg3); border: 1px solid var(--border-red); cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+    .game-card-badge-new { position: absolute; top: 8px; left: 8px; z-index: 3; background: linear-gradient(135deg, var(--red), #ff6b35); color: #fff; font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 2px; box-shadow: 0 2px 8px rgba(230,57,70,0.3); pointer-events: none; }
     .game-card::before { content: ''; position: absolute; top:0; left:0; width: 3px; height: 0%; background: var(--red); transition: 0.3s; z-index: 2; }
     .game-card:hover { transform: translateY(-5px); box-shadow: var(--glow-red); border-color: var(--red); }
     .game-card:hover::before { height: 100%; }
@@ -95,50 +98,54 @@
     .price-paid { color: white; background: var(--red-dim); padding: 3px 8px; font-weight: 700; font-size: 0.9rem; border: 1px solid var(--red); }
     .has-file-badge { font-size: 0.7rem; color: var(--gold); background: rgba(245,197,66,0.08); border: 1px solid rgba(245,197,66,0.3); padding: 2px 8px; text-transform: uppercase; }
     .empty-state { grid-column: 1/-1; text-align: center; padding: 80px 20px; border: 1px dashed var(--border-red); background: rgba(230,57,70,0.02); }
-    .gs-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; padding: 40px 20px; }
+    .gs-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
     .gs-modal-overlay.open { display: flex; }
-    .gs-modal { background: var(--bg); border: 1px solid var(--red); box-shadow: var(--glow-red); max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; animation: modalIn 0.2s ease forwards; clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px); }
-    .modal-hero-img { width: 100%; height: 350px; object-fit: cover; border-bottom: 2px solid var(--red); }
-    .modal-body { padding: 35px; }
-    .modal-title { font-family: var(--font-display); font-size: 2rem; color: white; text-shadow: 2px 2px 0px var(--red); margin-bottom: 10px; text-transform: uppercase; }
-    .modal-meta { display: flex; gap: 20px; font-family: var(--font-mono); margin-bottom: 20px; }
-    .modal-desc { color: var(--text); border-left: 3px solid var(--red); padding-left: 15px; margin-bottom: 30px; font-size: 1rem; line-height: 1.6; }
-    .modal-screenshots { display: flex; gap: 15px; overflow-x: auto; margin-bottom: 30px; padding-bottom: 10px; }
-    .modal-screenshots img { height: 110px; border: 1px solid var(--border-red); transition: 0.2s; }
-    .modal-screenshots img:hover { border-color: var(--red); transform: scale(1.05); }
-    .modal-trailer { width: 100%; aspect-ratio: 16/9; border: 1px solid var(--border-red); margin-bottom: 30px; }
-    .modal-close { position: absolute; top: 15px; right: 15px; background: rgba(7,7,9,0.8); border: 1px solid var(--red); color: white; width: 40px; height: 40px; cursor: pointer; font-family: var(--font-mono); transition: 0.2s; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); z-index: 10; }
-    .modal-close:hover { background: var(--red); }
-    .modal-price-box { border: 1px solid var(--border-red); background: rgba(0,0,0,0.3); padding: 20px; display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); position: relative; }
-    .modal-price-box::before { content: 'PRICE'; position: absolute; top: -8px; left: 15px; background: var(--bg); padding: 0 10px; font-size: 0.7rem; color: var(--text-dim); }
-    .modal-price-val { font-family: var(--font-display); font-size: 1.8rem; color: var(--red); font-weight: bold; }
-    .viewer-only-note { color: var(--text-dim); font-family: var(--font-mono); font-size: 0.8rem; background: rgba(245,197,66,0.05); border: 1px solid rgba(245,197,66,0.2); padding: 10px 15px; margin-top: 20px; text-transform: uppercase; }
-    .modal-categories { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .modal-cat-tag { background: rgba(230,57,70,0.1); color: #e63946; border: 1px solid rgba(230,57,70,0.4); padding: 4px 10px; font-size: 0.8rem; font-family: var(--font-mono); }
-    .modal-hero-placeholder { background: #0d0d12; height: 350px; display: flex; align-items: center; justify-content: center; color: #e63946; font-family: 'Orbitron', monospace; font-size: 3rem; border-bottom: 2px solid #e63946; }
-    .modal-download-box { display: flex; align-items: center; gap: 15px; flex: 1; min-width: 0; justify-content: flex-end; }
-    .modal-download-icon { font-size: 1.5rem; color: var(--gold); }
+    .gs-modal { background: linear-gradient(160deg, #0d0d12 0%, #111118 100%); border: 1px solid rgba(230,57,70,0.15); border-radius: 12px; box-shadow: 0 24px 80px rgba(0,0,0,0.6); max-width: 720px; width: 100%; max-height: 85vh; position: relative; animation: modalSlideUp 0.3s cubic-bezier(0.4,0,0.2,1) forwards; display: flex; flex-direction: column; }
+    #modalContent { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    @@keyframes modalSlideUp { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal-hero-img { width: 100%; height: 260px; object-fit: cover; display: block; flex-shrink: 0; }
+    .modal-hero-placeholder { background: linear-gradient(160deg, #111118, #0a0a0f); height: 260px; display: flex; align-items: center; justify-content: center; color: var(--red); font-family: var(--font-display); font-size: 2rem; opacity: 0.3; flex-shrink: 0; }
+    .modal-body { padding: 28px 32px 24px; overflow-y: auto; flex: 1; }
+    .modal-title { font-family: var(--font-display); font-size: 1.6rem; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .modal-meta { display: flex; gap: 16px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-bottom: 16px; flex-wrap: wrap; }
+    .modal-desc { color: rgba(232,232,240,0.85); margin-bottom: 24px; font-size: 0.92rem; line-height: 1.7; }
+    .modal-screenshots { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 24px; padding-bottom: 8px; }
+    .modal-screenshots img { height: 90px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); transition: all 0.2s; cursor: pointer; flex-shrink: 0; }
+    .modal-screenshots img:hover { border-color: rgba(230,57,70,0.3); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+    .modal-trailer-wrap { width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; margin-bottom: 24px; background: #000; border: 1px solid rgba(255,255,255,0.04); }
+    .modal-trailer { width: 100%; height: 100%; border: none; display: block; }
+    .modal-close { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.5); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 18px; transition: all 0.2s; z-index: 10; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+    .modal-close:hover { background: rgba(230,57,70,0.7); transform: scale(1.1); }
+    .modal-price-box { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-family: var(--font-mono); margin-bottom: 8px; }
+    .modal-price-val { font-family: var(--font-display); font-size: 1.5rem; color: var(--gold); font-weight: 700; letter-spacing: 1px; }
+    .viewer-only-note { color: var(--text-dim); font-family: var(--font-mono); font-size: 0.75rem; background: rgba(245,197,66,0.04); border: 1px solid rgba(245,197,66,0.1); padding: 8px 14px; margin-top: 16px; border-radius: 6px; }
+    .modal-categories { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .modal-cat-tag { background: rgba(230,57,70,0.08); color: var(--red); border: 1px solid rgba(230,57,70,0.2); padding: 3px 10px; font-size: 0.7rem; font-family: var(--font-mono); border-radius: 4px; letter-spacing: 0.5px; }
+    .modal-download-box { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; justify-content: flex-end; }
+    .modal-download-icon { font-size: 1.2rem; opacity: 0.6; }
     .modal-download-info { display: flex; flex-direction: column; }
-    .modal-download-name { font-weight: bold; color: white; font-family: var(--font-mono); font-size: 0.85rem; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .modal-download-size { font-size: 0.8rem; color: var(--text-dim); font-family: var(--font-mono); }
-    .modal-actions { display: flex; gap: 12px; margin-top: 16px; }
-    .modal-actions .btn { flex: 1; justify-content: center; }
-    .modal-wishlist-btn { flex: 0 0 auto; padding: 12px 16px; font-size: 18px; }
-    .modal-reviews { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border-red); }
-    .modal-reviews-title { font-family: var(--font-mono); font-size: 12px; color: var(--red); letter-spacing: 2px; margin-bottom: 16px; }
-    .modal-review-card { background: var(--bg3); border: 1px solid rgba(230,57,70,0.15); padding: 12px 16px; margin-bottom: 8px; }
+    .modal-download-name { font-weight: 600; color: #fff; font-family: var(--font-mono); font-size: 0.8rem; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .modal-download-size { font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+    .modal-actions .btn { flex: 1; justify-content: center; border-radius: 6px; }
+    .modal-wishlist-btn { flex: 0 0 auto; padding: 10px 14px; font-size: 16px; border-radius: 6px; }
+    .modal-reviews { margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
+    .modal-reviews-title { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 1.5px; margin-bottom: 14px; text-transform: uppercase; }
+    .modal-review-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; transition: border-color 0.2s; }
+    .modal-review-card:hover { border-color: rgba(230,57,70,0.12); }
     .modal-review-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-    .modal-review-user { font-family: var(--font-mono); font-size: 12px; color: var(--gold); }
-    .modal-review-stars { font-family: var(--font-mono); font-size: 12px; color: var(--gold); }
-    .modal-review-comment { font-size: 13px; color: var(--text); }
-    .modal-review-date { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 4px; }
-    .modal-no-reviews { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-bottom: 16px; }
-    .modal-review-form-box { margin-top: 16px; padding: 16px; background: var(--bg2); border: 1px solid var(--border-red); }
-    .modal-review-form-title { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 12px; }
-    .modal-stars-select { display: flex; gap: 8px; margin-bottom: 12px; }
-    .modal-star { cursor: pointer; font-size: 24px; color: var(--text-dim); transition: color 0.2s; }
-    .modal-star.active { color: var(--gold); }
-    .modal-review-textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border-red); color: var(--text); padding: 10px; font-family: var(--font-ui); font-size: 13px; resize: vertical; min-height: 60px; outline: none; }
+    .modal-review-user { font-family: var(--font-mono); font-size: 11px; color: var(--gold); font-weight: 600; }
+    .modal-review-stars { font-family: var(--font-mono); font-size: 12px; color: var(--gold); letter-spacing: 1px; }
+    .modal-review-comment { font-size: 13px; color: rgba(232,232,240,0.8); }
+    .modal-review-date { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 6px; opacity: 0.6; }
+    .modal-no-reviews { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-bottom: 14px; }
+    .modal-review-form-box { margin-top: 16px; padding: 18px; background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 8px; }
+    .modal-review-form-title { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
+    .modal-stars-select { display: flex; gap: 6px; margin-bottom: 12px; }
+    .modal-star { cursor: pointer; font-size: 22px; color: rgba(255,255,255,0.15); transition: color 0.2s, transform 0.15s; }
+    .modal-star:hover { transform: scale(1.2); }
+    .modal-review-textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: var(--text); padding: 10px 14px; font-family: var(--font-ui); font-size: 13px; resize: vertical; min-height: 60px; outline: none; transition: border-color 0.2s; }
+    .modal-review-textarea:focus { border-color: rgba(230,57,70,0.25); }
     .modal-review-msg { font-family: var(--font-mono); font-size: 11px; margin-top: 8px; }
 </style>
 
@@ -174,12 +181,14 @@
             @for (int hi = 0; hi < Model.HeroGames.Count; hi++)
             {
                 var g = Model.HeroGames[hi];
+                var gIsNew = g.CreatedAt >= DateTime.UtcNow.AddDays(-30);
                 var gJson = System.Text.Json.JsonSerializer.Serialize(new { id = g.Id, title = g.Title, developer = g.Developer ?? "UNKNOWN", price = g.Price, description = g.Description, trailerUrl = g.TrailerUrl, screenshots = g.ScreenshotUrls, coverImageUrl = g.CoverImageUrl, releaseDate = g.ReleaseDate.ToString("yyyy-MM-dd"), categories = g.GameCategories.Select(gc => gc.Category.Name).ToList(), hasFile = g.GameFileUrl != null, fileName = g.GameFileName, fileSizeBytes = g.GameFileSizeBytes });
                 var gReviews = Model.ReviewsByGame.TryGetValue(g.Id, out var revs) ? revs : new();
                 var gAvg = gReviews.Any() ? gReviews.Average(r => r.Rating) : 0;
                 var gPriceText = g.Price == 0 ? "FREE" : "$" + g.Price.ToString("F2");
                 <div class="hero-item @(hi == 0 ? "active" : "")" data-hero-index="@hi">
                     <div class="hero-card" onclick="openModal(@Html.Raw(gJson))">
+                        @if (gIsNew) { <div class="hero-badge-new">🔥 NEW</div> }
                         @if (!string.IsNullOrEmpty(g.CoverImageUrl)) { <img class="hero-img" src="@g.CoverImageUrl" alt="@g.Title" /> }
                         else if (g.ScreenshotUrls.Any()) { <img class="hero-img" src="@g.ScreenshotUrls[0]" alt="@g.Title" /> }
                         else { <div class="hero-placeholder"><i class="bi bi-image"></i></div> }
@@ -187,13 +196,14 @@
                             <div class="hero-title">@g.Title.ToUpper()</div>
                             <div class="hero-meta">
                                 @foreach (var gc in g.GameCategories.Take(3)) { <span class="hero-tag">@gc.Category.Name</span> }
-                                <span class="hero-price @(g.Price == 0 ? "price-free" : "")">$@gPriceText</span>
+                                <span class="hero-price @(g.Price == 0 ? "price-free" : "")">@gPriceText</span>
                                 @if (gReviews.Any()) { <span class="hero-rating"><i class="bi bi-star-fill" style="margin-right:4px;"></i>@gAvg.ToString("0.0") (@gReviews.Count)</span> }
                                 <span class="hero-rating" style="color:var(--text-dim);"><i class="bi bi-calendar3"></i> @g.ReleaseDate.ToString("yyyy")</span>
                             </div>
                             @if (!string.IsNullOrEmpty(g.Description)) { <div class="hero-desc">@(g.Description.Length > 180 ? g.Description[..177] + "..." : g.Description)</div> }
                             <div class="hero-actions">
-                                @if (isLoggedInHero) { <button class="hero-btn hero-btn-primary" onclick="event.stopPropagation();addToCart('@g.Id', this)"><i class="bi bi-cart-plus"></i> ADD TO CART</button> <button class="hero-btn hero-btn-secondary" onclick="event.stopPropagation();toggleWishlist('@g.Id', this)"><i class="bi bi-heart"></i></button> }
+                                @if (isLoggedInHero && Model.OwnedGameIds.Contains(g.Id)) { <span class="hero-btn hero-btn-primary" style="background:rgba(74,222,128,0.08);border-color:rgba(74,222,128,0.2);color:#4ade80;cursor:default;">✓ OWNED</span> }
+                                else if (isLoggedInHero) { <button class="hero-btn hero-btn-primary" onclick="event.stopPropagation();addToCart('@g.Id', this)"><i class="bi bi-cart-plus"></i> ADD TO CART</button> <button class="hero-btn hero-btn-secondary" onclick="event.stopPropagation();toggleWishlist('@g.Id', this)"><i class="bi bi-heart"></i></button> }
                                 else { <a href="/Auth/Login" class="hero-btn hero-btn-primary" onclick="event.stopPropagation()"><i class="bi bi-box-arrow-in-right"></i> LOGIN TO BUY</a> }
                                 <button class="hero-btn hero-btn-secondary" onclick="event.stopPropagation();openModal(@Html.Raw(gJson))"><i class="bi bi-info-circle"></i> DETAILS</button>
                             </div>
@@ -231,7 +241,7 @@
         <div class="cat-pill active" onclick="selectCat(this,'')" data-cat="">[ ALL ]</div>
         @foreach (var cat in Model.Categories)
         {
-            <div class="cat-pill" onclick="selectCat(this,'@cat.Name.ToLower()')" data-cat="@cat.Name.ToLower()">@cat.Name</div>
+            <div class="cat-pill" onclick="selectCat(this)" data-cat="@cat.Name.ToLower()">@cat.Name</div>
         }
     </div>
 
@@ -247,9 +257,11 @@
         {
             @foreach (var game in Model.Games)
             {
+                var gameIsNew = game.CreatedAt >= DateTime.UtcNow.AddDays(-30);
                 var cats = string.Join(" ", game.GameCategories.Select(gc => gc.Category.Name?.ToLower() ?? ""));
                 var gameJson = System.Text.Json.JsonSerializer.Serialize(new { id = game.Id, title = game.Title, developer = game.Developer ?? "UNKNOWN", price = game.Price, description = game.Description, trailerUrl = game.TrailerUrl, screenshots = game.ScreenshotUrls, coverImageUrl = game.CoverImageUrl, releaseDate = game.ReleaseDate.ToString("yyyy-MM-dd"), categories = game.GameCategories.Select(gc => gc.Category.Name).ToList(), hasFile = game.GameFileUrl != null, fileName = game.GameFileName, fileSizeBytes = game.GameFileSizeBytes });
                 <div class="game-card" data-title="@game.Title.ToLower()" data-cats="@cats" data-price="@game.Price" data-date="@game.ReleaseDate.Ticks" onclick='openModal(@Html.Raw(gameJson))'>
+                    @if (gameIsNew) { <div class="game-card-badge-new">🔥 NEW</div> }
                     @if (!string.IsNullOrEmpty(game.CoverImageUrl)) { <img class="game-card-img" src="@game.CoverImageUrl" alt="@game.Title" loading="lazy"/> }
                     else if (game.ScreenshotUrls.Any()) { <img class="game-card-img" src="@game.ScreenshotUrls[0]" alt="@game.Title" loading="lazy"/> }
                     else { <div class="game-card-placeholder">⊗</div> }
@@ -298,12 +310,33 @@
 @section Scripts {
 <script>
     const cartIds = [];
-    const reviewsData = @Html.Raw(Model.ReviewsJson);
+    const reviewsData = @Html.Raw(Model.ReviewsJson) || {};
     const wishlistIds = [];
-    const ownedGameIds = @Html.Raw(Json.Serialize(Model.OwnedGameIds.ToList()));
+    const ownedGameIds = @Html.Raw(Json.Serialize(Model.OwnedGameIds.ToList())) || [];
     const isLoggedIn = @Html.Raw(string.IsNullOrEmpty(Context.Session.GetString("UserId")) ? "false" : "true");
-    const heroGames = @Html.Raw(Model.HeroGamesJson);
+    const heroGames = @Html.Raw(Model.HeroGamesJson) || [];
 
+    function escapeHtml(text) {
+        if (!text) return '';
+        var d = document.createElement('div');
+        d.textContent = text;
+        return d.innerHTML;
+    }
+
+    function getEmbedUrl(url) {
+        if (!url) return '';
+        try {
+            var u = new URL(url);
+            if (u.hostname.includes('youtube.com') || u.hostname.includes('youtu.be')) {
+                var vid = '';
+                if (u.hostname.includes('youtu.be')) vid = u.pathname.slice(1).split('?')[0];
+                else if (u.pathname.includes('/embed/')) vid = u.pathname.split('/embed/')[1].split('?')[0];
+                else if (u.pathname.includes('/watch')) vid = u.searchParams.get('v');
+                if (vid) return 'https://www.youtube-nocookie.com/embed/' + vid;
+            }
+        } catch(e) {}
+        return url;
+    }
     function fmtSize(bytes) {
         if (!bytes || bytes === 0) return '';
         if (bytes < 1024) return bytes + ' B';
@@ -314,26 +347,28 @@
     function renderStars(rating) { let s = ''; for (let i = 1; i <= 5; i++) s += i <= rating ? '★' : '☆'; return s; }
 
     function openModal(game) {
+        var e = escapeHtml;
         let html = '';
         const heroSrc = game.coverImageUrl || (game.screenshots && game.screenshots.length > 0 ? game.screenshots[0] : null);
-        if (heroSrc) html += `<img class="modal-hero-img" src="${heroSrc}" alt="${game.title}"/>`;
+        if (heroSrc) html += `<img class="modal-hero-img" src="${heroSrc}" alt="${e(game.title)}"/>`;
         else html += `<div class="modal-hero-placeholder">NO IMAGE</div>`;
         html += `<div class="modal-body">`;
-        html += `<div class="modal-title glitch">${game.title.toUpperCase()}</div>`;
-        html += `<div class="modal-meta"><span style="color:var(--gold);">SRC: ${game.developer}</span><span style="color:var(--text-dim);">SYNC: ${game.releaseDate}</span></div>`;
-        if (game.categories && game.categories.length) html += `<div class="modal-categories">` + game.categories.map(c => `<span class="modal-cat-tag">${c}</span>`).join('') + `</div>`;
-        if (game.description) html += `<p class="modal-desc">${game.description}</p>`;
+        html += `<div class="modal-title">${e(game.title).toUpperCase()}</div>`;
+        html += `<div class="modal-meta"><span><i class="bi bi-buildings"></i> ${e(game.developer)}</span><span><i class="bi bi-calendar3"></i> ${e(game.releaseDate)}</span></div>`;
+        if (game.categories && game.categories.length) html += `<div class="modal-categories">` + game.categories.map(c => `<span class="modal-cat-tag">${e(c)}</span>`).join('') + `</div>`;
+        if (game.description) html += `<p class="modal-desc">${e(game.description)}</p>`;
         const shots = game.screenshots || [];
         if (shots.length > 0) html += `<div class="modal-screenshots">` + shots.map(s => `<img src="${s}" onclick="this.requestFullscreen && this.requestFullscreen()"/>`).join('') + `</div>`;
-        if (game.trailerUrl) html += `<iframe class="modal-trailer" src="${game.trailerUrl}" allowfullscreen></iframe>`;
+        if (game.trailerUrl) html += `<div class="modal-trailer-wrap"><iframe class="modal-trailer" src="${getEmbedUrl(game.trailerUrl)}" allowfullscreen loading="lazy"></iframe></div>`;
         html += `<div class="modal-price-box">`;
         if (game.price === 0) html += `<div class="modal-price-val" style="color:var(--gold);">FREE</div>`;
         else html += `<div class="modal-price-val">$${game.price.toFixed(2)}</div>`;
         if (ownedGameIds.includes(game.id)) html += `<span style="font-family:var(--font-mono);font-size:11px;color:#4ade80;margin-left:12px;">[ OWNED ]</span>`;
-        if (game.hasFile && ownedGameIds.includes(game.id)) html += `<div class="modal-download-box"><span class="modal-download-icon">💾</span><div class="modal-download-info"><div class="modal-download-name">${game.fileName || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Home/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
+        if (game.hasFile && ownedGameIds.includes(game.id)) html += `<div class="modal-download-box"><span class="modal-download-icon">💾</span><div class="modal-download-info"><div class="modal-download-name">${e(game.fileName) || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Home/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
         html += `<div class="modal-actions">`;
         if (isLoggedIn) {
-            html += `<button onclick="addToCart('${game.id}', this)" class="btn btn-primary">+ ADD TO CART</button>`;
+            if (ownedGameIds.includes(game.id)) { html += `<span class="btn btn-primary" style="background:rgba(74,222,128,0.08);border-color:rgba(74,222,128,0.2);color:#4ade80;cursor:default;opacity:0.8;">✓ IN LIBRARY</span>`; }
+            else { html += `<button onclick="addToCart('${game.id}', this)" class="btn btn-primary">+ ADD TO CART</button>`; }
             html += `<button onclick="toggleWishlist('${game.id}', this)" class="btn btn-secondary modal-wishlist-btn" title="Add to wishlist">&#9825;</button>`;
         } else {
             html += `<a href="/Auth/Login" class="btn btn-secondary">LOGIN TO PURCHASE</a>`;
@@ -342,7 +377,7 @@
         const gameReviews = reviewsData[game.id] || [];
         html += `<div class="modal-reviews"><div class="modal-reviews-title">> REVIEWS (${gameReviews.length})</div>`;
         if (gameReviews.length === 0) { html += `<div class="modal-no-reviews">No reviews yet.</div>`; }
-        else { gameReviews.forEach(r => { html += `<div class="modal-review-card"><div class="modal-review-top"><span class="modal-review-user">${r.username}</span><span class="modal-review-stars">${renderStars(r.rating)}</span></div>${r.comment ? `<div class="modal-review-comment">${r.comment}</div>` : ''}<div class="modal-review-date">${r.createdAt}</div></div>`; }); }
+        else { gameReviews.forEach(r => { html += `<div class="modal-review-card"><div class="modal-review-top"><span class="modal-review-user">${e(r.username)}</span><span class="modal-review-stars">${renderStars(r.rating)}</span></div>${r.comment ? `<div class="modal-review-comment">${e(r.comment)}</div>` : ''}<div class="modal-review-date">${e(r.createdAt)}</div></div>`; }); }
         if (isLoggedIn) {
             html += `<div class="modal-review-form-box"><div class="modal-review-form-title">WRITE A REVIEW</div><div class="modal-stars-select">`;
             for (let i = 1; i <= 5; i++) html += `<span onclick="setRating(this, ${i})" class="modal-star" data-rating="${i}">☆</span>`;
@@ -393,7 +428,7 @@
         }).catch(() => { msg.textContent = '[ERROR] Something went wrong.'; msg.style.color = 'var(--red)'; });
     }
 
-    function closeModal() { document.getElementById('gameModal').classList.remove('open'); document.body.style.overflow = ''; }
+    function closeModal() { document.getElementById('gameModal').classList.remove('open'); document.body.style.overflow = ''; selectedRating = 0; }
     function closeModalOutside(e) { if (e.target.id === 'gameModal') closeModal(); }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
@@ -416,7 +451,7 @@
     }
 
     let activeCat = '';
-    function selectCat(el, cat) { document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active')); el.classList.add('active'); activeCat = cat; applyFilters(); }
+    function selectCat(el) { var cat = el.dataset.cat || ''; document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active')); el.classList.add('active'); activeCat = cat; applyFilters(); }
     function applyFilters() {
         const q = document.getElementById('searchInput').value.toLowerCase().trim();
         const sort = document.getElementById('sortSelect').value;

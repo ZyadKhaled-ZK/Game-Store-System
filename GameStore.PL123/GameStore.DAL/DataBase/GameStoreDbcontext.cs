@@ -23,6 +23,7 @@ namespace GameStore.DAL.DataBase
         public DbSet<DeveloperApplication> DeveloperApplications { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Post> Posts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -119,6 +120,8 @@ namespace GameStore.DAL.DataBase
             {
                 e.HasKey(o => o.Id);
                 e.Property(o => o.TotalPrice).HasColumnType("decimal(10,2)");
+                e.HasIndex(o => o.StripeSessionId).IsUnique().HasFilter("[StripeSessionId] IS NOT NULL");
+                e.HasIndex(o => o.CreatedAt);
 
                 e.HasOne(o => o.User)
                  .WithMany(u => u.Orders)
@@ -272,6 +275,20 @@ namespace GameStore.DAL.DataBase
                  .OnDelete(DeleteBehavior.Restrict);
 
                 e.HasIndex(m => m.SentAt);
+            });
+
+            // ── Post ─────────────────────────────────────────────────────────────
+            modelBuilder.Entity<Post>(e =>
+            {
+                e.HasKey(p => p.Id);
+                e.Property(p => p.Content).HasMaxLength(1000).IsRequired();
+
+                e.HasOne(p => p.User)
+                 .WithMany()
+                 .HasForeignKey(p => p.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(p => p.CreatedAt);
             });
 
             // ── DeveloperApplication ───────────────────────────────────────────

@@ -1,3 +1,5 @@
+using GameStore.DAL.Enum;
+
 namespace GameStore.DAL.Entities
 {
     public class Order
@@ -12,6 +14,14 @@ namespace GameStore.DAL.Entities
 
         [Required, Column(TypeName = "decimal(10,2)")]
         public decimal TotalPrice { get; set; }
+
+        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
+
+        [MaxLength(500)]
+        public string? StripeSessionId { get; set; }
+
+        [MaxLength(500)]
+        public string? StripePaymentIntentId { get; set; }
 
         // ── Navigation Properties ─────────────────────────────────────────
         [ForeignKey(nameof(UserId))]

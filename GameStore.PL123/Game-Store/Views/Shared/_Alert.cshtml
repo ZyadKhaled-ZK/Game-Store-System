@@ -5,7 +5,7 @@
 @if (!string.IsNullOrEmpty(message))
 {
     <div class="alert-box @(isError ? "alert-error" : "alert-success")">
-        <span>@(isError ? "&#10007;" : "&#10003;") @Html.Raw(message)</span>
+        <span>@(isError ? "&#10007;" : "&#10003;") @message</span>
         <button type="button" class="alert-close" onclick="this.parentElement.remove();">&times;</button>
     </div>
     <script>(function(){ var e = document.currentScript; if(e && e.previousElementSibling) setTimeout(function(){ var el = e.previousElementSibling; el.style.transition='opacity 0.4s'; el.style.opacity='0'; setTimeout(function(){ el.remove(); }, 400); }, 4000); })();</script>

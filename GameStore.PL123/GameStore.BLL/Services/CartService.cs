@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace GameStore.BLL.Services
 {
     public class CartService : ICartService
@@ -33,6 +35,11 @@ namespace GameStore.BLL.Services
             var game = await _uow.Repository<Game>().GetByIdAsync(gameId);
             if (game == null) return (false, "Game not found.");
 
+            var alreadyOwned = await _uow.Repository<LibraryGame>()
+                .AnyAsync(lg => lg.GameId == gameId
+                    && _uow.Repository<Library>().Query().Any(l => l.Id == lg.LibraryId && l.UserId == userId));
+            if (alreadyOwned) return (false, "You already own this game.");
+
             var cart = await _uow.Repository<Cart>().Query()
                 .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
@@ -42,9 +49,13 @@ namespace GameStore.BLL.Services
                 cart = new Cart { UserId = userId };
                 await _uow.Repository<Cart>().AddAsync(cart);
                 await _uow.SaveChangesAsync();
+
+                cart = await _uow.Repository<Cart>().Query()
+                    .Include(c => c.CartItems)
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
             }
 
-            if (cart.CartItems.Any(ci => ci.GameId == gameId))
+            if (cart!.CartItems.Any(ci => ci.GameId == gameId))
                 return (false, "Game already in cart.");
 
             cart.CartItems.Add(new CartItem { CartId = cart.Id, GameId = gameId });
@@ -52,10 +63,13 @@ namespace GameStore.BLL.Services
             return (true, string.Empty);
         }
 
-        public async Task<bool> RemoveFromCartAsync(string cartItemId)
+        public async Task<bool> RemoveFromCartAsync(string cartItemId, string userId)
         {
-            var item = await _uow.Repository<CartItem>().GetByIdAsync(cartItemId);
-            if (item == null) return false;
+            var item = await _uow.Repository<CartItem>().Query()
+                .Include(ci => ci.Cart)
+                .FirstOrDefaultAsync(ci => ci.Id == cartItemId);
+
+            if (item == null || item.Cart?.UserId != userId) return false;
 
             _uow.Repository<CartItem>().Delete(item);
             await _uow.SaveChangesAsync();

@@ -9,5 +9,5 @@ public interface IFriendService
     Task<(bool Success, string Error)> AcceptRequestAsync(string friendshipId, string userId);
     Task<(bool Success, string Error)> RejectRequestAsync(string friendshipId, string userId);
     Task<(bool Success, string Error)> RemoveFriendAsync(string friendshipId, string userId);
-    Task<List<User>> GetSuggestionsAsync(string userId, int count = 6);
+    Task<List<(User User, int MutualGamesCount)>> GetSuggestionsAsync(string userId, int count = 6);
 }
