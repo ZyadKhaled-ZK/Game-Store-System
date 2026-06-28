@@ -1,0 +1,50 @@
+@model Developer?
+@{
+    var isEdit = Model != null;
+}
+
+<div id="alertMessage" data-msg="@TempData["Message"]" data-error="@TempData["IsError"]"></div>
+
+<div class="page-header">
+    <h1>@(isEdit ? "Edit Profile" : "Create Profile")</h1>
+    <p>@(isEdit ? "Update your developer studio information." : "Set up your developer studio to start publishing games.")</p>
+</div>
+
+<div class="card" style="max-width:700px;">
+    <form method="post" asp-action="Save">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label>Studio Name *</label>
+            <input type="text" name="Name" class="form-control" value="@Model?.Name" required maxlength="200" />
+        </div>
+
+        <div class="form-group">
+            <label>Slug (URL name)</label>
+            <input type="text" name="Slug" class="form-control" value="@Model?.Slug" maxlength="300" placeholder="e.g. my-studio" />
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <textarea name="Description" class="form-control" maxlength="2000">@Model?.Description</textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="form-group">
+                <label>Website</label>
+                <input type="url" name="Website" class="form-control" value="@Model?.Website" maxlength="500" placeholder="https://" />
+            </div>
+            <div class="form-group">
+                <label>Country</label>
+                <input type="text" name="Country" class="form-control" value="@Model?.Country" maxlength="100" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Logo URL</label>
+            <input type="url" name="LogoUrl" class="form-control" value="@Model?.LogoUrl" maxlength="500" placeholder="https://" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">@(isEdit ? "UPDATE PROFILE" : "CREATE PROFILE")</button>
+    </form>
+</div>

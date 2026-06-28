@@ -1,0 +1,50 @@
+@model List<Developer>
+@{
+    ViewData["Title"] = "Developers";
+    Layout = "_Layout";
+}
+
+<div class="container" style="padding:40px 20px;max-width:1200px;margin:0 auto;">
+    <div style="margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:20px;">
+        <h1 style="font-family:var(--font-display);font-size:32px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);">Developers</h1>
+        <p style="color:var(--text-dim);margin-top:8px;">Game development studios and publishers.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div style="text-align:center;padding:80px 0;">
+            <p style="font-family:var(--font-mono);color:var(--text-dim);font-size:14px;">[ NO DEVELOPERS FOUND ]</p>
+        </div>
+    }
+    else
+    {
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;">
+            @foreach (var dev in Model)
+            {
+                <a asp-action="Details" asp-route-id="@dev.Id" style="text-decoration:none;">
+                    <div style="background:var(--bg2);border:1px solid var(--border);padding:30px;transition:0.2s;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;"
+                         onmouseover="this.style.borderColor='var(--gold)';this.style.boxShadow='var(--glow-gold)'"
+                         onmouseout="this.style.borderColor='';this.style.boxShadow=''">
+                        @if (!string.IsNullOrEmpty(dev.LogoUrl))
+                        {
+                            <img src="@dev.LogoUrl" alt="@dev.Name" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(245,197,66,0.3));" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div style="width:80px;height:80px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:28px;color:var(--gold);">@dev.Name[0]</div>
+                        }
+                        <h3 style="font-family:var(--font-mono);font-size:14px;letter-spacing:2px;text-transform:uppercase;color:var(--text);">@dev.Name</h3>
+                        @if (!string.IsNullOrEmpty(dev.Country))
+                        {
+                            <span style="font-size:11px;color:var(--text-dim);">@dev.Country</span>
+                        }
+                        @if (!string.IsNullOrEmpty(dev.Description))
+                        {
+                            <p style="font-size:12px;color:var(--text-dim);line-height:1.6;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">@dev.Description</p>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>

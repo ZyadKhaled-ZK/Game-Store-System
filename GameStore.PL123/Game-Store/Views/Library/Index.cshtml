@@ -43,11 +43,11 @@
       <div class="lib-card" data-title="@(lg.Game?.Title?.ToLower() ?? "")" data-dev="@(lg.Game?.Developer?.ToLower() ?? "")">
         @if (!string.IsNullOrEmpty(lg.Game?.CoverImageUrl))
         {
-          <img src="@lg.Game.CoverImageUrl" alt="@lg.Game.Title" class="lib-img"/>
+          <img src="@lg.Game.CoverImageUrl" alt="@lg.Game.Title" class="lib-img" loading="lazy"/>
         }
         else if (lg.Game?.ScreenshotUrls.Any() == true)
         {
-          <img src="@lg.Game.ScreenshotUrls[0]" alt="@lg.Game.Title" class="lib-img"/>
+          <img src="@lg.Game.ScreenshotUrls[0]" alt="@lg.Game.Title" class="lib-img" loading="lazy"/>
         }
         else
         {

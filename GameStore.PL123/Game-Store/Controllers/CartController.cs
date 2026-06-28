@@ -16,6 +16,15 @@ public class CartController : Controller
     private string UserId => HttpContext.Session.GetString("UserId") ?? string.Empty;
 
     [HttpGet]
+    public async Task<IActionResult> GetCount()
+    {
+        if (string.IsNullOrEmpty(UserId))
+            return Json(new { count = 0 });
+        var items = await _cartService.GetCartItemsAsync(UserId);
+        return Json(new { count = items.Count });
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
         var model = new CartViewModel();

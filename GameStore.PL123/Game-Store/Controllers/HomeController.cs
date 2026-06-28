@@ -15,10 +15,12 @@ public class HomeController : Controller
     private readonly IGameService _gameService;
     private readonly ICategoryService _categoryService;
     private readonly IWishlistService _wishlistService;
+    private readonly ILibraryService _libraryService;
 
     public HomeController(ILogger<HomeController> logger, IWebHostEnvironment env,
         ICartService cartService, IReviewService reviewService, IGameService gameService,
-        ICategoryService categoryService, IWishlistService wishlistService)
+        ICategoryService categoryService, IWishlistService wishlistService,
+        ILibraryService libraryService)
     {
         _logger = logger;
         _env = env;
@@ -27,6 +29,7 @@ public class HomeController : Controller
         _gameService = gameService;
         _categoryService = categoryService;
         _wishlistService = wishlistService;
+        _libraryService = libraryService;
     }
 
     [HttpGet]
@@ -55,6 +58,9 @@ public class HomeController : Controller
 
             var wishlistItems = await _wishlistService.GetWishlistAsync(userId);
             model.WishlistJson = JsonSerializer.Serialize(wishlistItems.Select(w => w.GameId).ToList());
+
+            var owned = await _libraryService.GetLibraryGamesAsync(userId);
+            model.OwnedGameIds = owned.Select(lg => lg.GameId).ToHashSet();
         }
 
         var allReviews = await _reviewService.GetAllWithDetailsAsync();
@@ -103,9 +109,17 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> Download(string id)
     {
+        var userId = HttpContext.Session.GetString("UserId");
+        if (string.IsNullOrEmpty(userId))
+            return RedirectToAction("Login", "Auth");
+
         var game = await _gameService.GetByIdAsync(id);
         if (game == null || string.IsNullOrEmpty(game.GameFileUrl))
             return NotFound();
+
+        var owns = await _libraryService.HasGame(userId, id);
+        if (!owns)
+            return Unauthorized();
 
         var filePath = Path.Combine(_env.WebRootPath, game.GameFileUrl.TrimStart('/'));
         if (!System.IO.File.Exists(filePath))

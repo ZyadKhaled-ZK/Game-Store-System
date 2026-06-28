@@ -211,12 +211,14 @@
                 ACCESS REQUIRED
             </div>
 
-            @if (!string.IsNullOrEmpty(ViewData["ErrorMessage"] as string))
-            {
-                <div style="background: rgba(230,57,70,0.1); border: 1px solid var(--red); color: white; padding: 10px; margin-bottom: 15px; font-family: var(--font-mono); font-size: 12px;">
-                    [ERROR] @ViewData["ErrorMessage"]
-                </div>
+            @{
+                if (!string.IsNullOrEmpty(ViewData["ErrorMessage"] as string))
+                {
+                    ViewData["Message"] = ViewData["ErrorMessage"];
+                    ViewData["IsError"] = true;
+                }
             }
+            <partial name="_Alert" />
 
             <form method="post">
                 <div class="mb-3">
@@ -226,7 +228,10 @@
                 </div>
                 <div class="mb-4">
                     <label asp-for="Password" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">Access_Code //:</label>
-                    <input asp-for="Password" type="password" class="form-control login-input" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password"/>
+                    <div style="position:relative;">
+                        <input asp-for="Password" type="password" class="form-control login-input" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password" style="padding-right:40px;"/>
+                        <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye-slash"></i></button>
+                    </div>
                     <span asp-validation-for="Password" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
                 </div>
 

@@ -1,4 +1,5 @@
 using GameStore.BLL.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.BLL.Services
 {
@@ -34,6 +35,18 @@ namespace GameStore.BLL.Services
                 return (false, "User not found.");
 
             user.Role = newRole;
+
+            if (newRole != Role.DEVELOPER)
+            {
+                var dev = await _uow.Repository<Developer>().Query()
+                    .FirstOrDefaultAsync(d => d.UserId == id);
+                if (dev != null)
+                {
+                    dev.IsActive = false;
+                    _uow.Repository<Developer>().Update(dev);
+                }
+            }
+
             await _uow.SaveChangesAsync();
             return (true, string.Empty);
         }
@@ -66,6 +79,22 @@ namespace GameStore.BLL.Services
                     Role = g.Key.ToString(),
                     Count = g.Count()
                 })
+                .ToListAsync();
+        }
+
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            return await _uow.Repository<User>().FirstOrDefaultAsync(u => u.Username == username);
+        }
+
+        public async Task<List<User>> SearchUsersAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return new List<User>();
+
+            return await _uow.Repository<User>().Query()
+                .Where(u => u.Username.Contains(query))
+                .Take(20)
                 .ToListAsync();
         }
 

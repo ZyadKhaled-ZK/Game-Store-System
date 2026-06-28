@@ -1,0 +1,113 @@
+@model List<DeveloperApplication>
+@{
+    var message = ViewData["Message"] as string;
+    var isError = ViewData["IsError"] is true;
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+  <div class="alert @(isError ? "alert-danger" : "alert-success")" style="text-align:center;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;margin-bottom:20px;">
+    @message
+  </div>
+}
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
+  <div>
+    <h1>Developer Applications</h1>
+    <p>Pending and processed developer applications.</p>
+  </div>
+</div>
+
+@if (!Model.Any())
+{
+  <div style="text-align:center;padding:80px;font-family:var(--font-mono);color:var(--text-dim);">
+    [ NO APPLICATIONS ]
+  </div>
+}
+else
+{
+  <div class="table-responsive">
+    <table class="cyber-table">
+      <thead>
+        <tr>
+          <th>STUDIO</th>
+          <th>APPLICANT</th>
+          <th>COUNTRY</th>
+          <th>SUBMITTED</th>
+          <th>CV</th>
+          <th>GITHUB</th>
+          <th>STATUS</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var app in Model)
+        {
+          <tr>
+            <td style="color:var(--gold);font-weight:600;">@app.Name</td>
+            <td style="font-size:11px;color:var(--text-dim);">@app.User?.Username ?? "—"</td>
+            <td style="font-size:11px;">@(app.Country ?? "—")</td>
+            <td style="font-size:11px;">@app.CreatedAt.ToString("yyyy-MM-dd")</td>
+            <td style="text-align:center;">
+              @if (!string.IsNullOrEmpty(app.CvFilePath))
+              {
+                <a href="@app.CvFilePath" target="_blank" class="btn btn-secondary" style="padding:2px 8px;font-size:10px;text-decoration:none;">VIEW</a>
+              }
+              else
+              {
+                <span style="color:var(--text-dim);font-family:var(--font-mono);font-size:10px;">—</span>
+              }
+            </td>
+            <td style="text-align:center;">
+              @if (!string.IsNullOrEmpty(app.GithubUrl))
+              {
+                <a href="@app.GithubUrl" target="_blank" class="btn btn-secondary" style="padding:2px 8px;font-size:10px;text-decoration:none;"><i class="bi bi-github"></i></a>
+              }
+              else
+              {
+                <span style="color:var(--text-dim);font-family:var(--font-mono);font-size:10px;">—</span>
+              }
+            </td>
+            <td>
+              @switch (app.Status)
+              {
+                case ApplicationStatus.Pending:
+                  <span style="color:var(--gold);font-family:var(--font-mono);font-size:11px;">PENDING</span>
+                  break;
+                case ApplicationStatus.Approved:
+                  <span style="color:#4caf50;font-family:var(--font-mono);font-size:11px;">APPROVED</span>
+                  break;
+                case ApplicationStatus.Rejected:
+                  <span style="color:var(--red);font-family:var(--font-mono);font-size:11px;">REJECTED</span>
+                  break;
+              }
+            </td>
+            <td style="white-space:nowrap;">
+              @if (app.Status == ApplicationStatus.Pending)
+              {
+                <form method="post" asp-action="Approve" asp-route-id="@app.Id" style="display:inline;"
+                  onsubmit="event.preventDefault(); showConfirmModal('APPROVE @app.Name? This will grant developer access to the applicant.', this)">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-primary" style="padding:4px 10px;font-size:10px;">APPROVE</button>
+                </form>
+                <form method="post" asp-action="Reject" asp-route-id="@app.Id" style="display:inline;"
+                  onsubmit="event.preventDefault(); showConfirmModal('REJECT @app.Name? The application will be deleted.', this)">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-danger" style="padding:4px 10px;font-size:10px;">REJECT</button>
+                </form>
+              }
+              else if (app.Status == ApplicationStatus.Approved)
+              {
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">—</span>
+              }
+              else
+              {
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">—</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

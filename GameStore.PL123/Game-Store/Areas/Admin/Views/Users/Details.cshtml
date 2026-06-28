@@ -227,7 +227,7 @@
         <div class="lg-card">
           @if (!string.IsNullOrEmpty(lg.Game?.CoverImageUrl))
           {
-            <img class="lg-cover" src="@lg.Game.CoverImageUrl" alt="@lg.Game.Title" />
+            <img class="lg-cover" src="@lg.Game.CoverImageUrl" alt="@lg.Game.Title" loading="lazy" />
           }
           else
           {

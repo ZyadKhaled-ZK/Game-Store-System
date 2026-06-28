@@ -19,6 +19,10 @@ namespace GameStore.DAL.DataBase
         public DbSet<Review>        Reviews        { get; set; }
         public DbSet<WishlistItem>  WishlistItems  { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<Developer> Developers { get; set; }
+        public DbSet<DeveloperApplication> DeveloperApplications { get; set; }
+        public DbSet<Friendship> Friendships { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +54,11 @@ namespace GameStore.DAL.DataBase
                      v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
                  )
                  .HasColumnType("nvarchar(max)");
+
+                e.HasOne(g => g.DeveloperNav)
+                 .WithMany(d => d.Games)
+                 .HasForeignKey(g => g.DeveloperId)
+                 .OnDelete(DeleteBehavior.SetNull);
             });
 
             // ── Category ─────────────────────────────────────────────────────
@@ -206,6 +215,80 @@ namespace GameStore.DAL.DataBase
                 e.HasOne(r => r.Game)
                  .WithMany(g => g.Reviews)
                  .HasForeignKey(r => r.GameId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── Developer ─────────────────────────────────────────────────────
+            modelBuilder.Entity<Developer>(e =>
+            {
+                e.HasKey(d => d.Id);
+                e.HasIndex(d => d.Slug).IsUnique().HasFilter("[Slug] IS NOT NULL");
+                e.Property(d => d.Name).HasMaxLength(200).IsRequired();
+                e.Property(d => d.Slug).HasMaxLength(300);
+                e.Property(d => d.Description).HasMaxLength(2000);
+                e.Property(d => d.Website).HasMaxLength(500);
+                e.Property(d => d.LogoUrl).HasMaxLength(500);
+                e.Property(d => d.Country).HasMaxLength(100);
+
+                e.HasOne(d => d.User)
+                 .WithMany()
+                 .HasForeignKey(d => d.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── Friendship ─────────────────────────────────────────────────────
+            modelBuilder.Entity<Friendship>(e =>
+            {
+                e.HasKey(f => f.Id);
+                e.Property(f => f.Status).HasConversion<int>();
+
+                e.HasOne(f => f.Requester)
+                 .WithMany(u => u.SentFriendRequests)
+                 .HasForeignKey(f => f.RequesterId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(f => f.Receiver)
+                 .WithMany(u => u.ReceivedFriendRequests)
+                 .HasForeignKey(f => f.ReceiverId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasIndex(f => new { f.RequesterId, f.ReceiverId }).IsUnique();
+            });
+
+            // ── Message ─────────────────────────────────────────────────────────
+            modelBuilder.Entity<Message>(e =>
+            {
+                e.HasKey(m => m.Id);
+                e.Property(m => m.Content).IsRequired();
+
+                e.HasOne(m => m.Sender)
+                 .WithMany(u => u.SentMessages)
+                 .HasForeignKey(m => m.SenderId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasOne(m => m.Receiver)
+                 .WithMany(u => u.ReceivedMessages)
+                 .HasForeignKey(m => m.ReceiverId)
+                 .OnDelete(DeleteBehavior.Restrict);
+
+                e.HasIndex(m => m.SentAt);
+            });
+
+            // ── DeveloperApplication ───────────────────────────────────────────
+            modelBuilder.Entity<DeveloperApplication>(e =>
+            {
+                e.HasKey(a => a.Id);
+                e.Property(a => a.Name).HasMaxLength(200).IsRequired();
+                e.Property(a => a.Description).HasMaxLength(2000);
+                e.Property(a => a.Website).HasMaxLength(500);
+                e.Property(a => a.Country).HasMaxLength(100);
+                e.Property(a => a.CvFilePath).HasMaxLength(500);
+                e.Property(a => a.GithubUrl).HasMaxLength(500);
+                e.Property(a => a.Status).HasConversion<int>();
+
+                e.HasOne(a => a.User)
+                 .WithMany()
+                 .HasForeignKey(a => a.UserId)
                  .OnDelete(DeleteBehavior.Cascade);
             });
         }

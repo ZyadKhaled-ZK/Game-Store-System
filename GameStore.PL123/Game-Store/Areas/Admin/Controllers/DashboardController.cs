@@ -71,6 +71,12 @@ public class DashboardController : Controller
             }).ToList()
         }), DashboardViewModel.JsonOpts);
 
+        var today = DateTime.UtcNow.Date;
+        model.TodayOrdersCount = recentOrders.Count(o => o.CreatedAt.Date == today);
+        model.TodayRevenue = recentOrders.Where(o => o.CreatedAt.Date == today).Sum(o => o.TotalPrice);
+        var lastMonth = usersByMonth.LastOrDefault();
+        model.NewUsersThisMonth = lastMonth?.Count ?? 0;
+
         return View(model);
     }
 }

@@ -1,3 +1,5 @@
+using GameStore.PL.Hubs;
+using GameStore.PL.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +18,7 @@ builder.WebHost.ConfigureKestrel(o =>
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<AdminOnlyFilter>();
+builder.Services.AddScoped<DeveloperOnlyFilter>();
 
 builder.Services.AddDbContext<GameStoreDbContext>(options =>
     options.UseSqlServer(
@@ -33,7 +36,14 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
+builder.Services.AddScoped<IDeveloperService, DeveloperService>();
+builder.Services.AddScoped<IDeveloperApplicationService, DeveloperApplicationService>();
 builder.Services.AddScoped<SeedService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IFriendService, FriendService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddSingleton<ConnectionTracker>();
+builder.Services.AddSignalR();
 
 // Session-based auth (8-hour idle timeout)
 builder.Services.AddDistributedMemoryCache();
@@ -73,6 +83,8 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
 app.UseAuthorization();
+
+app.MapHub<NotificationHub>("/hub/notifications");
 
 app.MapControllerRoute(
     name: "areas",

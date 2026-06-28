@@ -1,0 +1,66 @@
+@model List<Review>
+@{
+    var gameLookup = ViewData["GameLookup"] as Dictionary<string, string> ?? new();
+}
+
+<div id="alertMessage" data-msg="@ViewData["Message"]" data-error="@ViewData["IsError"]"></div>
+
+<div class="page-header">
+    <h1>Game Reviews</h1>
+    <p>Reviews and ratings from players on your published games.</p>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card" style="text-align:center;padding:60px;">
+        <h3 style="font-size:16px;color:var(--text-dim);">NO REVIEWS YET</h3>
+        <p style="color:var(--text-dim);margin:10px 0 20px;">Reviews will appear here once players rate your games.</p>
+        <a asp-area="Developer" asp-controller="Games" asp-action="Index" class="btn btn-primary">MY GAMES</a>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>GAME</th>
+                    <th>USER</th>
+                    <th>RATING</th>
+                    <th>COMMENT</th>
+                    <th>DATE</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var review in Model)
+                {
+                    <tr>
+                        <td style="color:var(--gold);">@(gameLookup.GetValueOrDefault(review.GameId) ?? "Unknown")</td>
+                        <td style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);">@review.User?.Username</td>
+                        <td>
+                            <span style="color:var(--gold);font-family:var(--font-display);">
+                            @for (int ri = 0; ri < review.Rating; ri++) { <text>★</text> }
+                            @for (int ri = review.Rating; ri < 5; ri++) { <text>☆</text> }
+                        </span>
+                        </td>
+                        <td style="max-width:300px;white-space:normal;word-wrap:break-word;color:var(--text);">
+                            @if (!string.IsNullOrEmpty(review.Comment))
+                            {
+                                @review.Comment
+                            }
+                            else
+                            {
+                                <span style="color:var(--text-dim);font-style:italic;">—</span>
+                            }
+                        </td>
+                        <td style="font-size:11px;font-family:var(--font-mono);color:var(--text-dim);">@review.CreatedAt.ToString("yyyy-MM-dd")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<div style="margin-top:20px;">
+    <a asp-area="Developer" asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">&lt; BACK TO DASHBOARD</a>
+</div>

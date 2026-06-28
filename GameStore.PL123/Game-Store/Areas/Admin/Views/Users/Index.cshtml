@@ -49,12 +49,10 @@
   </span>
 </div>
 
-@if (!string.IsNullOrEmpty(Model.Message))
-{
-  <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); color: white; padding: 10px 16px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 12px;">
-    @Model.Message
-  </div>
+@{
+    if (!string.IsNullOrEmpty(Model.Message)) { TempData["Message"] = Model.Message; TempData["IsError"] = Model.IsError; }
 }
+<partial name="_Alert" />
 
 <div class="table-responsive">
 <table class="cyber-table" id="usersTable">
@@ -93,7 +91,7 @@
         <td>
           <a asp-action="Details" asp-route-id="@user.Id" class="btn btn-secondary ripple" style="padding:6px 12px; font-size:11px;text-decoration:none;">VIEW</a>
           <form method="post" asp-action="Delete" asp-route-id="@user.Id" style="display:inline;"
-            onsubmit="return confirm('WARNING: TERMINATE user @user.Username?')">
+            onsubmit="event.preventDefault(); showConfirmModal('WARNING: TERMINATE user @user.Username?', this)">
             @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-primary ripple" style="padding:6px 14px; font-size:11px;">TERMINATE</button>
           </form>
@@ -108,6 +106,25 @@
 {
   <div style="text-align:center; padding:80px; font-family:var(--font-mono); color:var(--text-dim);">
     [ NO USERS IN DATABASE ]
+  </div>
+}
+
+@{
+  var pg = ViewData["Page"] as int? ?? 1;
+  var totalPgs = ViewData["TotalPages"] as int? ?? 1;
+}
+@if (totalPgs > 1)
+{
+  <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-top:24px; font-family:var(--font-mono); font-size:12px;">
+    @if (pg > 1)
+    {
+      <a asp-action="Index" asp-route-page="@(pg - 1)" asp-route-pageSize="20" class="btn btn-secondary" style="padding:6px 14px; font-size:11px;">&laquo; PREV</a>
+    }
+    <span style="color:var(--text-dim);">PAGE @pg OF @totalPgs (@ViewData["TotalRecords"] RECORDS)</span>
+    @if (pg < totalPgs)
+    {
+      <a asp-action="Index" asp-route-page="@(pg + 1)" asp-route-pageSize="20" class="btn btn-secondary" style="padding:6px 14px; font-size:11px;">NEXT &raquo;</a>
+    }
   </div>
 }
 

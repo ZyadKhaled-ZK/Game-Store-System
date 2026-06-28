@@ -22,4 +22,5 @@ public class HomeViewModel
     public string ReviewsJson { get; set; } = "{}";
     public string WishlistJson { get; set; } = "[]";
     public Dictionary<string, List<ReviewDto>> ReviewsByGame { get; set; } = new();
+    public HashSet<string> OwnedGameIds { get; set; } = new();
 }

@@ -10,14 +10,16 @@ public class GamesController : Controller
     private readonly IGameService _gameService;
     private readonly IGameFileService _gameFileService;
     private readonly ICategoryService _categoryService;
+    private readonly IDeveloperService _devService;
     private readonly IWebHostEnvironment _env;
 
     public GamesController(IGameService gameService, IGameFileService gameFileService,
-        ICategoryService categoryService, IWebHostEnvironment env)
+        ICategoryService categoryService, IDeveloperService devService, IWebHostEnvironment env)
     {
         _gameService = gameService;
         _gameFileService = gameFileService;
         _categoryService = categoryService;
+        _devService = devService;
         _env = env;
     }
 
@@ -29,6 +31,7 @@ public class GamesController : Controller
 
         model.Games = await _gameService.GetAllWithCategoriesAsync();
         model.Categories = await _categoryService.GetAllAsync();
+        model.Developers = await _devService.GetAllAsync();
 
         model.GameDataJson = System.Text.Json.JsonSerializer.Serialize(model.Games.Select(g => new
         {
@@ -37,6 +40,7 @@ public class GamesController : Controller
             description = g.Description ?? "",
             price = g.Price,
             developer = g.Developer ?? "",
+            developerId = g.DeveloperId ?? "",
             trailerUrl = g.TrailerUrl ?? "",
             coverImageUrl = g.CoverImageUrl ?? "",
             releaseDate = g.ReleaseDate.ToString("yyyy-MM-dd"),
@@ -65,6 +69,7 @@ public class GamesController : Controller
         [Range(0, 9999.99)] decimal Price,
         [Required] DateTime ReleaseDate,
         [StringLength(200)] string? Developer,
+        string? DeveloperId,
         [StringLength(500)] string? CoverImageUrl,
         [StringLength(500)] string? TrailerUrl,
         List<string>? CategoryIds,
@@ -79,6 +84,7 @@ public class GamesController : Controller
             Price = Price,
             ReleaseDate = ReleaseDate,
             Developer = Developer,
+            DeveloperId = DeveloperId,
             CoverImageUrl = CoverImageUrl,
             TrailerUrl = TrailerUrl,
         };
@@ -105,6 +111,7 @@ public class GamesController : Controller
         [Range(0, 9999.99)] decimal Price,
         [Required] DateTime ReleaseDate,
         [StringLength(200)] string? Developer,
+        string? DeveloperId,
         [StringLength(500)] string? CoverImageUrl,
         [StringLength(500)] string? TrailerUrl,
         List<string>? CategoryIds,
@@ -119,6 +126,7 @@ public class GamesController : Controller
             Price = Price,
             ReleaseDate = ReleaseDate,
             Developer = Developer,
+            DeveloperId = DeveloperId,
             CoverImageUrl = CoverImageUrl,
             TrailerUrl = TrailerUrl,
         };

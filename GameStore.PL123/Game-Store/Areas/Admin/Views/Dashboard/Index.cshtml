@@ -156,6 +156,21 @@
         <div class="stat-small">Avg Order Value</div>
         <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="stat-link">DETAILS &rarr;</a>
     </div>
+    <div class="stat-card" style="border-left:2px solid var(--gold);">
+        <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+        <div class="stat-big">@Model.TodayOrdersCount</div>
+        <div class="stat-small">Today's Orders</div>
+    </div>
+    <div class="stat-card" style="border-left:2px solid var(--gold);">
+        <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="stat-big">$@Model.TodayRevenue.ToString("0.00")</div>
+        <div class="stat-small">Today's Revenue</div>
+    </div>
+    <div class="stat-card" style="border-left:2px solid var(--gold);">
+        <div class="stat-icon"><i class="bi bi-person-plus"></i></div>
+        <div class="stat-big">@Model.NewUsersThisMonth</div>
+        <div class="stat-small">New Users (Month)</div>
+    </div>
 </div>
 
 @* ── ROW 1: Revenue Trend + Mini KPIs ── *@

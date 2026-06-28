@@ -11,5 +11,7 @@ namespace GameStore.BLL.Services
         Task<int> GetTotalUsersAsync();
         Task<List<UsersByRole>> GetUsersByRoleAsync();
         Task<List<UsersByMonth>> GetUsersByMonthAsync(int months = 12);
+        Task<User?> GetUserByUsernameAsync(string username);
+        Task<List<User>> SearchUsersAsync(string query);
     }
 }

@@ -71,12 +71,8 @@
       <button type="submit" class="btn btn-primary">+ ADD</button>
     </div>
   </form>
-  @if (!string.IsNullOrEmpty(Model.Message))
-  {
-    <div style="font-family: var(--font-mono); font-size: 12px; color: @(Model.IsError ? "var(--red)" : "#4ade80"); margin-top: 8px;">
-      [ @Model.Message ]
-    </div>
-  }
+  @{ if (!string.IsNullOrEmpty(Model.Message)) { TempData["Message"] = Model.Message; TempData["IsError"] = Model.IsError; } }
+  <partial name="_Alert" />
 </div>
 
 <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
@@ -99,7 +95,7 @@
           @if (cat.GameCategories.Count == 0)
           {
             <form method="post" asp-action="Delete" asp-route-id="@cat.Id" style="display:inline;"
-              onsubmit="return confirm('DELETE category: @cat.Name?')">
+              onsubmit="event.preventDefault(); showConfirmModal('DELETE category: @cat.Name?', this)">
               @Html.AntiForgeryToken()
               <button type="submit" class="btn btn-primary" style="padding:5px 10px; font-size:11px;">DEL</button>
             </form>

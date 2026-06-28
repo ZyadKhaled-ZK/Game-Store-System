@@ -4,12 +4,39 @@ namespace GameStore.PL.Filters;
 
 public class AdminOnlyFilter : IAuthorizationFilter
 {
+    private readonly IUserService _userService;
+
+    public AdminOnlyFilter(IUserService userService)
+    {
+        _userService = userService;
+    }
+
     public void OnAuthorization(AuthorizationFilterContext context)
     {
-        var role = context.HttpContext.Session.GetString("Role");
-        if (role != Role.ADMIN.ToString())
+        var userId = context.HttpContext.Session.GetString("UserId");
+        if (!string.IsNullOrEmpty(userId))
         {
-            context.Result = new RedirectToActionResult("Login", "Auth", null);
+            var user = _userService.GetByIdAsync(userId).GetAwaiter().GetResult();
+            if (user != null)
+            {
+                var currentRole = user.Role.ToString();
+                var sessionRole = context.HttpContext.Session.GetString("Role");
+                if (sessionRole != currentRole)
+                    context.HttpContext.Session.SetString("Role", currentRole);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(context.HttpContext.Session.GetString("UserId")))
+        {
+            var role = context.HttpContext.Session.GetString("Role");
+            if (role != Role.ADMIN.ToString())
+            {
+                context.Result = new RedirectToActionResult("Index", "Home", new { area = "" });
+            }
+        }
+        else
+        {
+            context.Result = new RedirectToActionResult("Login", "Auth", new { area = "" });
         }
     }
 }

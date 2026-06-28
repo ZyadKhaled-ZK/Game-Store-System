@@ -1,0 +1,46 @@
+@{
+    var message = ViewData["ConfirmMessage"]?.ToString() ?? "Are you sure?";
+}
+
+<div class="confirm-overlay" id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;">
+    <div class="confirm-box" style="background:var(--bg2);border:1px solid var(--red);padding:40px;max-width:400px;width:90%;text-align:center;animation:modalIn 0.2s ease;">
+        <div style="font-size:3rem;color:var(--red);margin-bottom:16px;">!</div>
+        <p id="confirmMsg" style="font-family:var(--font-mono);color:white;margin-bottom:24px;font-size:14px;"></p>
+        <div style="display:flex;gap:12px;justify-content:center;">
+            <button id="confirmYes" class="btn btn-primary" style="padding:10px 24px;font-size:12px;">CONFIRM</button>
+            <button id="confirmNo" class="btn btn-secondary" style="padding:10px 24px;font-size:12px;">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<style>
+@Html.Raw("@keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }")
+</style>
+
+<script>
+var confirmModal = document.getElementById('confirmModal');
+var confirmMsg = document.getElementById('confirmMsg');
+var confirmYes = document.getElementById('confirmYes');
+var confirmNo = document.getElementById('confirmNo');
+var pendingForm = null;
+
+function showConfirmModal(msg, form) {
+    confirmMsg.textContent = msg;
+    confirmModal.style.display = 'flex';
+    pendingForm = form;
+}
+
+confirmYes.addEventListener('click', function() {
+    confirmModal.style.display = 'none';
+    if (pendingForm) { pendingForm.submit(); pendingForm = null; }
+});
+
+confirmNo.addEventListener('click', function() {
+    confirmModal.style.display = 'none';
+    pendingForm = null;
+});
+
+confirmModal.addEventListener('click', function(e) {
+    if (e.target === confirmModal) { confirmModal.style.display = 'none'; pendingForm = null; }
+});
+</script>

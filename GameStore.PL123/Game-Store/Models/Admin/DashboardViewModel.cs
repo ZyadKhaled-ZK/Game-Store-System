@@ -11,6 +11,9 @@ public class DashboardViewModel
     public int TotalOrders { get; set; }
     public decimal TotalRevenue { get; set; }
     public decimal AverageOrderValue { get; set; }
+    public int TodayOrdersCount { get; set; }
+    public decimal TodayRevenue { get; set; }
+    public int NewUsersThisMonth { get; set; }
 
     public string RevenueByMonthJson { get; set; } = "[]";
     public string OrdersByDayJson { get; set; } = "[]";

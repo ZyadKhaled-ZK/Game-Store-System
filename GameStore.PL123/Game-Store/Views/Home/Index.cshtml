@@ -254,12 +254,12 @@
                     else if (game.ScreenshotUrls.Any()) { <img class="game-card-img" src="@game.ScreenshotUrls[0]" alt="@game.Title" loading="lazy"/> }
                     else { <div class="game-card-placeholder">⊗</div> }
                     <div class="game-card-body">
-                        <div class="game-card-title">@game.Title.ToUpper()</div>
+                        <div class="game-card-title">@game.Title.ToUpper()@if (Model.OwnedGameIds.Contains(game.Id)) {<span style="font-family:var(--font-mono);font-size:9px;color:#4ade80;margin-left:6px;">[OWNED]</span>}</div>
                         <div class="game-card-dev">@((game.Developer ?? "Anon").ToUpper())</div>
                         <div class="game-card-tags">@foreach (var gc in game.GameCategories.Take(3)) { <span class="game-tag">@gc.Category.Name</span> }</div>
                         <div class="game-card-footer">
                             @if (game.Price == 0) { <span class="price-free">FREE</span> } else { <span class="price-paid">$@game.Price.ToString("0.00")</span> }
-                            @if (game.GameFileUrl != null) { <a href="@Url.Action("Download", "Home", new { id = game.Id })" class="has-file-badge" style="text-decoration:none;cursor:pointer;">▼ DOWNLOAD</a> }
+                            @if (game.GameFileUrl != null && Model.OwnedGameIds.Contains(game.Id)) { <a href="@Url.Action("Download", "Home", new { id = game.Id })" class="has-file-badge" style="text-decoration:none;cursor:pointer;">▼ DOWNLOAD</a> }
                         </div>
                     </div>
                 </div>
@@ -293,11 +293,14 @@
     </div>
 </div>
 
+@Html.AntiForgeryToken()
+
 @section Scripts {
 <script>
     const cartIds = [];
     const reviewsData = @Html.Raw(Model.ReviewsJson);
     const wishlistIds = [];
+    const ownedGameIds = @Html.Raw(Json.Serialize(Model.OwnedGameIds.ToList()));
     const isLoggedIn = @Html.Raw(string.IsNullOrEmpty(Context.Session.GetString("UserId")) ? "false" : "true");
     const heroGames = @Html.Raw(Model.HeroGamesJson);
 
@@ -326,7 +329,8 @@
         html += `<div class="modal-price-box">`;
         if (game.price === 0) html += `<div class="modal-price-val" style="color:var(--gold);">FREE</div>`;
         else html += `<div class="modal-price-val">$${game.price.toFixed(2)}</div>`;
-        if (game.hasFile) html += `<div class="modal-download-box"><span class="modal-download-icon">💾</span><div class="modal-download-info"><div class="modal-download-name">${game.fileName || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Home/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
+        if (ownedGameIds.includes(game.id)) html += `<span style="font-family:var(--font-mono);font-size:11px;color:#4ade80;margin-left:12px;">[ OWNED ]</span>`;
+        if (game.hasFile && ownedGameIds.includes(game.id)) html += `<div class="modal-download-box"><span class="modal-download-icon">💾</span><div class="modal-download-info"><div class="modal-download-name">${game.fileName || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Home/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
         html += `<div class="modal-actions">`;
         if (isLoggedIn) {
             html += `<button onclick="addToCart('${game.id}', this)" class="btn btn-primary">+ ADD TO CART</button>`;

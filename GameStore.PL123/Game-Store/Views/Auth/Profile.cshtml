@@ -81,15 +81,24 @@
         @Html.AntiForgeryToken()
         <div class="mb-3">
           <label class="pf-label" for="CurrentPassword">Current Password //:</label>
-          <input type="password" class="pf-input" id="CurrentPassword" name="CurrentPassword" required />
+          <div style="position:relative;">
+            <input type="password" class="pf-input" id="CurrentPassword" name="CurrentPassword" required style="padding-right:40px;" />
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye-slash"></i></button>
+          </div>
         </div>
         <div class="mb-3">
           <label class="pf-label" for="NewPassword">New Password //:</label>
-          <input type="password" class="pf-input" id="NewPassword" name="NewPassword" required maxlength="100" />
+          <div style="position:relative;">
+            <input type="password" class="pf-input" id="NewPassword" name="NewPassword" required maxlength="100" style="padding-right:40px;" />
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye-slash"></i></button>
+          </div>
         </div>
         <div class="mb-3">
           <label class="pf-label" for="ConfirmPassword">Confirm New Password //:</label>
-          <input type="password" class="pf-input" id="ConfirmPassword" name="ConfirmPassword" required maxlength="100" />
+          <div style="position:relative;">
+            <input type="password" class="pf-input" id="ConfirmPassword" name="ConfirmPassword" required maxlength="100" style="padding-right:40px;" />
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye-slash"></i></button>
+          </div>
         </div>
         <button type="submit" class="btn btn-primary w-100 d-block text-center mt-3">CHANGE PASSWORD</button>
       </form>

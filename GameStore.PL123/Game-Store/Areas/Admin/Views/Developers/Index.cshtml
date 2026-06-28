@@ -1,0 +1,85 @@
+@model ManageDevelopersViewModel
+@{
+    var gameCounts = ViewData["GameCounts"] as Dictionary<string, int> ?? new();
+}
+
+<partial name="_Alert" />
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
+  <div>
+    <h1>Developers</h1>
+    <p>Registered game development studios.</p>
+  </div>
+</div>
+
+@if (!Model.Developers.Any())
+{
+  <div style="text-align:center;padding:80px;font-family:var(--font-mono);color:var(--text-dim);">
+    [ NO DEVELOPERS REGISTERED ]
+  </div>
+}
+else
+{
+  <div class="table-responsive">
+    <table class="cyber-table">
+      <thead>
+        <tr>
+          <th>STUDIO</th>
+          <th>OWNER</th>
+          <th>COUNTRY</th>
+          <th>GAMES</th>
+          <th>JOINED</th>
+          <th>STATUS</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var dev in Model.Developers)
+        {
+          <tr>
+            <td style="color:var(--gold);font-weight:600;">@dev.Name</td>
+            <td style="font-size:11px;color:var(--text-dim);">@dev.User?.Username ?? "—"</td>
+            <td style="font-size:11px;">@(dev.Country ?? "—")</td>
+            <td style="font-family:var(--font-mono);text-align:center;">@(gameCounts.GetValueOrDefault(dev.Id, 0))</td>
+            <td style="font-size:11px;">@dev.CreatedAt.ToString("yyyy-MM-dd")</td>
+            <td>
+              @if (dev.IsActive)
+              {
+                <span style="color:#4caf50;font-family:var(--font-mono);font-size:11px;">ACTIVE</span>
+              }
+              else
+              {
+                <span style="color:var(--red);font-family:var(--font-mono);font-size:11px;">SUSPENDED</span>
+              }
+            </td>
+            <td style="white-space:nowrap;">
+              <a asp-action="Details" asp-route-id="@dev.Id" class="btn btn-secondary" style="padding:4px 10px;font-size:10px;text-decoration:none;">VIEW</a>
+              <a asp-action="Edit" asp-route-id="@dev.Id" class="btn btn-secondary" style="padding:4px 10px;font-size:10px;text-decoration:none;">EDIT</a>
+              @if (dev.IsActive)
+              {
+                <form method="post" asp-action="Demote" asp-route-id="@dev.Id" style="display:inline;"
+                  onsubmit="event.preventDefault(); showConfirmModal('DEMOTE @dev.Name? Their games will no longer appear in the store.', this)">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-danger" style="padding:4px 10px;font-size:10px;">DEMOTE</button>
+                </form>
+              }
+              else
+              {
+                <form method="post" asp-action="Reactivate" asp-route-id="@dev.Id" style="display:inline;"
+                  onsubmit="event.preventDefault(); showConfirmModal('REACTIVATE @dev.Name? They will regain developer access and their games will reappear in the store.', this)">
+                  @Html.AntiForgeryToken()
+                  <button type="submit" class="btn btn-primary" style="padding:4px 10px;font-size:10px;">REACTIVATE</button>
+                </form>
+              }
+              <form method="post" asp-action="Delete" asp-route-id="@dev.Id" style="display:inline;"
+                onsubmit="event.preventDefault(); showConfirmModal('DELETE @dev.Name? This permanently removes the studio profile.', this)">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger" style="padding:4px 10px;font-size:10px;">DELETE</button>
+              </form>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

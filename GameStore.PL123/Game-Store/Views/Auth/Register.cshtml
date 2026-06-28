@@ -54,16 +54,7 @@
         NEW USER
       </div>
 
-      @{
-          var msg = ViewData["Message"] as string;
-          var isErr = ViewData["IsError"] is true;
-      }
-      @if (!string.IsNullOrEmpty(msg))
-      {
-        <div style="background: @(isErr ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(isErr ? "var(--red)" : "#4ade80"); color: white; padding: 10px; margin-bottom: 15px; font-family: var(--font-mono); font-size: 12px;">
-          @(isErr ? "[ERROR]" : "[OK]") @msg
-        </div>
-      }
+      <partial name="_Alert" />
 
       <form method="post">
         <div class="mb-3">
@@ -78,7 +69,10 @@
         </div>
         <div class="mb-4">
           <label asp-for="Password" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">Password //:</label>
-          <input asp-for="Password" type="password" class="form-control reg-input" placeholder="Min 6 characters" required maxlength="100"/>
+          <div style="position:relative;">
+            <input asp-for="Password" type="password" class="form-control reg-input" placeholder="Min 6 characters" required maxlength="100" style="padding-right:40px;"/>
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye-slash"></i></button>
+          </div>
           <span asp-validation-for="Password" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
         </div>
 

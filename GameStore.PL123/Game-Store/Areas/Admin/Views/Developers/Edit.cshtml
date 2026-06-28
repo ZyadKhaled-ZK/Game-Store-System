@@ -1,0 +1,58 @@
+@model Developer
+@{
+    ViewData["Title"] = "Edit Developer";
+}
+
+<div class="section-header">
+  <div class="section-tag">Developer Administration</div>
+  <h2 class="section-title glitch">EDIT: @Model.Name</h2>
+</div>
+
+<a asp-action="Index" class="btn btn-secondary" style="margin-bottom:24px;">
+  <i class="bi bi-arrow-left"></i> BACK TO DEVELOPERS
+</a>
+
+@{
+    var msg = TempData["Message"]?.ToString();
+    var isError = TempData["IsError"] is true;
+}
+@if (!string.IsNullOrEmpty(msg))
+{
+  <div class="toast-container" style="position:static;margin-bottom:24px;">
+    <div class="toast @(isError ? "error" : "success")" style="animation:none;">
+      <i class="bi @(isError ? "bi-x-circle-fill" : "bi-check-circle-fill")"></i>
+      <div class="toast-content">@msg</div>
+    </div>
+  </div>
+}
+
+<div class="panel" style="max-width:700px;">
+  <form method="post" asp-action="Edit" asp-route-id="@Model.Id">
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+      <label class="form-label">Studio Name *</label>
+      <input type="text" name="name" class="form-input" value="@Model.Name" required maxlength="200" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Country</label>
+      <input type="text" name="country" class="form-input" value="@Model.Country" maxlength="100" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea name="description" class="form-textarea" rows="4" maxlength="2000">@Model.Description</textarea>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Website</label>
+      <input type="url" name="website" class="form-input" value="@Model.Website" maxlength="500" />
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:24px;">
+      <button type="submit" class="btn btn-primary">SAVE CHANGES</button>
+      <a asp-action="Index" class="btn btn-secondary">CANCEL</a>
+    </div>
+  </form>
+</div>

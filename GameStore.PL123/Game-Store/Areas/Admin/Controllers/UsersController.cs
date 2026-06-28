@@ -22,12 +22,18 @@ public class UsersController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
     {
         var model = new ManageUsersViewModel();
         if (TempData.TryGetValue("Message", out var msg)) model.Message = msg?.ToString() ?? "";
         if (TempData.TryGetValue("IsError", out var err)) model.IsError = err is bool b && b;
-        model.Users = await _userService.GetAllAsync();
+        var all = await _userService.GetAllAsync();
+        var total = all.Count;
+        model.Users = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        ViewData["Page"] = page;
+        ViewData["PageSize"] = pageSize;
+        ViewData["TotalRecords"] = total;
+        ViewData["TotalPages"] = (int)Math.Ceiling(total / (double)pageSize);
         return View(model);
     }
 

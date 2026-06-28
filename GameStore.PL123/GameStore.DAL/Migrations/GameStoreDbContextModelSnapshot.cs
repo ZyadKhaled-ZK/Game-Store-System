@@ -83,6 +83,133 @@ namespace GameStore.DAL.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("GameStore.DAL.Entities.Developer", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Developers");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.DeveloperApplication", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CvFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("GithubUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DeveloperApplications");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.Friendship", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReceiverId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RequesterId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("RequesterId", "ReceiverId")
+                        .IsUnique();
+
+                    b.ToTable("Friendships");
+                });
+
             modelBuilder.Entity("GameStore.DAL.Entities.Game", b =>
                 {
                     b.Property<string>("Id")
@@ -97,6 +224,9 @@ namespace GameStore.DAL.Migrations
                     b.Property<string>("Developer")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("DeveloperId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("GameFileName")
                         .HasMaxLength(260)
@@ -127,6 +257,8 @@ namespace GameStore.DAL.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeveloperId");
 
                     b.ToTable("Games");
                 });
@@ -179,6 +311,40 @@ namespace GameStore.DAL.Migrations
                     b.HasIndex("GameId");
 
                     b.ToTable("LibraryGames");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.Message", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReceiverId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("SentAt");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("GameStore.DAL.Entities.Order", b =>
@@ -384,6 +550,57 @@ namespace GameStore.DAL.Migrations
                     b.Navigation("Game");
                 });
 
+            modelBuilder.Entity("GameStore.DAL.Entities.Developer", b =>
+                {
+                    b.HasOne("GameStore.DAL.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.DeveloperApplication", b =>
+                {
+                    b.HasOne("GameStore.DAL.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.Friendship", b =>
+                {
+                    b.HasOne("GameStore.DAL.Entities.User", "Receiver")
+                        .WithMany("ReceivedFriendRequests")
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GameStore.DAL.Entities.User", "Requester")
+                        .WithMany("SentFriendRequests")
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Requester");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.Game", b =>
+                {
+                    b.HasOne("GameStore.DAL.Entities.Developer", "DeveloperNav")
+                        .WithMany("Games")
+                        .HasForeignKey("DeveloperId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("DeveloperNav");
+                });
+
             modelBuilder.Entity("GameStore.DAL.Entities.GameCategory", b =>
                 {
                     b.HasOne("GameStore.DAL.Entities.Category", "Category")
@@ -431,6 +648,25 @@ namespace GameStore.DAL.Migrations
                     b.Navigation("Game");
 
                     b.Navigation("Library");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.Message", b =>
+                {
+                    b.HasOne("GameStore.DAL.Entities.User", "Receiver")
+                        .WithMany("ReceivedMessages")
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GameStore.DAL.Entities.User", "Sender")
+                        .WithMany("SentMessages")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("GameStore.DAL.Entities.Order", b =>
@@ -522,6 +758,11 @@ namespace GameStore.DAL.Migrations
                     b.Navigation("GameCategories");
                 });
 
+            modelBuilder.Entity("GameStore.DAL.Entities.Developer", b =>
+                {
+                    b.Navigation("Games");
+                });
+
             modelBuilder.Entity("GameStore.DAL.Entities.Game", b =>
                 {
                     b.Navigation("CartItems");
@@ -555,7 +796,15 @@ namespace GameStore.DAL.Migrations
 
                     b.Navigation("Orders");
 
+                    b.Navigation("ReceivedFriendRequests");
+
+                    b.Navigation("ReceivedMessages");
+
                     b.Navigation("Reviews");
+
+                    b.Navigation("SentFriendRequests");
+
+                    b.Navigation("SentMessages");
 
                     b.Navigation("WishlistItems");
                 });

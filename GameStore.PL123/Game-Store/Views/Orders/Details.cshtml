@@ -70,11 +70,11 @@
           <div class="detail-item">
             @if (!string.IsNullOrEmpty(item.Game?.CoverImageUrl))
             {
-              <img class="detail-item-img" src="@item.Game.CoverImageUrl" alt="@item.Game.Title" />
+              <img class="detail-item-img" src="@item.Game.CoverImageUrl" alt="@item.Game.Title" loading="lazy" />
             }
             else if (item.Game?.ScreenshotUrls.Any() == true)
             {
-              <img class="detail-item-img" src="@item.Game.ScreenshotUrls[0]" alt="@item.Game.Title" />
+              <img class="detail-item-img" src="@item.Game.ScreenshotUrls[0]" alt="@item.Game.Title" loading="lazy" />
             }
             else
             {

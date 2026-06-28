@@ -1,0 +1,520 @@
+@model GameStore.PL.Models.Friends.FriendsIndexViewModel
+@{
+    ViewData["Title"] = "Friends";
+}
+
+@section Styles {
+<style>
+.friends-container { max-width: 960px; margin: 0 auto; transition: all 0.3s; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 16px; }
+.glitch-text { font-family: var(--font-display); font-size: 32px; letter-spacing: 4px; }
+.search-box { position: relative; }
+.search-box input { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; font-family: var(--font-mono); font-size: 12px; width: 260px; }
+.search-box input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 10px rgba(245,197,66,0.15); }
+.search-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg2); border: 1px solid var(--border); z-index: 100; max-height: 300px; overflow-y: auto; }
+.search-result { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.search-result:hover { background: rgba(245,197,66,0.04); }
+.search-result span { font-family: var(--font-mono); font-size: 12px; }
+.no-results { padding: 14px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.requests-section, .friends-section, .suggestions-section { margin-bottom: 40px; }
+.requests-section h2, .friends-section h2, .suggestions-section h2 { font-family: var(--font-display); font-size: 18px; letter-spacing: 2px; margin-bottom: 16px; color: var(--red); }
+.requests-section h2 .badge, .friends-section h2 .badge, .suggestions-section h2 .badge { background: var(--red); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 0; vertical-align: middle; margin-left: 8px; }
+.requests-grid, .friends-grid { display: grid; gap: 12px; }
+.requests-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.friends-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.suggestions-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+.request-card { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: var(--bg3); border: 1px solid var(--border); transition: all 0.2s; }
+.request-card:hover { border-color: var(--gold); }
+.request-info { flex: 1; }
+.request-info .request-user { font-family: var(--font-mono); font-size: 13px; display: block; }
+.request-info .request-date { font-size: 10px; color: var(--text-dim); }
+.request-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.friend-card { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: var(--bg3); border: 1px solid var(--border); transition: all 0.2s; }
+.friend-card:hover { border-color: var(--red); transform: translateX(4px); }
+.friend-avatar { position: relative; flex-shrink: 0; }
+.avatar-placeholder { width: 44px; height: 44px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 18px; color: var(--red); background: rgba(230,57,70,0.08); }
+.status-dot { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border: 2px solid var(--bg3); border-radius: 50%; }
+.status-dot.online { background: #4ade80; }
+.status-dot.offline { background: var(--text-dim); }
+.friend-info { flex: 1; }
+.friend-name { font-family: var(--font-mono); font-size: 14px; color: var(--text); text-decoration: none; }
+.friend-name:hover { color: var(--red); }
+.friend-status { display: block; font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 2px; }
+.friend-actions { display: flex; gap: 6px; }
+.empty-state { text-align: center; padding: 80px 20px; border: 1px dashed var(--border); background: rgba(245,197,66,0.02); }
+.empty-state i { font-size: 3rem; color: var(--gold); opacity: 0.4; margin-bottom: 16px; }
+.empty-state p { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+.btn-cyber { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn-cyber:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,197,66,0.06); }
+.btn-cyber.btn-sm { padding: 6px 12px; font-size: 10px; }
+.btn-cyber.btn-xs { padding: 4px 10px; font-size: 10px; }
+.btn-cyber.btn-add { background: rgba(245,197,66,0.08); border-color: var(--gold); color: var(--gold); padding: 6px 14px; font-size: 11px; }
+.btn-cyber.btn-add:hover { background: rgba(245,197,66,0.18); box-shadow: 0 0 12px rgba(245,197,66,0.2); }
+.btn-cyber.btn-danger { border-color: var(--border-red); color: var(--red); }
+.btn-cyber.btn-danger:hover { border-color: var(--red); background: rgba(230,57,70,0.1); }
+.suggestion-card { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg3); border: 1px solid var(--border); transition: all 0.2s; min-width: 200px; }
+.suggestion-card:hover { border-color: var(--gold); }
+.suggestion-card .avatar-placeholder { width: 36px; height: 36px; font-size: 14px; }
+.suggestion-card .friend-name { font-size: 13px; }
+.suggestions-section h2 .badge-gold { background: var(--gold); color: #000; font-size: 10px; padding: 2px 8px; border-radius: 0; vertical-align: middle; margin-left: 8px; }
+
+/* ── Chat Panel ── */
+.chat-panel-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.chat-panel-overlay.show { opacity: 1; pointer-events: auto; }
+.chat-panel { position: fixed; top: 0; right: -420px; width: 420px; height: 100%; background: var(--bg2); border-left: 1px solid var(--border); z-index: 2001; display: flex; flex-direction: column; transition: right 0.3s ease; }
+.chat-panel.show { right: 0; }
+.chat-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--bg3); flex-shrink: 0; }
+.chat-panel-user { display: flex; align-items: center; gap: 12px; }
+.chat-panel-avatar { width: 40px; height: 40px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 16px; color: var(--red); background: rgba(230,57,70,0.06); flex-shrink: 0; }
+.chat-panel-name { font-family: var(--font-mono); font-size: 15px; }
+.chat-panel-status { font-size: 11px; font-family: var(--font-mono); }
+.chat-panel-status .indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.chat-panel-status .indicator.online { background: #4ade80; }
+.chat-panel-status .indicator.offline { background: var(--text-dim); }
+.chat-panel-close { background: none; border: none; color: var(--text-dim); font-size: 24px; cursor: pointer; padding: 4px 8px; transition: color 0.2s; }
+.chat-panel-close:hover { color: var(--red); }
+.chat-panel-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.chat-panel-msg { display: flex; }
+.chat-panel-msg.mine { justify-content: flex-end; }
+.chat-panel-msg.theirs { justify-content: flex-start; }
+.chat-panel-msg .bubble { max-width: 80%; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border); }
+.chat-panel-msg.mine .bubble { background: rgba(230,57,70,0.06); border-color: var(--border-red); }
+.chat-panel-msg .bubble-text { font-size: 13px; font-family: var(--font-mono); word-break: break-word; }
+.chat-panel-msg .bubble-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.chat-panel-msg .bubble-time { font-size: 10px; color: var(--text-dim); }
+.chat-panel-msg .read-receipt { color: var(--cyan); font-size: 10px; }
+.chat-panel-input-area { padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg3); flex-shrink: 0; }
+.chat-panel-typing { padding: 4px 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); font-style: italic; }
+.chat-panel-form { display: flex; gap: 10px; }
+.chat-panel-form input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; font-family: var(--font-mono); font-size: 12px; }
+.chat-panel-form input:focus { border-color: var(--red); outline: none; }
+.chat-panel-form .btn-send { padding: 10px 18px; }
+.chat-panel-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); padding: 40px; }
+.chat-panel-empty i { opacity: 0.3; margin-bottom: 12px; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+</style>
+}
+
+<div class="friends-container" id="friendsContainer">
+    <div class="page-header">
+        <h1 class="glitch-text" data-text="FRIENDS">FRIENDS</h1>
+        <div class="header-actions">
+            <div class="search-box">
+                <input type="text" id="friendSearch" placeholder="Search users..." autocomplete="off" />
+                <div id="searchResults" class="search-results" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.PendingRequests.Any())
+    {
+        <div class="requests-section">
+            <h2>Pending Requests <span class="badge">@Model.PendingRequests.Count</span></h2>
+            <div class="requests-grid">
+                @foreach (var req in Model.PendingRequests)
+                {
+                    <div class="request-card" data-id="@req.FriendshipId">
+                        <div class="request-info">
+                            <span class="request-user">@req.Username</span>
+                            <span class="request-date">@req.SentAt.ToString("MMM dd")</span>
+                        </div>
+                        <div class="request-actions">
+                            <button class="btn-cyber btn-sm accept-request" data-id="@req.FriendshipId">
+                                <i class="fas fa-check"></i> Accept
+                            </button>
+                            <button class="btn-cyber btn-sm btn-danger reject-request" data-id="@req.FriendshipId">
+                                <i class="fas fa-times"></i> Reject
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @if (Model.Suggestions.Any())
+    {
+        <div class="suggestions-section">
+            <h2>Suggestions <span class="badge-gold">@Model.Suggestions.Count</span></h2>
+            <div class="suggestions-grid">
+                @foreach (var sug in Model.Suggestions)
+                {
+                    <div class="suggestion-card" data-userid="@sug.UserId">
+                        <div class="friend-avatar">
+                            <div class="avatar-placeholder">@sug.Username[0]</div>
+                        </div>
+                        <div class="friend-info">
+                            <span class="friend-name">@sug.Username</span>
+                        </div>
+                        <button class="btn-cyber btn-add add-suggestion" data-username="@sug.Username">
+                            <i class="fas fa-user-plus"></i> Add
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="friends-section">
+        <h2>Your Friends <span class="badge">@Model.Friends.Count</span></h2>
+
+        @if (!Model.Friends.Any() && !Model.PendingRequests.Any())
+        {
+            <div class="empty-state">
+                <i class="fas fa-user-friends fa-3x"></i>
+                <p>No friends yet. Search for users or add from suggestions above!</p>
+            </div>
+        }
+
+        <div class="friends-grid">
+            @foreach (var friend in Model.Friends)
+            {
+                <div class="friend-card" data-id="@friend.FriendshipId">
+                    <div class="friend-avatar">
+                        <div class="avatar-placeholder">@friend.Username[0]</div>
+                        <span class="status-dot @(friend.IsOnline ? "online" : "offline")"></span>
+                    </div>
+                    <div class="friend-info">
+                        <span class="friend-name">@friend.Username</span>
+                        <span class="friend-status">@(friend.IsOnline ? "Online" : "Offline")</span>
+                    </div>
+                    <div class="friend-actions">
+                        <button class="btn-cyber btn-sm open-chat" data-userid="@friend.UserId" data-username="@friend.Username" title="Chat">
+                            <i class="fas fa-comment"></i>
+                        </button>
+                        <button class="btn-cyber btn-sm btn-danger remove-friend" data-id="@friend.FriendshipId" title="Remove">
+                            <i class="fas fa-user-minus"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ── CSRF token for AJAX POSTs ── *@
+@Html.AntiForgeryToken()
+
+@* ── Chat Panel ── *@
+<div class="chat-panel-overlay" id="chatOverlay"></div>
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-panel-header">
+        <div class="chat-panel-user">
+            <div class="chat-panel-avatar" id="chatPanelAvatar">?</div>
+            <div>
+                <div class="chat-panel-name" id="chatPanelName">—</div>
+                <div class="chat-panel-status" id="chatPanelStatus">
+                    <span class="indicator offline" id="chatPanelIndicator"></span>
+                    <span id="chatPanelStatusText">Offline</span>
+                </div>
+            </div>
+        </div>
+        <button class="chat-panel-close" id="chatPanelClose">&times;</button>
+    </div>
+    <div class="chat-panel-messages" id="chatPanelMessages">
+        <div class="chat-panel-empty">
+            <i class="fas fa-comments fa-3x"></i>
+            <p>Select a friend to chat</p>
+        </div>
+    </div>
+    <div class="chat-panel-input-area" id="chatPanelInputArea" style="display:none;">
+        <div class="chat-panel-typing" id="chatPanelTyping" style="display:none;">typing...</div>
+        <form class="chat-panel-form" id="chatPanelForm">
+            <input type="text" id="chatPanelInput" placeholder="Type a message..." autocomplete="off" />
+            <button type="submit" class="btn-cyber btn-send"><i class="fas fa-paper-plane"></i></button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let chatUserId = null;
+        let chatUsername = null;
+        const currentUserId = '@Context.Session.GetString("UserId")';
+
+        // ── Search ──
+        let searchTimer;
+        $('#friendSearch').on('input', function() {
+            clearTimeout(searchTimer);
+            const q = $(this).val().trim();
+            if (q.length < 2) { $('#searchResults').hide(); return; }
+            searchTimer = setTimeout(() => {
+                $.get('@Url.Action("Search")', { q }, function(data) {
+                    const results = data.results;
+                    if (results.length === 0) {
+                        $('#searchResults').html('<div class="no-results">No users found</div>').show();
+                        return;
+                    }
+                    let html = '';
+                    results.forEach(function(u) {
+                        html += `<div class="search-result" data-username="${u.username}">
+                                    <span>${u.username}</span>
+                                    <button class="btn-cyber btn-xs add-friend" data-username="${u.username}">Add</button>
+                                 </div>`;
+                    });
+                    $('#searchResults').html(html).show();
+                });
+            }, 300);
+        });
+
+        $(document).on('click', '.add-friend, .add-suggestion', function() {
+            const username = $(this).data('username');
+            const btn = $(this);
+            const origHtml = btn.html();
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i>');
+
+            $.post('@Url.Action("SendRequest")', {
+                username,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    showToast('Success', data.message, 'success');
+                    if (btn.hasClass('add-suggestion')) {
+                        btn.closest('.suggestion-card')?.fadeOut(300);
+                    } else {
+                        $('#friendSearch').val('');
+                        $('#searchResults').hide();
+                    }
+                } else {
+                    showToast('Error', data.message, 'error');
+                }
+            }).fail(() => {
+                showToast('Error', 'Failed to send request', 'error');
+            }).always(() => {
+                btn.prop('disabled', false).html(origHtml);
+            });
+        });
+
+        // ── Pending: Accept / Reject ──
+        $(document).on('click', '.accept-request', function() {
+            const id = $(this).data('id');
+            const card = $(this).closest('.request-card');
+            $.post('@Url.Action("AcceptRequest")', {
+                friendshipId: id,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    card.fadeOut(300, function() { $(this).remove(); });
+                    showToast('Success', data.message, 'success');
+                    location.reload();
+                } else {
+                    showToast('Error', data.message, 'error');
+                }
+            });
+        });
+
+        $(document).on('click', '.reject-request', function() {
+            const id = $(this).data('id');
+            const card = $(this).closest('.request-card');
+            $.post('@Url.Action("RejectRequest")', {
+                friendshipId: id,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    card.fadeOut(300, function() { $(this).remove(); });
+                    showToast('Rejected', data.message, 'info');
+                } else {
+                    showToast('Error', data.message, 'error');
+                }
+            });
+        });
+
+        // ── Remove friend ──
+        $(document).on('click', '.remove-friend', function() {
+            if (!confirm('Remove this friend?')) return;
+            const id = $(this).data('id');
+            const card = $(this).closest('.friend-card');
+            $.post('@Url.Action("RemoveFriend")', {
+                friendshipId: id,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            }, function(data) {
+                if (data.success) {
+                    card.fadeOut(300, function() { $(this).remove(); });
+                    showToast('Removed', data.message, 'info');
+                } else {
+                    showToast('Error', data.message, 'error');
+                }
+            });
+        });
+
+        // ── Chat Panel ──
+        function openChat(userId, username) {
+            chatUserId = userId;
+            chatUsername = username;
+            $('#chatPanelAvatar').text(username[0] || '?');
+            $('#chatPanelName').text(username);
+            $('#chatPanelStatusText').text('Loading...');
+            $('#chatPanelIndicator').className = 'indicator offline';
+            $('#chatPanelMessages').html('<div class="chat-panel-empty"><i class="fas fa-spinner fa-pulse fa-3x"></i><p>Loading messages...</p></div>');
+            $('#chatPanelInputArea').hide();
+            $('#chatOverlay, #chatPanel').addClass('show');
+
+            loadMessages(userId);
+        }
+
+        function closeChat() {
+            chatUserId = null;
+            chatUsername = null;
+            $('#chatOverlay, #chatPanel').removeClass('show');
+        }
+
+        function loadMessages(userId) {
+            $.get('@Url.Action("GetMessages", "Chat")', { userId, page: 1 }, function(data) {
+                const msgs = data.messages || [];
+                const area = $('#chatPanelMessages');
+                area.empty();
+
+                if (msgs.length === 0) {
+                    area.html('<div class="chat-panel-empty"><i class="fas fa-comments fa-3x"></i><p>Start chatting with ' + chatUsername + '!</p></div>');
+                } else {
+                    msgs.forEach(function(m) {
+                        area.append(renderMessage(m));
+                    });
+                }
+
+                $('#chatPanelInputArea').show();
+                scrollChat();
+                $('#chatPanelInput').focus();
+
+                if (window.chatConnection && window.chatConnection.state === 'Connected') {
+                    window.chatConnection.invoke('MarkRead', userId);
+                }
+            });
+        }
+
+        function renderMessage(m) {
+            const isMine = m.senderId === currentUserId;
+            const time = new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const receipt = isMine && m.readAt ? '<span class="read-receipt"><i class="fas fa-check-double"></i></span>' : '';
+            return `<div class="chat-panel-msg ${isMine ? 'mine' : 'theirs'}" data-id="${m.id}">
+                        <div class="bubble">
+                            <div class="bubble-text">${escapeHtml(m.content)}</div>
+                            <div class="bubble-meta">
+                                <span class="bubble-time">${time}</span>
+                                ${receipt}
+                            </div>
+                        </div>
+                    </div>`;
+        }
+
+        function appendMessage(msg) {
+            const area = $('#chatPanelMessages');
+            const empty = area.find('.chat-panel-empty');
+            if (empty.length) empty.remove();
+            area.append(renderMessage(msg));
+            scrollChat();
+        }
+
+        function scrollChat() {
+            const area = document.getElementById('chatPanelMessages');
+            if (area) area.scrollTop = area.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Open chat from friend card
+        $(document).on('click', '.open-chat', function() {
+            const userId = $(this).data('userid');
+            const username = $(this).data('username');
+            openChat(userId, username);
+        });
+
+        // Close chat
+        $('#chatPanelClose, #chatOverlay').on('click', function() {
+            closeChat();
+        });
+
+        // Send message via SignalR
+        $('#chatPanelForm').on('submit', function(e) {
+            e.preventDefault();
+            const input = $('#chatPanelInput');
+            const content = input.val().trim();
+            if (!content || !chatUserId) return;
+
+            if (window.chatConnection && window.chatConnection.state === 'Connected') {
+                window.chatConnection.invoke('SendMessage', chatUserId, content)
+                    .catch(function(err) { console.error('Send failed:', err); });
+                input.val('');
+                $('#chatPanelTyping').hide();
+            }
+        });
+
+        // Typing indicator
+        let typingTimer;
+        $('#chatPanelInput').on('input', function() {
+            if (!window.chatConnection || !chatUserId) return;
+            window.chatConnection.invoke('Typing', chatUserId, true);
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(function() {
+                if (window.chatConnection) {
+                    window.chatConnection.invoke('Typing', chatUserId, false);
+                }
+            }, 2000);
+        });
+
+        // ── SignalR handlers (registered after connection ready) ──
+        $(document).on('chatConnectionReady', function() {
+            if (!window.chatConnection) return;
+
+            window.chatConnection.on('ReceiveMessage', function(msg) {
+                // If chat is open for this sender
+                if (msg.senderId === chatUserId) {
+                    appendMessage(msg);
+                    if (window.chatConnection) {
+                        window.chatConnection.invoke('MarkRead', msg.senderId);
+                    }
+                }
+                // If we sent this message
+                if (msg.senderId === currentUserId && msg.receiverId === chatUserId) {
+                    // Already handled by MessageSent or ReceiveMessage
+                }
+            });
+
+            window.chatConnection.on('MessageSent', function(msg) {
+                if (msg.receiverId === chatUserId) {
+                    appendMessage({ id: msg.id, senderId: currentUserId, content: msg.content, sentAt: msg.sentAt, readAt: null });
+                }
+            });
+
+            window.chatConnection.on('MessagesRead', function(data) {
+                if (data.byUserId === chatUserId) {
+                    $('#chatPanelMessages .chat-panel-msg.mine .read-receipt i').attr('class', 'fas fa-check-double');
+                }
+            });
+
+            window.chatConnection.on('UserTyping', function(data) {
+                if (data.userId === chatUserId) {
+                    $('#chatPanelTyping').css('display', data.isTyping ? 'block' : 'none');
+                }
+            });
+
+            window.chatConnection.on('UserOnline', function(data) {
+                if (data.userId === chatUserId) {
+                    $('#chatPanelIndicator').attr('class', 'indicator online');
+                    $('#chatPanelStatusText').text('Online');
+                }
+            });
+
+            window.chatConnection.on('UserOffline', function(data) {
+                if (data.userId === chatUserId) {
+                    $('#chatPanelIndicator').attr('class', 'indicator offline');
+                    $('#chatPanelStatusText').text('Offline');
+                }
+            });
+        });
+
+        // Click outside search results
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.search-box').length) {
+                $('#searchResults').hide();
+            }
+        });
+    </script>
+}

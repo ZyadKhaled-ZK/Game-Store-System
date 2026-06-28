@@ -16,6 +16,7 @@ namespace GameStore.BLL.Services
             return await _uow.Repository<Game>().Query()
                 .Include(g => g.GameCategories)
                     .ThenInclude(gc => gc.Category)
+                .Where(g => g.DeveloperId == null || g.DeveloperNav == null || g.DeveloperNav.IsActive)
                 .OrderByDescending(g => g.ReleaseDate)
                 .AsNoTracking()
                 .ToListAsync();
@@ -29,6 +30,7 @@ namespace GameStore.BLL.Services
 
             var query = _uow.Repository<Game>().Query()
                 .Include(g => g.GameCategories).ThenInclude(gc => gc.Category)
+                .Where(g => g.DeveloperId == null || g.DeveloperNav == null || g.DeveloperNav.IsActive)
                 .OrderByDescending(g => g.ReleaseDate)
                 .AsNoTracking();
 
@@ -84,6 +86,7 @@ namespace GameStore.BLL.Services
             game.Price = update.Price;
             game.ReleaseDate = update.ReleaseDate;
             game.Developer = update.Developer;
+            game.DeveloperId = update.DeveloperId;
             game.CoverImageUrl = update.CoverImageUrl;
             game.TrailerUrl = update.TrailerUrl;
 

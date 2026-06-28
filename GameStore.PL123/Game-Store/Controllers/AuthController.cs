@@ -18,6 +18,7 @@ public class AuthController : Controller
     {
         var role = HttpContext.Session.GetString("Role");
         if (role == "ADMIN") return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+        if (role == "DEVELOPER") return RedirectToAction("Index", "Dashboard", new { area = "Developer" });
 
         return View();
     }
@@ -41,6 +42,9 @@ public class AuthController : Controller
 
         if (user.Role == Role.ADMIN)
             return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
+        if (user.Role == Role.DEVELOPER)
+            return RedirectToAction("Index", "Dashboard", new { area = "Developer" });
 
         return RedirectToAction("Index", "Home");
     }

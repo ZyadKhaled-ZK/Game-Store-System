@@ -98,12 +98,8 @@
   </span>
 </div>
 
-@if (!string.IsNullOrEmpty(Model.Message))
-{
-  <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); color: white; padding: 10px 16px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 12px;">
-    @Model.Message
-  </div>
-}
+@{ if (!string.IsNullOrEmpty(Model.Message)) { TempData["Message"] = Model.Message; TempData["IsError"] = Model.IsError; } }
+<partial name="_Alert" />
 
 <div class="table-responsive">
 <table class="cyber-table" id="gamesTable">
@@ -126,7 +122,7 @@
         <td>
           @if (!string.IsNullOrEmpty(game.CoverImageUrl))
           {
-            <img src="@game.CoverImageUrl" alt="@game.Title" class="cover-thumb"/>
+            <img src="@game.CoverImageUrl" alt="@game.Title" class="cover-thumb" loading="lazy" width="60" height="40"/>
           }
           else
           {
@@ -164,7 +160,7 @@
           <button class="btn btn-secondary ripple" style="padding:6px 12px; font-size:11px;"
             data-game-index="@(gameIdx++)" onclick="openEditModal(+this.dataset.gameIndex)">EDIT</button>
           <form method="post" asp-action="Delete" asp-route-id="@game.Id" style="display:inline;"
-            data-game-title="@game.Title" onsubmit="return confirm('TERMINATE game record: ' + this.dataset.gameTitle + '?')">
+            data-game-title="@game.Title" onsubmit="event.preventDefault(); showConfirmModal('TERMINATE game record: ' + this.dataset.gameTitle + '?', this)">
             @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-primary ripple" style="padding:6px 12px; font-size:11px;">DELETE</button>
           </form>
@@ -213,7 +209,14 @@
       </div>
       <div class="form-group">
         <label class="form-label">Developer //</label>
-        <input type="text" name="Developer" id="fDeveloper" class="form-input" placeholder="Studio / Developer name" maxlength="200"/>
+        <select name="DeveloperId" id="fDeveloperId" class="form-input" onchange="toggleDeveloperCustom()">
+          <option value="">— Custom / Other —</option>
+          @foreach (var dev in Model.Developers)
+          {
+            <option value="@dev.Id">@dev.Name</option>
+          }
+        </select>
+        <input type="text" name="Developer" id="fDeveloper" class="form-input" placeholder="Or type a name..." maxlength="200" style="margin-top:8px;"/>
       </div>
       <div class="form-group">
         <label class="form-label">Cover Image URL //</label>
@@ -284,9 +287,19 @@
     document.getElementById('gameForm').action = '@createUrl';
     document.getElementById('gameId').value = '';
     document.getElementById('gameForm').reset();
+    document.getElementById('fDeveloperId').value = '';
+    document.getElementById('fDeveloper').value = '';
+    document.getElementById('fDeveloper').style.display = 'block';
     document.getElementById('currentFileInfo').style.display = 'none';
     document.getElementById('fRemoveGameFile').checked = false;
     document.getElementById('gameModal').classList.add('active');
+  }
+
+  function toggleDeveloperCustom() {
+    var sel = document.getElementById('fDeveloperId');
+    var txt = document.getElementById('fDeveloper');
+    txt.style.display = sel.value === '' ? 'block' : 'none';
+    if (sel.value !== '') txt.value = '';
   }
 
   function openEditModal(index) {
@@ -299,7 +312,9 @@
     document.getElementById('fTitle').value = data.title;
     document.getElementById('fDescription').value = data.description;
     document.getElementById('fPrice').value = data.price;
-    document.getElementById('fDeveloper').value = data.developer;
+    document.getElementById('fDeveloperId').value = data.developerId || '';
+    document.getElementById('fDeveloper').value = data.developer || '';
+    toggleDeveloperCustom();
     document.getElementById('fTrailerUrl').value = data.trailerUrl;
     document.getElementById('fCoverImageUrl').value = data.coverImageUrl;
     document.getElementById('fReleaseDate').value = data.releaseDate;

@@ -1,0 +1,285 @@
+@model GameStore.PL.Models.Chat.ChatIndexViewModel
+@{
+    ViewData["Title"] = "Chat";
+}
+
+@section Styles {
+<style>
+.chat-container { display: flex; height: calc(100vh - 160px); border: 1px solid var(--border); background: var(--bg2); }
+.chat-sidebar { width: 300px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--bg3); flex-shrink: 0; }
+.sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); }
+.sidebar-header h2 { font-family: var(--font-display); font-size: 14px; letter-spacing: 2px; margin: 0; color: var(--red); }
+.conversations-list { flex: 1; overflow-y: auto; }
+.conversation-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; text-decoration: none; color: var(--text); border-bottom: 1px solid var(--border); transition: all 0.15s; }
+.conversation-item:hover, .conversation-item.active { background: rgba(230,57,70,0.06); border-left: 3px solid var(--red); padding-left: 13px; }
+.conv-avatar { position: relative; flex-shrink: 0; }
+.avatar-mini { width: 36px; height: 36px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 14px; color: var(--red); background: rgba(230,57,70,0.06); }
+.status-dot { position: absolute; bottom: -2px; right: -2px; width: 10px; height: 10px; border: 2px solid var(--bg3); border-radius: 50%; }
+.status-dot.online { background: #4ade80; }
+.status-dot.offline { background: var(--text-dim); }
+.conv-info { flex: 1; min-width: 0; }
+.conv-name { font-family: var(--font-mono); font-size: 13px; }
+.conv-preview { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conv-meta { flex-shrink: 0; }
+.unread-badge { background: var(--red); color: #fff; font-size: 10px; padding: 1px 7px; border-radius: 0; font-family: var(--font-mono); }
+.empty-conversations { padding: 40px 20px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+.chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.chat-header { padding: 16px 20px; border-bottom: 1px solid var(--border); background: var(--bg3); }
+.chat-user-info { display: flex; align-items: center; gap: 12px; }
+.chat-username { font-family: var(--font-mono); font-size: 15px; }
+.chat-user-status { font-size: 11px; font-family: var(--font-mono); }
+.status-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.status-indicator.online { background: #4ade80; }
+.status-indicator.offline { background: var(--text-dim); }
+.messages-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.message { display: flex; }
+.message.mine { justify-content: flex-end; }
+.message.theirs { justify-content: flex-start; }
+.message-bubble { max-width: 70%; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border); }
+.message.mine .message-bubble { background: rgba(230,57,70,0.06); border-color: var(--border-red); }
+.message-text { font-size: 13px; font-family: var(--font-mono); word-break: break-word; }
+.message-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.message-time { font-size: 10px; color: var(--text-dim); }
+.read-receipt { color: var(--cyan); font-size: 10px; }
+.chat-input-area { padding: 16px 20px; border-top: 1px solid var(--border); background: var(--bg3); }
+.typing-indicator { padding: 4px 0; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); font-style: italic; }
+.chat-input-form { display: flex; gap: 10px; }
+.chat-input-form input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; font-family: var(--font-mono); font-size: 12px; }
+.chat-input-form input:focus { border-color: var(--red); outline: none; }
+.btn-cyber { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); padding: 8px 16px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn-cyber:hover { border-color: var(--gold); color: var(--gold); background: rgba(245,197,66,0.06); }
+.btn-send { padding: 10px 18px; }
+.chat-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-dim); font-family: var(--font-mono); }
+.chat-empty i { opacity: 0.3; margin-bottom: 16px; color: var(--red); }
+.chat-empty h3 { font-family: var(--font-display); font-size: 16px; letter-spacing: 2px; }
+.chat-empty p { font-size: 12px; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+</style>
+}
+
+<div class="chat-container">
+    <div class="chat-sidebar">
+        <div class="sidebar-header">
+            <h2>Conversations</h2>
+        </div>
+        <div class="conversations-list" id="conversationsList">
+            @if (!Model.Conversations.Any())
+            {
+                <div class="empty-conversations">
+                    <p>No conversations yet.</p>
+                    <p>Start chatting with your friends!</p>
+                </div>
+            }
+            @foreach (var conv in Model.Conversations)
+            {
+                <a href="@Url.Action("Index", new { userId = conv.UserId })"
+                   class="conversation-item @(conv.UserId == Model.ActiveUserId ? "active" : "")"
+                   data-userid="@conv.UserId">
+                    <div class="conv-avatar">
+                        <div class="avatar-mini">@conv.Username[0]</div>
+                        <span class="status-dot @(conv.IsOnline ? "online" : "offline")"></span>
+                    </div>
+                    <div class="conv-info">
+                        <div class="conv-name">@conv.Username</div>
+                        <div class="conv-preview">@(conv.LastMessage ?? "No messages yet")</div>
+                    </div>
+                    <div class="conv-meta">
+                        @if (conv.UnreadCount > 0)
+                        {
+                            <span class="unread-badge">@conv.UnreadCount</span>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="chat-main">
+        @if (!string.IsNullOrEmpty(Model.ActiveUserId))
+        {
+            <div class="chat-header">
+                <div class="chat-user-info">
+                    <div class="avatar-mini">@(Model.ActiveUsername!.Length > 0 ? Model.ActiveUsername[0].ToString() : "?")</div>
+                    <div>
+                        <div class="chat-username">@Model.ActiveUsername</div>
+                        <div class="chat-user-status" id="chatUserStatus">
+                            <span id="statusIndicator" class="status-indicator"></span>
+                            <span id="statusText">Checking...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="messages-area" id="messagesArea">
+                @foreach (var msg in Model.Messages)
+                {
+                    <div class="message @(msg.IsMine ? "mine" : "theirs")" data-id="@msg.Id">
+                        <div class="message-bubble">
+                            <div class="message-text">@msg.Content</div>
+                            <div class="message-meta">
+                                <span class="message-time">@msg.SentAt.ToString("HH:mm")</span>
+                                @if (msg.IsMine && msg.ReadAt.HasValue)
+                                {
+                                    <span class="read-receipt"><i class="fas fa-check-double"></i></span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="chat-input-area">
+                <div class="typing-indicator" id="typingIndicator" style="display:none;">
+                    <span>typing...</span>
+                </div>
+                <form id="messageForm" class="chat-input-form">
+                    <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off" />
+                    <button type="submit" class="btn-cyber btn-send">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="chat-empty">
+                <i class="fas fa-comments fa-4x"></i>
+                <h3>Select a conversation</h3>
+                <p>Choose a friend from the sidebar to start chatting</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const activeUserId = '@Model.ActiveUserId';
+        const currentUserId = '@(Context.Session.GetString("UserId"))';
+
+        // Scroll messages to bottom
+        function scrollToBottom() {
+            const area = document.getElementById('messagesArea');
+            if (area) area.scrollTop = area.scrollHeight;
+        }
+        scrollToBottom();
+
+        // Send message via SignalR
+        $('#messageForm').on('submit', function(e) {
+            e.preventDefault();
+            const input = $('#messageInput');
+            const content = input.val().trim();
+            if (!content || !activeUserId) return;
+
+            if (window.chatConnection && window.chatConnection.state === 'Connected') {
+                window.chatConnection.invoke('SendMessage', activeUserId, content)
+                    .catch(err => console.error('Send failed:', err));
+                input.val('');
+                $('#typingIndicator').hide();
+            }
+        });
+
+        // Typing indicator
+        let typingTimer;
+        $('#messageInput').on('input', function() {
+            if (!window.chatConnection || !activeUserId) return;
+            window.chatConnection.invoke('Typing', activeUserId, true);
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                if (window.chatConnection) {
+                    window.chatConnection.invoke('Typing', activeUserId, false);
+                }
+            }, 2000);
+        });
+
+        // Mark as read when viewing conversation
+        if (activeUserId && window.chatConnection) {
+            window.chatConnection.invoke('MarkRead', activeUserId);
+        }
+
+        // Listen for connection established (in layout)
+        $(document).on('chatConnectionReady', function() {
+            if (activeUserId) {
+                window.chatConnection.invoke('MarkRead', activeUserId);
+            }
+
+            window.chatConnection.on('ReceiveMessage', function(msg) {
+                if (msg.senderId === activeUserId || msg.senderId === currentUserId) {
+                    const area = document.getElementById('messagesArea');
+                    if (!area) return;
+
+                    const isMine = msg.senderId === currentUserId;
+                    const html = `
+                        <div class="message ${isMine ? 'mine' : 'theirs'}" data-id="${msg.id}">
+                            <div class="message-bubble">
+                                <div class="message-text">${escapeHtml(msg.content)}</div>
+                                <div class="message-meta">
+                                    <span class="message-time">${new Date(msg.sentAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                    ${isMine ? '<span class="read-receipt"><i class="fas fa-check"></i></span>' : ''}
+                                </div>
+                            </div>
+                        </div>`;
+
+                    if (isMine) {
+                        area.insertAdjacentHTML('beforeend', html);
+                        scrollToBottom();
+                    } else {
+                        area.insertAdjacentHTML('beforeend', html);
+                        scrollToBottom();
+                        if (window.chatConnection) {
+                            window.chatConnection.invoke('MarkRead', msg.senderId);
+                        }
+                    }
+                }
+            });
+
+            window.chatConnection.on('MessageSent', function(msg) {
+                // Message confirmation already handled by ReceiveMessage for sender
+            });
+
+            window.chatConnection.on('MessagesRead', function(data) {
+                if (data.byUserId === activeUserId) {
+                    document.querySelectorAll('.message.mine .read-receipt i')
+                        .forEach(el => el.className = 'fas fa-check-double');
+                }
+            });
+
+            window.chatConnection.on('UserTyping', function(data) {
+                if (data.userId === activeUserId) {
+                    const indicator = document.getElementById('typingIndicator');
+                    if (indicator) {
+                        indicator.style.display = data.isTyping ? 'block' : 'none';
+                    }
+                }
+            });
+
+            window.chatConnection.on('UserOnline', function(data) {
+                if (data.userId === activeUserId) {
+                    updateStatus(true);
+                }
+            });
+
+            window.chatConnection.on('UserOffline', function(data) {
+                if (data.userId === activeUserId) {
+                    updateStatus(false, data.lastSeen);
+                }
+            });
+        });
+
+        function updateStatus(online, lastSeen) {
+            const indicator = document.getElementById('statusIndicator');
+            const text = document.getElementById('statusText');
+            if (!indicator || !text) return;
+            indicator.className = 'status-indicator ' + (online ? 'online' : 'offline');
+            text.textContent = online ? 'Online' : 'Offline';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+}

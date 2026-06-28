@@ -21,6 +21,8 @@ namespace GameStore.DAL.Entities
         [MaxLength(200)]
         public string? Developer { get; set; }
 
+        public string? DeveloperId { get; set; }
+
         /// <summary>Cover / hero image shown on the store card.</summary>
         public string? CoverImageUrl { get; set; }
 
@@ -38,6 +40,7 @@ namespace GameStore.DAL.Entities
         public List<string> ScreenshotUrls { get; set; } = new();
 
         // ── Navigation Properties ──────────────────────────────────────────
+        public Developer? DeveloperNav { get; set; }
         public ICollection<GameCategory> GameCategories { get; set; } = new List<GameCategory>();
         public ICollection<CartItem>     CartItems      { get; set; } = new List<CartItem>();
         public ICollection<OrderItem>    OrderItems     { get; set; } = new List<OrderItem>();

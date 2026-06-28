@@ -38,12 +38,10 @@
     <a href="/" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> BROWSE GAMES</a>
   </div>
 
-  @if (!string.IsNullOrEmpty(Model.Message))
-  {
-    <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1)" : "rgba(74,222,128,0.1)"); border: 1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); color: white; padding: 10px 16px; margin-bottom: 16px; font-family: var(--font-mono); font-size: 12px;">
-      @Model.Message
-    </div>
-  }
+@{
+    if (!string.IsNullOrEmpty(Model.Message)) { TempData["Message"] = Model.Message; TempData["IsError"] = Model.IsError; }
+}
+<partial name="_Alert" />
 
   @if (!Model.WishlistItems.Any())
   {
@@ -68,11 +66,11 @@
           </form>
           @if (!string.IsNullOrEmpty(item.Game?.CoverImageUrl))
           {
-            <img class="wishlist-card-img" src="@item.Game.CoverImageUrl" alt="@item.Game.Title" />
+            <img class="wishlist-card-img" src="@item.Game.CoverImageUrl" alt="@item.Game.Title" loading="lazy" />
           }
           else if (item.Game?.ScreenshotUrls.Any() == true)
           {
-            <img class="wishlist-card-img" src="@item.Game.ScreenshotUrls[0]" alt="@item.Game.Title" />
+            <img class="wishlist-card-img" src="@item.Game.ScreenshotUrls[0]" alt="@item.Game.Title" loading="lazy" />
           }
           else
           {

@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Game_Store</title>
+    @await RenderSectionAsync("MetaTags", required: false)
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -13,6 +14,7 @@
     <link rel="icon" href="/favicon.ico" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Game_Store.styles.css" asp-append-version="true" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <style>
         :root {
             --gold: #f5c542;
@@ -26,6 +28,7 @@
             --border-red: rgba(230, 57, 70, 0.22);
             --text: #e8e8f0;
             --text-dim: #7a7a99;
+            --cyan: #00e5ff;
             --glow-gold: 0 0 20px rgba(245, 197, 66, 0.4);
             --glow-red: 0 0 20px rgba(230, 57, 70, 0.4);
             --font-display: 'Orbitron', monospace;
@@ -85,18 +88,34 @@
         }
 
         /* ── Button subtle hover lift ── */
-        .btn { transition: all 0.25s; }
+        .btn { transition: all 0.25s; position: relative; }
         .btn:hover { transform: translateY(-1px); }
         .btn:active { transform: translateY(0); }
+        .btn.loading { pointer-events: none; opacity: 0.7; }
+        .btn.loading::after { content: ''; display: inline-block; width: 12px; height: 12px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: 8px; vertical-align: middle; }
+        .btn.loading { pointer-events: none; opacity: 0.7; }
+        .btn.loading::after { content: ''; display: inline-block; width: 12px; height: 12px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: 8px; vertical-align: middle; }
+        @Html.Raw("@keyframes spin { to { transform: rotate(360deg); } }")
 
         /* ── Card hover lift ── */
         .game-card, .wishlist-card, .hero-card { transition: all 0.3s; }
         .game-card:hover, .wishlist-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.4), var(--glow-red); }
 
+        .star-rating { display: inline-flex; flex-direction: row-reverse; gap: 4px; }
+        .star-rating input { display: none; }
+        .star-rating label { font-size: 1.8rem; color: var(--text-dim); cursor: pointer; transition: color 0.2s; }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label { color: var(--gold); text-shadow: 0 0 10px rgba(245,197,66,0.5); }
+
+        .pwd-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; font-size: 1.1rem; }
+        .pwd-toggle:hover { color: var(--red); }
+
         /* ── Section title glitch on hover ── */
         .section-title, .glitch { position: relative; }
         .section-title:hover, .glitch:hover { animation: glitch 0.2s steps(2) infinite; }
         @Html.Raw("@keyframes glitch { 0% { text-shadow: 1.5px 0 var(--gold), -1.5px 0 var(--red); } 33% { text-shadow: -1.5px 0 var(--gold), 1.5px 0 var(--red); } 66% { text-shadow: 1.5px 0 var(--red), -1.5px 0 var(--gold); } 100% { text-shadow: -1.5px 0 var(--red), 1.5px 0 var(--gold); } }")
+        @Html.Raw("@keyframes spin { to { transform: rotate(360deg); } }")
 
         /* ── Table row subtle pulse on hover ── */
         .cyber-table tr { transition: background 0.2s; }
@@ -253,6 +272,7 @@
 
 
     </style>
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 
 <body>
@@ -279,16 +299,30 @@
                             var role = Context.Session.GetString("Role");
                             var username = Context.Session.GetString("Username");
                         }
+                        @if (role != "DEVELOPER")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="BecomeDeveloper" asp-action="Index">Developer Program</a>
+                            </li>
+                        }
                         @if (role == "ADMIN")
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Admin</a>
                             </li>
                         }
+                        @if (role == "DEVELOPER")
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Developer" asp-controller="Dashboard" asp-action="Index">Developer Portal</a>
+                            </li>
+                        }
                         @if (!string.IsNullOrEmpty(role))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Cart" asp-action="Index">Cart</a>
+                                <a class="nav-link" asp-area="" asp-controller="Cart" asp-action="Index">
+                                    Cart <span id="cartCount" class="badge" style="background:var(--red);color:white;font-size:10px;display:none;margin-left:4px;border-radius:0;">0</span>
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Wishlist" asp-action="Index">Wishlist</a>
@@ -297,11 +331,20 @@
                                 <a class="nav-link" asp-area="" asp-controller="Library" asp-action="Index">Library</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Friends" asp-action="Index"><i class="bi bi-people"></i> Friends</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Chat" asp-action="Index">
+                                    <i class="bi bi-chat-dots"></i> Chat
+                                    <span id="chatUnreadBadge" class="badge" style="background:var(--cyan);color:#000;font-size:9px;display:none;margin-left:4px;border-radius:0;">0</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-controller="Orders" asp-action="Index">Orders</a>
                             </li>
                             <li class="nav-item" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);align-self:center;">
-                                <a asp-area="" asp-controller="Auth" asp-action="Profile" style="color:var(--text-dim);text-decoration:none;transition:color 0.2s;"
-                                   onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">[ @username ]</a>
+                                <a asp-area="" asp-controller="Auth" asp-action="Profile" style="color:var(--text-dim);text-decoration:none;transition:color 0.2s;display:flex;align-items:center;gap:6px;"
+                                   onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'">[ @username ]@if (role == "ADMIN") {<span style="font-size:9px;color:var(--gold);border:1px solid var(--gold);padding:1px 6px;">ADMIN</span>}@if (role == "DEVELOPER") {<span style="font-size:9px;color:var(--cyan);border:1px solid var(--cyan);padding:1px 6px;">DEV</span>}</a>
                             </li>
                             <li class="nav-item ms-2">
                                 <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-controller="Auth" asp-action="Logout">Logout</a>
@@ -335,6 +378,86 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+      (function() {
+        var userId = '@Context.Session.GetString("UserId")';
+        if (!userId) return;
+        var connection = new signalR.HubConnectionBuilder()
+          .withUrl("/hub/notifications")
+          .withAutomaticReconnect()
+          .build();
+        connection.on("ReceiveNotification", function(data) {
+          var type = data.type || 'info';
+          if (typeof showToast === 'function') {
+            showToast(data.message || data.title, type);
+          }
+        });
+
+        // Chat handlers
+        connection.on("ReceiveMessage", function(msg) {
+          if (typeof window.handleIncomingMessage === 'function') {
+            window.handleIncomingMessage(msg);
+          }
+          // If not on chat page, show badge and toast
+          if (!window.location.pathname.includes('/Chat')) {
+            updateChatBadge();
+            if (typeof showToast === 'function') {
+              showToast(msg.senderName + ': ' + msg.content, 'info');
+            }
+          }
+        });
+
+        connection.on("UserOnline", function(data) {
+          if (typeof window.handleUserOnline === 'function') {
+            window.handleUserOnline(data);
+          }
+        });
+
+        connection.on("UserOffline", function(data) {
+          if (typeof window.handleUserOffline === 'function') {
+            window.handleUserOffline(data);
+          }
+        });
+
+        connection.on("UserTyping", function(data) {
+          if (typeof window.handleUserTyping === 'function') {
+            window.handleUserTyping(data);
+          }
+        });
+
+        connection.on("MessagesRead", function(data) {
+          if (typeof window.handleMessagesRead === 'function') {
+            window.handleMessagesRead(data);
+          }
+        });
+
+        connection.on("MessageSent", function(msg) {
+          if (typeof window.handleMessageSent === 'function') {
+            window.handleMessageSent(msg);
+          }
+        });
+
+        window.chatConnection = connection;
+
+        connection.start().then(function() {
+          connection.invoke("JoinUserGroup", userId).catch(function(){});
+          updateChatBadge();
+        }).catch(function(){});
+
+        function updateChatBadge() {
+          fetch('/Chat/GetUnreadCount').then(function(r) { return r.json(); }).then(function(d) {
+            var badge = document.getElementById('chatUnreadBadge');
+            if (!badge) return;
+            if (d.count > 0) { badge.textContent = d.count; badge.style.display = 'inline'; }
+            else badge.style.display = 'none';
+          }).catch(function(){});
+        }
+        setInterval(updateChatBadge, 30000);
+
+        // Trigger event for chat page
+        $(document).trigger('chatConnectionReady');
+      })();
+    </script>
 
     <div class="toast-container" id="toastContainer"></div>
 
@@ -369,6 +492,35 @@
         setTimeout(() => { if (toast.parentElement) { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; toast.style.transition = 'all 0.3s'; setTimeout(() => toast.remove(), 300); } }, 4000);
       }
 
+      // Loading state on form submit
+      document.querySelectorAll('form').forEach(function(f) {
+        f.addEventListener('submit', function() {
+          var btn = this.querySelector('.btn[type="submit"], button[type="submit"]');
+          if (btn) btn.classList.add('loading');
+        });
+      });
+
+      // Password visibility toggle
+      window.togglePwd = function(btn) {
+        var input = btn.parentElement.querySelector('input');
+        if (!input) return;
+        var type = input.type === 'password' ? 'text' : 'password';
+        input.type = type;
+        var icon = btn.querySelector('i');
+        if (icon) icon.className = type === 'password' ? 'bi bi-eye-slash' : 'bi bi-eye';
+      };
+
+      // Cart count updater
+      function updateCartCount() {
+        fetch('/Cart/GetCount').then(function(r) { return r.json(); }).then(function(d) {
+          var badge = document.getElementById('cartCount');
+          if (!badge) return;
+          if (d.count > 0) { badge.textContent = d.count; badge.style.display = 'inline'; }
+          else badge.style.display = 'none';
+        }).catch(function(){});
+      }
+      updateCartCount();
+
       // Ripple click effect on buttons
       document.querySelectorAll('.btn, .stat-link, .qa-card, .nav-links a').forEach(el => {
         el.classList.add('ripple');
@@ -380,6 +532,7 @@
       });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
+    <partial name="_ConfirmModal" />
 </body>
 
 </html>
