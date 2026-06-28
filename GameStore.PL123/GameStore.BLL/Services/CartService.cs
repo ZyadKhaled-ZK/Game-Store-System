@@ -46,16 +46,11 @@ namespace GameStore.BLL.Services
 
             if (cart == null)
             {
-                cart = new Cart { UserId = userId };
+                cart = new Cart { UserId = userId, CartItems = new List<CartItem>() };
                 await _uow.Repository<Cart>().AddAsync(cart);
-                await _uow.SaveChangesAsync();
-
-                cart = await _uow.Repository<Cart>().Query()
-                    .Include(c => c.CartItems)
-                    .FirstOrDefaultAsync(c => c.UserId == userId);
             }
 
-            if (cart!.CartItems.Any(ci => ci.GameId == gameId))
+            if (cart.CartItems.Any(ci => ci.GameId == gameId))
                 return (false, "Game already in cart.");
 
             cart.CartItems.Add(new CartItem { CartId = cart.Id, GameId = gameId });

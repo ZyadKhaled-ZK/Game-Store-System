@@ -110,5 +110,16 @@ namespace GameStore.BLL.Services
                 .ToListAsync();
             return data;
         }
+        public async Task<int> GetOrderCountSinceAsync(DateTime since)
+        {
+            return await _uow.Repository<Order>().CountAsync(o => o.CreatedAt >= since);
+        }
+
+        public async Task<decimal> GetRevenueSinceAsync(DateTime since)
+        {
+            return await _uow.Repository<Order>().Query()
+                .Where(o => o.CreatedAt >= since)
+                .SumAsync(o => o.TotalPrice);
+        }
     }
 }

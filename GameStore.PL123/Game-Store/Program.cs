@@ -4,18 +4,21 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Allow large uploads (up to 2 GB) ───────────────────────────────────────
+// ── Upload limits (100 MB max) ─────────────────────────────────────────────
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
 {
-    o.MultipartBodyLengthLimit = 2L * 1024 * 1024 * 1024;
+    o.MultipartBodyLengthLimit = 104_857_600;
 });
 builder.WebHost.ConfigureKestrel(o =>
 {
-    o.Limits.MaxRequestBodySize = 2L * 1024 * 1024 * 1024;
+    o.Limits.MaxRequestBodySize = 104_857_600;
 });
 
 // ── Services ────────────────────────────────────────────────────────────────
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+});
 
 builder.Services.AddScoped<AdminOnlyFilter>();
 builder.Services.AddScoped<DeveloperOnlyFilter>();
@@ -45,8 +48,14 @@ builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
-Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
+if (!string.IsNullOrEmpty(stripeSecretKey))
+    Stripe.StripeConfiguration.ApiKey = stripeSecretKey;
 builder.Services.AddSignalR();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
+    p.WithOrigins()  // same-origin only by default
+      .AllowCredentials()));
 
 // Session-based auth (8-hour idle timeout)
 builder.Services.AddDistributedMemoryCache();
@@ -55,6 +64,8 @@ builder.Services.AddSession(options =>
     options.IdleTimeout        = TimeSpan.FromHours(8);
     options.Cookie.HttpOnly    = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite    = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.Name        = ".GameStore.Session";
 });
 
@@ -83,7 +94,17 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    ctx.Response.Headers.Append("X-Frame-Options", "DENY");
+    ctx.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    ctx.Response.Headers["X-Powered-By"] = "";     // remove ASP.NET header
+    ctx.Response.Headers["Server"]   = "";          // remove Kestrel header
+    await next();
+});
 app.UseRouting();
+app.UseCors();
 app.UseSession();
 app.UseAuthorization();
 

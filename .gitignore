@@ -6,3 +6,7 @@ obj/
 *.rar
 *.zip
 _ReSharper.*/
+
+# Exclude local configs that contain secrets
+appsettings.Development.json
+appsettings.*.local.json

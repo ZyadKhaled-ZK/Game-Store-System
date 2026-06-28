@@ -8,5 +8,6 @@ namespace GameStore.BLL.Services
         Task<Order?> GetOrderByIdAsync(string orderId);
         Task<(bool Success, string Message, Order? Order)> CompleteCheckoutAsync(string userId, string stripeSessionId, string stripePaymentIntentId);
         Task<Order?> GetByStripeSessionIdAsync(string sessionId);
+        Task<List<Order>> GetRecentWithDetailsAsync(int count);
     }
 }

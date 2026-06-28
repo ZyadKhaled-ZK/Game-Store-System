@@ -1,7 +1,7 @@
 using System.Text.Json;
 using GameStore.BLL.Models;
 using GameStore.PL.Models.Admin;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.PL.Areas.Admin.Controllers;
 
@@ -57,8 +57,14 @@ public class DashboardController : Controller
         var usersByMonth = await _userService.GetUsersByMonthAsync(12);
         model.UsersByMonthJson = JsonSerializer.Serialize(usersByMonth, DashboardViewModel.JsonOpts);
 
-        var recentOrders = await _orderService.GetAllWithDetailsAsync();
-        model.RecentOrdersJson = JsonSerializer.Serialize(recentOrders.Take(5).Select(o => new
+        // Use the analytics service for today's stats instead of loading all orders
+        var today = DateTime.UtcNow.Date;
+        model.TodayOrdersCount = await _orderAnalytics.GetOrderCountSinceAsync(today);
+        model.TodayRevenue = await _orderAnalytics.GetRevenueSinceAsync(today);
+
+        // Get only 5 recent orders with details
+        var recentOrders = await _orderService.GetRecentWithDetailsAsync(5);
+        model.RecentOrdersJson = JsonSerializer.Serialize(recentOrders.Select(o => new
         {
             o.Id,
             user = o.User?.Username ?? "N/A",
@@ -71,9 +77,6 @@ public class DashboardController : Controller
             }).ToList()
         }), DashboardViewModel.JsonOpts);
 
-        var today = DateTime.UtcNow.Date;
-        model.TodayOrdersCount = recentOrders.Count(o => o.CreatedAt.Date == today);
-        model.TodayRevenue = recentOrders.Where(o => o.CreatedAt.Date == today).Sum(o => o.TotalPrice);
         var lastMonth = usersByMonth.LastOrDefault();
         model.NewUsersThisMonth = lastMonth?.Count ?? 0;
 

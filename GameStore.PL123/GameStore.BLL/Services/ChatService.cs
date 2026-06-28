@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace GameStore.BLL.Services;
 
 public class ChatService : IChatService
@@ -77,25 +79,44 @@ public class ChatService : IChatService
             .ToListAsync();
 
         var contactIds = sentMessages.Union(receivedMessages).Distinct().ToList();
-        var result = new List<(string UserId, string Username, Message? LastMessage, int UnreadCount)>();
+        if (contactIds.Count == 0)
+            return new();
 
-        foreach (var contactId in contactIds)
-        {
-            var user = await _uow.Repository<User>().GetByIdAsync(contactId);
-            if (user == null) continue;
+        // Batch: load all contact users in one query
+        var users = await _uow.Repository<User>().Query()
+            .Where(u => contactIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id);
 
-            var lastMessage = await _uow.Repository<Message>().Query()
-                .Where(m =>
-                    (m.SenderId == userId && m.ReceiverId == contactId) ||
-                    (m.SenderId == contactId && m.ReceiverId == userId))
-                .OrderByDescending(m => m.SentAt)
-                .FirstOrDefaultAsync();
+        // Batch: last message per contact using grouped query
+        var lastMessages = await _uow.Repository<Message>().Query()
+            .Where(m => m.SenderId == userId || m.ReceiverId == userId)
+            .GroupBy(m => m.SenderId == userId ? m.ReceiverId : m.SenderId)
+            .Select(g => new
+            {
+                ContactId = g.Key,
+                LastMessage = g.OrderByDescending(m => m.SentAt).FirstOrDefault()
+            })
+            .ToListAsync();
 
-            var unreadCount = await _uow.Repository<Message>().CountAsync(m =>
-                m.SenderId == contactId && m.ReceiverId == userId && m.ReadAt == null);
+        var lastMsgMap = lastMessages.ToDictionary(x => x.ContactId, x => x.LastMessage);
 
-            result.Add((user.Id, user.Username, lastMessage, unreadCount));
-        }
+        // Batch: unread counts per sender
+        var unreadCounts = await _uow.Repository<Message>().Query()
+            .Where(m => m.ReceiverId == userId && m.ReadAt == null)
+            .GroupBy(m => m.SenderId)
+            .Select(g => new { SenderId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.SenderId, x => x.Count);
+
+        var result = contactIds
+            .Where(contactId => users.ContainsKey(contactId))
+            .Select(contactId =>
+            {
+                var user = users[contactId];
+                lastMsgMap.TryGetValue(contactId, out var lastMessage);
+                unreadCounts.TryGetValue(contactId, out var uc);
+                return (UserId: user.Id, Username: user.Username, LastMessage: lastMessage, UnreadCount: uc);
+            })
+            .ToList();
 
         return result.OrderByDescending(x => x.LastMessage?.SentAt).ToList();
     }

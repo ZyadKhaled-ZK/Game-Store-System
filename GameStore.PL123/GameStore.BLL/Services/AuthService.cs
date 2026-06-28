@@ -1,15 +1,18 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace GameStore.BLL.Services
 {
     public class AuthService : IAuthService
     {
         private readonly IUnitOfWork _uow;
+        private readonly string _salt;
 
-        public AuthService(IUnitOfWork uow)
+        public AuthService(IUnitOfWork uow, IConfiguration configuration)
         {
             _uow = uow;
+            _salt = configuration["PasswordSalt"] ?? "GameStoreSalt2026";
         }
 
         public static string HashPassword(string password)
@@ -33,7 +36,7 @@ namespace GameStore.BLL.Services
             else
             {
                 using var sha = SHA256.Create();
-                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password + "GameStoreSalt2026"));
+                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password + _salt));
                 var legacyHash = Convert.ToBase64String(bytes);
 
                 if (storedHash != legacyHash)
@@ -78,7 +81,7 @@ namespace GameStore.BLL.Services
             else
             {
                 using var sha = SHA256.Create();
-                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(currentPassword + "GameStoreSalt2026"));
+                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(currentPassword + _salt));
                 var legacyHash = Convert.ToBase64String(bytes);
                 if (storedHash != legacyHash)
                     return (false, "Current password is incorrect.");

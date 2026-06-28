@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Moq;
 
 namespace GameStore.Tests.Services;
 
@@ -12,12 +14,19 @@ public class AuthServiceTests
         return new GameStoreDbContext(options);
     }
 
+    private static IConfiguration CreateConfig()
+    {
+        var config = new Mock<IConfiguration>();
+        config.Setup(x => x["PasswordSalt"]).Returns("test-salt");
+        return config.Object;
+    }
+
     [Fact]
     public async Task RegisterAsync_Creates_User()
     {
         using var ctx = CreateContext("Auth_Register");
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error) = await service.RegisterAsync("Alice", "alice@test.com", "password123");
 
@@ -36,7 +45,7 @@ public class AuthServiceTests
         ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "alice@test.com", PasswordHash = "hash", Role = Role.CUSTOMER });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error) = await service.RegisterAsync("Bob", "alice@test.com", "password123");
 
@@ -52,7 +61,7 @@ public class AuthServiceTests
         ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "alice@test.com", PasswordHash = hash, Role = Role.CUSTOMER });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var user = await service.LoginAsync("alice@test.com", "correctpw");
 
@@ -68,7 +77,7 @@ public class AuthServiceTests
         ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "alice@test.com", PasswordHash = hash, Role = Role.CUSTOMER });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var user = await service.LoginAsync("alice@test.com", "wrongpw");
 
@@ -80,7 +89,7 @@ public class AuthServiceTests
     {
         using var ctx = CreateContext("Auth_LoginNoUser");
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var user = await service.LoginAsync("noone@test.com", "pw");
 
@@ -95,7 +104,7 @@ public class AuthServiceTests
         ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "alice@test.com", PasswordHash = hash, Role = Role.CUSTOMER });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error) = await service.ChangePasswordAsync("u1", "oldpw", "newpw");
 
@@ -112,7 +121,7 @@ public class AuthServiceTests
         ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "alice@test.com", PasswordHash = hash, Role = Role.CUSTOMER });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error) = await service.ChangePasswordAsync("u1", "wrongpw", "newpw");
 
@@ -127,7 +136,7 @@ public class AuthServiceTests
         ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "alice@test.com", PasswordHash = "hash", Role = Role.CUSTOMER });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error, token) = await service.GenerateResetTokenAsync("alice@test.com");
 
@@ -141,7 +150,7 @@ public class AuthServiceTests
     {
         using var ctx = CreateContext("Auth_GenTokenNoEmail");
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error, token) = await service.GenerateResetTokenAsync("noone@test.com");
 
@@ -165,7 +174,7 @@ public class AuthServiceTests
         });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error) = await service.ResetPasswordAsync("valid-token", "newpw");
 
@@ -190,7 +199,7 @@ public class AuthServiceTests
         });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error) = await service.ResetPasswordAsync("expired-token", "newpw");
 
@@ -205,7 +214,7 @@ public class AuthServiceTests
         ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "old@test.com", PasswordHash = "hash", Role = Role.CUSTOMER });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error) = await service.UpdateEmailAsync("u1", "new@test.com");
 
@@ -223,7 +232,7 @@ public class AuthServiceTests
         );
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new AuthService(uow);
+        var service = new AuthService(uow, CreateConfig());
 
         var (success, error) = await service.UpdateEmailAsync("u1", "bob@test.com");
 

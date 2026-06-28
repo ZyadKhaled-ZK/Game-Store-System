@@ -178,16 +178,39 @@ public class AuthController : Controller
                 return RedirectToAction("Profile");
             }
 
-            var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
-            Directory.CreateDirectory(uploadsDir);
-
-            var fileName = $"{Guid.NewGuid():N}{ext}";
-            var filePath = Path.Combine(uploadsDir, fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            // Validate magic bytes
+            var headerBytes = new byte[8];
+            using (var ms = new MemoryStream())
             {
-                await model.AvatarFile.CopyToAsync(stream);
+                await model.AvatarFile.CopyToAsync(ms);
+                var allBytes = ms.ToArray();
+                Array.Copy(allBytes, headerBytes, Math.Min(8, allBytes.Length));
+                var allowedSignatures = new Dictionary<string, byte[]>
+                {
+                    { ".png", [0x89, 0x50, 0x4E, 0x47] },
+                    { ".jpg", [0xFF, 0xD8] },
+                    { ".jpeg", [0xFF, 0xD8] },
+                    { ".gif", [0x47, 0x49, 0x46] },
+                    { ".webp", [0x52, 0x49, 0x46, 0x46] },
+                };
+                var sig = allowedSignatures[ext];
+                var match = headerBytes.Take(sig.Length).SequenceEqual(sig) ||
+                            (ext is ".jpg" or ".jpeg" && headerBytes[0] == 0xFF && headerBytes[1] == 0xD8);
+                if (!match)
+                {
+                    TempData["Message"] = "Avatar file content does not match the expected image type.";
+                    TempData["IsError"] = true;
+                    return RedirectToAction("Profile");
+                }
+
+                var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+                Directory.CreateDirectory(uploadsDir);
+
+                var fileName = $"{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(uploadsDir, fileName);
+                await System.IO.File.WriteAllBytesAsync(filePath, allBytes);
+                avatarUrl = $"/uploads/avatars/{fileName}";
             }
-            avatarUrl = $"/uploads/avatars/{fileName}";
         }
 
         var (success, error) = await _userService.UpdateProfileAsync(userId, avatarUrl, model.Bio);

@@ -18,10 +18,11 @@ public class OrdersController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
+        var orders = await _orderService.GetAllWithDetailsAsync();
         var model = new AdminOrdersViewModel
         {
-            Orders = await _orderService.GetAllWithDetailsAsync(),
-            TotalOrders = (await _orderService.GetAllWithDetailsAsync()).Count,
+            Orders = orders,
+            TotalOrders = orders.Count,
             TotalRevenue = await _orderAnalytics.GetTotalRevenueAsync()
         };
 

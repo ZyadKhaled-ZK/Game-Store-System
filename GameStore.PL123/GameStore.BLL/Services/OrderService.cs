@@ -191,5 +191,15 @@ namespace GameStore.BLL.Services
                 throw;
             }
         }
+        public async Task<List<Order>> GetRecentWithDetailsAsync(int count)
+        {
+            return await _uow.Repository<Order>().Query()
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Game)
+                .OrderByDescending(o => o.CreatedAt)
+                .Take(count)
+                .ToListAsync();
+        }
     }
 }

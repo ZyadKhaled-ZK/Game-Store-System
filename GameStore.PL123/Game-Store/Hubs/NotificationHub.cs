@@ -5,12 +5,12 @@ namespace GameStore.PL.Hubs;
 public class NotificationHub : Hub
 {
     private readonly ConnectionTracker _tracker;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IChatService _chatService;
 
-    public NotificationHub(ConnectionTracker tracker, IServiceProvider serviceProvider)
+    public NotificationHub(ConnectionTracker tracker, IChatService chatService)
     {
         _tracker = tracker;
-        _serviceProvider = serviceProvider;
+        _chatService = chatService;
     }
 
     public async Task JoinUserGroup(string userId)
@@ -52,10 +52,7 @@ public class NotificationHub : Hub
         var senderId = Context.GetHttpContext()?.Session?.GetString("UserId");
         if (string.IsNullOrEmpty(senderId) || string.IsNullOrWhiteSpace(content)) return;
 
-        using var scope = _serviceProvider.CreateScope();
-        var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();
-
-        var msg = await chatService.SendMessageAsync(senderId, receiverId, content);
+        var msg = await _chatService.SendMessageAsync(senderId, receiverId, content);
         if (msg == null) return;
 
         var senderName = Context.GetHttpContext()?.Session?.GetString("Username") ?? "Unknown";
@@ -85,10 +82,7 @@ public class NotificationHub : Hub
         var userId = Context.GetHttpContext()?.Session?.GetString("UserId");
         if (string.IsNullOrEmpty(userId)) return;
 
-        using var scope = _serviceProvider.CreateScope();
-        var chatService = scope.ServiceProvider.GetRequiredService<IChatService>();
-
-        await chatService.MarkAsReadAsync(senderId, userId);
+        await _chatService.MarkAsReadAsync(senderId, userId);
 
         await Clients.Group(senderId).SendAsync("MessagesRead", new
         {
