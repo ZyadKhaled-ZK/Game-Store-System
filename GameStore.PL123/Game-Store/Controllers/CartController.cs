@@ -9,13 +9,15 @@ public class CartController : Controller
     private readonly ICartService _cartService;
     private readonly IOrderService _orderService;
     private readonly StripeSettings _stripeSettings;
+    private readonly ISaleService _saleService;
 
     public CartController(ICartService cartService, IOrderService orderService,
-        IOptions<StripeSettings> stripeOptions)
+        IOptions<StripeSettings> stripeOptions, ISaleService saleService)
     {
         _cartService = cartService;
         _orderService = orderService;
         _stripeSettings = stripeOptions.Value;
+        _saleService = saleService;
     }
 
     private string UserId => HttpContext.Session.GetString("UserId") ?? string.Empty;
@@ -75,6 +77,21 @@ public class CartController : Controller
             return RedirectToAction("Index");
         }
 
+        if (cartItems.All(ci => ci.Game?.Price == 0))
+        {
+            var (success, message, order) = await _orderService.CompleteFreeCheckoutAsync(UserId);
+            if (!success)
+            {
+                TempData["Message"] = message;
+                TempData["IsError"] = true;
+                return RedirectToAction("Index");
+            }
+            return View("Success", order);
+        }
+
+        var gameIds = cartItems.Select(ci => ci.GameId).ToList();
+        var activeSales = await _saleService.GetActiveSalesByGameIdsAsync(gameIds);
+
         var domain = $"{Request.Scheme}://{Request.Host}";
 
         var options = new SessionCreateOptions
@@ -89,6 +106,8 @@ public class CartController : Controller
             },
             LineItems = cartItems.Select(ci =>
             {
+                var sale = activeSales.FirstOrDefault(s => s.GameId == ci.GameId);
+                var price = sale != null ? sale.NewPrice : (ci.Game?.Price ?? 0);
                 var img = ResolveImageUrl(ci.Game?.CoverImageUrl, domain);
                 return new SessionLineItemOptions
                 {
@@ -100,7 +119,7 @@ public class CartController : Controller
                             Name = ci.Game?.Title ?? "Unknown Game",
                             Images = img != null ? new List<string> { img } : null
                         },
-                        UnitAmount = (long)((ci.Game?.Price ?? 0) * 100)
+                        UnitAmount = (long)(price * 100)
                     },
                     Quantity = 1
                 };

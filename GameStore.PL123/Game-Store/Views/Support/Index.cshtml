@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "Support";
+}
+
+<style>
+    .sp-container { max-width:600px; margin:40px auto; }
+    .sp-card { background:var(--bg2); border:1px solid var(--border-red); padding:40px; }
+    .sp-card h1 { font-family:var(--font-display); font-size:18px; letter-spacing:3px; color:var(--red); margin-bottom:6px; }
+    .sp-card p { font-family:var(--font-mono); font-size:12px; color:var(--text-dim); margin-bottom:24px; }
+    .sp-field { margin-bottom:16px; }
+    .sp-field label { display:block; font-family:var(--font-mono); font-size:11px; color:var(--text-dim); margin-bottom:4px; letter-spacing:1px; text-transform:uppercase; }
+    .sp-field input, .sp-field textarea { width:100%; background:var(--bg3); border:1px solid rgba(255,255,255,0.06); color:var(--text); font-family:var(--font-mono); font-size:13px; padding:10px 12px; outline:none; transition:border 0.2s; }
+    .sp-field input:focus, .sp-field textarea:focus { border-color:var(--red); }
+    .sp-field textarea { resize:vertical; min-height:120px; }
+    .sp-field .field-error { font-family:var(--font-mono); font-size:10px; color:var(--red); margin-top:4px; }
+</style>
+
+<div class="sp-container">
+    <div class="sp-card">
+        <h1>SUPPORT</h1>
+        <p>Having an issue? Open a ticket and our team will get back to you.</p>
+
+        @if (TempData["TicketSuccess"] != null)
+        {
+            <div style="background:rgba(74,222,80,0.06);border:1px solid rgba(74,222,80,0.2);padding:16px;margin-bottom:20px;font-family:var(--font-mono);font-size:12px;color:#4ade80;text-align:center;">
+                <i class="fas fa-check-circle" style="margin-right:6px;"></i> @TempData["TicketSuccess"]
+                <div style="margin-top:8px;"><a href="/Support/MyTickets" class="btn btn-primary" style="padding:6px 16px;font-size:11px;">VIEW MY TICKETS</a></div>
+            </div>
+        }
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="sp-field">
+                <label>Subject</label>
+                <input type="text" name="subject" maxlength="200" placeholder="e.g. Can't login to my account" required />
+                @Html.ValidationMessage("subject", "", new { @class = "field-error" })
+            </div>
+
+            <div class="sp-field">
+                <label>Message</label>
+                <textarea name="message" maxlength="2000" placeholder="Describe your issue in detail..." required></textarea>
+                @Html.ValidationMessage("message", "", new { @class = "field-error" })
+            </div>
+
+            <div class="sp-field">
+                <label>Email (optional)</label>
+                <input type="email" name="email" maxlength="200" placeholder="your@email.com — for follow-up" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;font-size:13px;">
+                <i class="fas fa-paper-plane"></i> SUBMIT TICKET
+            </button>
+        </form>
+    </div>
+</div>

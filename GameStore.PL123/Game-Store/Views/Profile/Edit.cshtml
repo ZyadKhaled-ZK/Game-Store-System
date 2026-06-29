@@ -1,0 +1,416 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<style>
+  .pf-wrap { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr 280px; gap: 24px; }
+  .pf-main { min-width: 0; }
+  .pf-side { min-width: 0; }
+
+  .pf-card {
+    background: var(--bg2);
+    border: 1px solid var(--border-red);
+    padding: 32px;
+    margin-bottom: 20px;
+  }
+  .pf-card-header {
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 5px 15px;
+    display: inline-block;
+    font-size: 11px;
+    margin-bottom: 20px;
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+  }
+  .pf-card-header.alt { color: var(--gold); border-color: rgba(245,197,66,0.4); }
+  .pf-card-header.cyan { color: var(--cyan); border-color: rgba(0,229,255,0.3); }
+
+  .pf-input {
+    background: var(--bg3) !important;
+    border: 1px solid var(--border-red) !important;
+    color: var(--text) !important;
+    border-radius: 0 !important;
+    padding: 12px 16px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 13px !important;
+    width: 100%;
+  }
+  .pf-input:hover { border-color: var(--red-dim) !important; }
+  .pf-input:focus { border-color: var(--red) !important; box-shadow: 0 0 0 2px #070709, 0 0 16px 3px rgba(230,57,70,0.35) !important; }
+  .pf-label { color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; margin-bottom: 6px; text-transform: uppercase; }
+  .pf-info { font-family: var(--font-mono); font-size: 14px; color: white; padding: 12px 16px; background: var(--bg3); border: 1px solid rgba(230,57,70,0.1); }
+  .pf-input[type="file"] { padding: 8px 16px !important; }
+  .pf-input[type="file"]::file-selector-button { background: var(--red); border: none; color: white; padding: 6px 14px; font-family: var(--font-mono); font-size: 11px; cursor: pointer; margin-right: 10px; }
+
+  .pf-avatar { width: 100px; height: 100px; object-fit: cover; border: 2px solid var(--border-red); }
+  .pf-avatar-initial { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 36px; color: var(--red); background: rgba(230,57,70,0.06); border: 2px solid var(--border-red); }
+
+  /* ── Post Cards ── */
+  .post-create-area { margin-bottom: 24px; }
+  .post-create-area textarea { resize: vertical; min-height: 80px; }
+  .post-char-count { text-align: right; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+  .post-char-count.over { color: var(--red); }
+
+  .post-card {
+    background: var(--bg3);
+    border: 1px solid rgba(230,57,70,0.08);
+    padding: 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .post-card:hover {
+    border-color: rgba(230,57,70,0.25);
+    box-shadow: 0 0 20px rgba(230,57,70,0.04);
+  }
+  .post-card-top { display: flex; align-items: flex-start; gap: 14px; }
+  .post-av { width: 36px; height: 36px; flex-shrink: 0; }
+  .post-av img { width: 36px; height: 36px; object-fit: cover; border: 1px solid var(--border); }
+  .post-av .init { width: 36px; height: 36px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 13px; color: var(--red); background: rgba(230,57,70,0.06); }
+  .post-body { flex: 1; min-width: 0; }
+  .post-body .name { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+  .post-body .time { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 0.5px; }
+  .post-body .text { font-family: var(--font-mono); font-size: 13px; color: var(--text); line-height: 1.6; margin-top: 6px; word-break: break-word; white-space: pre-wrap; }
+  .post-actions { margin-top: 10px; display: flex; gap: 12px; border-top: 1px solid rgba(255,255,255,0.03); padding-top: 10px; }
+  .post-actions button { background: none; border: none; color: var(--text-dim); font-family: var(--font-mono); font-size: 10px; cursor: pointer; padding: 4px 8px; transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+  .post-actions button:hover { color: var(--red); background: rgba(230,57,70,0.06); }
+  .post-actions .del-icon:hover { color: var(--red); }
+
+  .post-empty { text-align: center; padding: 40px 20px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); border: 1px dashed rgba(255,255,255,0.04); }
+  .post-empty i { font-size: 2rem; opacity: 0.15; margin-bottom: 10px; display: block; }
+
+  /* ── Quick Chat Sidebar ── */
+  .qc-card { background: var(--bg2); border: 1px solid var(--border-red); padding: 20px; position: sticky; top: 100px; }
+  .qc-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .qc-item { display: flex; align-items: center; gap: 10px; padding: 10px 8px; text-decoration: none; color: var(--text); transition: all 0.12s; border-left: 2px solid transparent; border-bottom: 1px solid rgba(255,255,255,0.02); }
+  .qc-item:hover { background: rgba(230,57,70,0.04); border-left-color: var(--red); color: var(--text); }
+  .qc-item:last-child { border-bottom: none; }
+  .qc-av { width: 32px; height: 32px; flex-shrink: 0; position: relative; }
+  .qc-av img { width: 32px; height: 32px; object-fit: cover; border: 1px solid var(--border); }
+  .qc-av .init { width: 32px; height: 32px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 11px; color: var(--red); background: rgba(230,57,70,0.06); }
+  .qc-av .dot { position: absolute; bottom: -1px; right: -1px; width: 9px; height: 9px; border: 2px solid var(--bg2); border-radius: 50%; }
+  .qc-av .dot.online { background: #4ade80; }
+  .qc-av .dot.offline { background: var(--text-dim); }
+  .qc-info { flex: 1; min-width: 0; }
+  .qc-info .name { font-family: var(--font-mono); font-size: 12px; }
+  .qc-info .preview { font-size: 10px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .qc-meta { flex-shrink: 0; text-align: right; }
+  .qc-meta .badge { background: var(--red); color: #fff; font-size: 8px; padding: 2px 6px; font-family: var(--font-mono); border-radius: 0; }
+  .qc-meta .time { font-size: 9px; color: var(--text-dim); font-family: var(--font-mono); display: block; }
+  .qc-empty { text-align: center; padding: 20px 10px; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+
+  @@media (max-width: 768px) {
+    .pf-wrap { grid-template-columns: 1fr; }
+    .pf-side { order: -1; }
+  }
+</style>
+
+<div class="pf-wrap mt-4 pt-4">
+  @* ── Main Column ── *@
+  <div class="pf-main">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title glitch">MY PROFILE</h2>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+      <div style="background: @(Model.IsError ? "rgba(230,57,70,0.1); border-color: var(--red); color: var(--red)" : "rgba(74,222,128,0.1); border-color: #4ade80; color: #4ade80"); border: 1px solid; padding: 10px 16px; margin-bottom: 20px; font-family: var(--font-mono); font-size: 12px;">
+        @(Model.IsError ? "[ERROR]" : "[OK]") @Model.Message
+      </div>
+    }
+
+    @* Avatar & Bio *@
+    <div class="pf-card">
+      <div class="pf-card-header">PROFILE PICTURE & BIO</div>
+
+      <form method="post" asp-action="Edit" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div class="text-center mb-4">
+          @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+          {
+            <img src="@Model.AvatarUrl" alt="Avatar" class="pf-avatar" />
+          }
+          else
+          {
+            <div class="pf-avatar-initial mx-auto">@Model.Username[0]</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="pf-label" for="AvatarFile">Change Avatar //:</label>
+          <input type="file" class="pf-input" id="AvatarFile" name="AvatarFile" accept="image/png,image/jpeg,image/gif,image/webp" />
+        </div>
+
+        <div class="mb-3">
+          <label class="pf-label" for="Bio">Bio //:</label>
+          <textarea class="pf-input" id="Bio" name="Bio" rows="3" maxlength="500" placeholder="Tell us about yourself...">@Model.Bio</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 d-block text-center mt-3">SAVE PROFILE</button>
+      </form>
+    </div>
+
+    @* Account Info *@
+    <div class="pf-card">
+      <div class="pf-card-header alt">ACCOUNT INFO</div>
+
+      <div class="mb-3">
+        <div class="pf-label">USERNAME</div>
+        <div class="pf-info">@Model.Username</div>
+      </div>
+      <div class="mb-3">
+        <div class="pf-label">EMAIL</div>
+        <div class="pf-info">@Model.Email</div>
+      </div>
+    </div>
+
+    @* Change Email *@
+    <div class="pf-card">
+      <div class="pf-card-header alt">CHANGE EMAIL</div>
+
+      <form method="post" asp-controller="Profile" asp-action="UpdateEmail">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+          <label class="pf-label" for="NewEmail">New Email //:</label>
+          <input type="email" class="pf-input" id="NewEmail" name="NewEmail" value="@Model.NewEmail" required maxlength="200" />
+          <span asp-validation-for="NewEmail" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 d-block text-center mt-3">UPDATE EMAIL</button>
+      </form>
+    </div>
+
+    @* Change Password *@
+    <div class="pf-card">
+      <div class="pf-card-header alt">CHANGE PASSWORD</div>
+
+      <form method="post" asp-controller="Profile" asp-action="ChangePassword">
+        @Html.AntiForgeryToken()
+        <div class="mb-3">
+          <label class="pf-label" for="CurrentPassword">Current Password //:</label>
+          <div style="position:relative;">
+            <input type="password" class="pf-input" id="CurrentPassword" name="CurrentPassword" required style="padding-right:40px;" />
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye-slash"></i></button>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="pf-label" for="NewPassword">New Password //:</label>
+          <div style="position:relative;">
+            <input type="password" class="pf-input" id="NewPassword" name="NewPassword" required maxlength="100" style="padding-right:40px;" />
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye-slash"></i></button>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="pf-label" for="ConfirmPassword">Confirm New Password //:</label>
+          <div style="position:relative;">
+            <input type="password" class="pf-input" id="ConfirmPassword" name="ConfirmPassword" required maxlength="100" style="padding-right:40px;" />
+            <button type="button" class="pwd-toggle" onclick="togglePwd(this)"><i class="bi bi-eye-slash"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 d-block text-center mt-3">CHANGE PASSWORD</button>
+      </form>
+    </div>
+
+    @* ── Posts Section ── *@
+    <div class="pf-card">
+      <div class="pf-card-header cyan">POSTS — @Model.PostCount</div>
+
+      @* Create post *@
+      <div class="post-create-area">
+        <form method="post" asp-controller="Posts" asp-action="Create" id="createPostForm">
+          @Html.AntiForgeryToken()
+          <textarea class="pf-input" id="newPostContent" name="content" rows="2" maxlength="1000" placeholder="What's on your mind..."></textarea>
+          <div class="post-char-count"><span id="charCount">0</span> / 1000</div>
+          <button type="submit" class="btn btn-primary w-100 d-block text-center mt-2" id="postSubmitBtn">POST</button>
+        </form>
+      </div>
+
+      @* Posts feed *@
+      <div id="postsList">
+        @if (!Model.Posts.Any())
+        {
+          <div class="post-empty">
+            <i class="fas fa-feather-alt"></i>
+            No posts yet. Write something above!
+          </div>
+        }
+        @foreach (var post in Model.Posts)
+        {
+          <div class="post-card" data-id="@post.Id">
+            <div class="post-card-top">
+              <div class="post-av">
+                @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                {
+                  <img src="@Model.AvatarUrl" alt="" />
+                }
+                else
+                {
+                  <div class="init">@Model.Username[0]</div>
+                }
+              </div>
+              <div class="post-body">
+                <div class="name">@Model.Username</div>
+                <div class="time">@post.CreatedAt.ToString("MMM dd, yyyy  ·  HH:mm")</div>
+                <div class="text">@post.Content</div>
+              </div>
+            </div>
+            <div class="post-actions">
+              <button class="del-post" data-id="@post.Id"><i class="fas fa-trash-alt" style="font-size:10px;"></i> Delete</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @* ── Side Column: Quick Chat ── *@
+  <div class="pf-side">
+    <div class="qc-card">
+      <div class="qc-title"><i class="fas fa-comment-dots" style="font-size:12px;"></i> Quick Chat</div>
+
+      @if (Model.RecentConversations.Any())
+      {
+        @foreach (var c in Model.RecentConversations.Take(8))
+        {
+          <a class="qc-item" href="@Url.Action("Index","Friends")?chatUserId=@c.UserId">
+            <div class="qc-av">
+              @if (!string.IsNullOrEmpty(c.Avatar))
+              {
+                <img src="@c.Avatar" alt="" />
+              }
+              else
+              {
+                <div class="init">@c.Username[0]</div>
+              }
+              <span class="dot @(c.IsOnline ? "online" : "offline")"></span>
+            </div>
+            <div class="qc-info">
+              <div class="name">@c.Username</div>
+              <div class="preview">@(c.LastMessage ?? "No messages yet")</div>
+            </div>
+            <div class="qc-meta">
+              @if (c.UnreadCount > 0)
+              {
+                <span class="badge">@c.UnreadCount</span>
+              }
+              @if (c.LastMessageAt.HasValue)
+              {
+                <span class="time">@c.LastMessageAt.Value.ToString("MMM dd")</span>
+              }
+            </div>
+          </a>
+        }
+        <div style="margin-top:12px;text-align:center;">
+          <a href="@Url.Action("Index","Friends")" class="btn btn-secondary btn-sm" style="font-size:10px;padding:8px 16px;width:100%;">
+            <i class="fas fa-arrow-right"></i> Open Social
+          </a>
+        </div>
+      }
+      else
+      {
+        <div class="qc-empty">
+          <i class="fas fa-comments" style="font-size:1.5rem;opacity:0.2;display:block;margin-bottom:8px;"></i>
+          No conversations yet.
+          <div style="margin-top:12px;">
+            <a href="@Url.Action("Index","Friends")" class="btn btn-secondary btn-sm" style="font-size:10px;padding:8px 16px;">
+              <i class="fas fa-user-friends"></i> Find Friends
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+      // ── Character counter ──
+      $('#newPostContent').on('input', function() {
+        var len = $(this).val().length;
+        $('#charCount').text(len);
+        if (len > 1000) { $('#charCount').addClass('over'); } else { $('#charCount').removeClass('over'); }
+      });
+
+      // ── Create post ──
+      $('#createPostForm').on('submit', function(e) {
+        e.preventDefault();
+        var btn = $('#postSubmitBtn');
+        var content = $('#newPostContent').val().trim();
+        if (!content || content.length > 1000) return;
+
+        btn.prop('disabled', true).text('POSTING...');
+        $.post('@Url.Action("Create", "Posts")', {
+          content,
+          __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        }, function(data) {
+          if (data.success) {
+            var avatarUrl = '@Model.AvatarUrl';
+            var username = '@Model.Username';
+            var avHtml = avatarUrl ? '<img src="' + avatarUrl + '" alt="" />' : '<div class="init">' + username[0] + '</div>';
+            var html = '<div class="post-card" data-id="' + data.id + '">' +
+              '<div class="post-card-top">' +
+                '<div class="post-av">' + avHtml + '</div>' +
+                '<div class="post-body">' +
+                  '<div class="name">@Model.Username</div>' +
+                  '<div class="time">' + data.createdAt + '</div>' +
+                  '<div class="text">' + $('<div>').text(content).html() + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="post-actions">' +
+                '<button class="del-post" data-id="' + data.id + '"><i class="fas fa-trash-alt" style="font-size:10px;"></i> Delete</button>' +
+              '</div>' +
+            '</div>';
+            if ($('#postsList .post-card').length === 0) {
+              $('#postsList').html(html);
+            } else {
+              $('#postsList').prepend(html);
+            }
+            $('#newPostContent').val('');
+            $('#charCount').text('0');
+            showToast('Post created!', 'success');
+
+            // Cooldown timer
+            var cooldown = 30;
+            btn.text('WAIT ' + cooldown + 's');
+            var timer = setInterval(function() {
+              cooldown--;
+              if (cooldown > 0) {
+                btn.text('WAIT ' + cooldown + 's');
+              } else {
+                clearInterval(timer);
+                btn.prop('disabled', false).text('POST');
+              }
+            }, 1000);
+          } else {
+            showToast(data.message, 'error');
+            btn.prop('disabled', false).text('POST');
+          }
+        }).fail(function() { showToast('Failed to create post', 'error'); btn.prop('disabled', false).text('POST'); });
+      });
+
+      // ── Delete post ──
+      $(document).on('click', '.del-post', function() {
+        if (!confirm('Delete this post?')) return;
+        var id = $(this).data('id');
+        var card = $(this).closest('.post-card');
+        $.post('@Url.Action("Delete", "Posts")', {
+          postId: id,
+          __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        }, function(data) {
+          if (data.success) {
+            card.fadeOut(200, function() {
+              $(this).remove();
+              if ($('#postsList .post-card').length === 0) {
+                $('#postsList').html('<div class="post-empty"><i class="fas fa-feather-alt"></i>No posts yet. Write something above!</div>');
+              }
+            });
+            showToast('Post deleted.', 'info');
+          } else {
+            showToast(data.message, 'error');
+          }
+        });
+      });
+    </script>
+}

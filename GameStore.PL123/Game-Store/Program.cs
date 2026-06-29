@@ -1,6 +1,8 @@
 using GameStore.PL.Hubs;
+using GameStore.PL.Mappings;
 using GameStore.PL.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +27,8 @@ builder.Services.AddScoped<DeveloperOnlyFilter>();
 
 builder.Services.AddDbContext<GameStoreDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("GameStoreConnection")));
+        builder.Configuration.GetConnectionString("GameStoreConnection"))
+        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -41,11 +44,14 @@ builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IDeveloperService, DeveloperService>();
 builder.Services.AddScoped<IDeveloperApplicationService, DeveloperApplicationService>();
+builder.Services.AddScoped<ISaleService, SaleService>();
 builder.Services.AddScoped<SeedService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFriendService, FriendService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddSingleton<ConnectionTracker>();
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
 var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
@@ -58,7 +64,10 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
       .AllowCredentials()));
 
 // Session-based auth (8-hour idle timeout)
-builder.Services.AddDistributedMemoryCache();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout        = TimeSpan.FromHours(8);
@@ -86,11 +95,19 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ── Middleware pipeline ─────────────────────────────────────────────────────
-if (!app.Environment.IsDevelopment())
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+app.Use(async (ctx, next) =>
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+    try { await next(); }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Unhandled exception: {Path}", ctx.Request.Path);
+        if (app.Environment.IsDevelopment()) throw;
+        ctx.Response.Clear();
+        ctx.Response.StatusCode = 500;
+        ctx.Response.Redirect("/Home/Error");
+    }
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -119,3 +136,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+

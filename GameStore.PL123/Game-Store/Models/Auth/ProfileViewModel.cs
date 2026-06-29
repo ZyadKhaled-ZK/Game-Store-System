@@ -1,3 +1,5 @@
+using GameStore.DAL.Entities;
+
 namespace GameStore.PL.Models.Auth;
 
 public class ProfileViewModel
@@ -44,4 +46,16 @@ public class PublicProfileViewModel
     public bool IsFriend { get; set; }
     public int PostCount { get; set; }
     public List<PostViewModel> Posts { get; set; } = new();
+
+    public bool IsDeveloper { get; set; }
+    public string? DeveloperId { get; set; }
+    public string? DeveloperName { get; set; }
+    public string? DeveloperLogoUrl { get; set; }
+    public string? DeveloperDescription { get; set; }
+    public string? DeveloperWebsite { get; set; }
+    public string? DeveloperCountry { get; set; }
+    public int DevGameCount { get; set; }
+    public int DevTotalDownloads { get; set; }
+    public double DevAvgRating { get; set; }
+    public List<Game> DevGames { get; set; } = new();
 }

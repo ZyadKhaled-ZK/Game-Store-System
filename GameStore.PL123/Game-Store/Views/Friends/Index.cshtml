@@ -601,7 +601,7 @@
   if (window.chatConnection) {
     setupChatHandlers(window.chatConnection);
   } else {
-    $(document).on('chatConnectionReady', function() { setupChatHandlers(window.chatConnection); });
+    document.addEventListener('chatConnectionReady', function() { setupChatHandlers(window.chatConnection); });
   }
 
   // Auto-open chat from profile quick-chat link

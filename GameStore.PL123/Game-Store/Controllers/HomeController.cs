@@ -16,11 +16,13 @@ public class HomeController : Controller
     private readonly ICategoryService _categoryService;
     private readonly IWishlistService _wishlistService;
     private readonly ILibraryService _libraryService;
+    private readonly ISaleService _saleService;
+    private readonly IMapper _mapper;
 
     public HomeController(ILogger<HomeController> logger, IWebHostEnvironment env,
         ICartService cartService, IReviewService reviewService, IGameService gameService,
         ICategoryService categoryService, IWishlistService wishlistService,
-        ILibraryService libraryService)
+        ILibraryService libraryService, ISaleService saleService, IMapper mapper)
     {
         _logger = logger;
         _env = env;
@@ -30,6 +32,8 @@ public class HomeController : Controller
         _categoryService = categoryService;
         _wishlistService = wishlistService;
         _libraryService = libraryService;
+        _saleService = saleService;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -50,6 +54,10 @@ public class HomeController : Controller
         model.FeaturedGame = model.HeroGames.FirstOrDefault();
         model.Categories = await _categoryService.GetAllAsync();
 
+        var allGameIds = model.Games.Concat(model.HeroGames).Select(g => g.Id).Distinct().ToList();
+        var activeSales = await _saleService.GetActiveSalesByGameIdsAsync(allGameIds);
+        ViewData["ActiveSales"] = activeSales.ToDictionary(s => s.GameId, s => s.NewPrice);
+
         var userId = HttpContext.Session.GetString("UserId");
         if (!string.IsNullOrEmpty(userId))
         {
@@ -66,13 +74,7 @@ public class HomeController : Controller
         var allReviews = await _reviewService.GetAllWithDetailsAsync();
         model.ReviewsByGame = allReviews
             .GroupBy(r => r.GameId)
-            .ToDictionary(g => g.Key, g => g.Select(r => new ReviewDto
-            {
-                Username = r.User?.Username ?? "Anon",
-                Rating = r.Rating,
-                Comment = r.Comment ?? "",
-                CreatedAt = r.CreatedAt.ToString("yyyy-MM-dd")
-            }).ToList());
+            .ToDictionary(g => g.Key, g => _mapper.Map<List<ReviewDto>>(g.ToList()));
 
         model.ReviewsJson = JsonSerializer.Serialize(
             model.ReviewsByGame.ToDictionary(kv => kv.Key, kv => kv.Value.Select(r => new
@@ -84,6 +86,7 @@ public class HomeController : Controller
             }).ToList())
         );
 
+        var salePrices = ViewData["ActiveSales"] as Dictionary<string, decimal> ?? new();
         model.HeroGamesJson = JsonSerializer.Serialize(
             model.HeroGames.Select(g => new
             {
@@ -91,6 +94,7 @@ public class HomeController : Controller
                 title = g.Title,
                 developer = g.Developer ?? "UNKNOWN",
                 price = g.Price,
+                salePrice = salePrices.TryGetValue(g.Id, out var sp) ? sp : (decimal?)null,
                 description = g.Description,
                 trailerUrl = g.TrailerUrl,
                 screenshots = g.ScreenshotUrls,

@@ -1,7 +1,10 @@
-using Microsoft.AspNetCore.SignalR;
 using GameStore.PL.Hubs;
 using GameStore.PL.Models.Friends;
+using GameStore.PL.Services;
+using GameStore.DAL.Entities;
 using GameStore.DAL.Enum;
+using GameStore.DAL.Repo;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.PL.Controllers;
 
@@ -11,16 +14,19 @@ public class FriendsController : Controller
     private readonly IUserService _userService;
     private readonly IChatService _chatService;
     private readonly ConnectionTracker _tracker;
-    private readonly IHubContext<NotificationHub> _hub;
+    private readonly INotificationService _notifService;
+    private readonly IUnitOfWork _uow;
 
     public FriendsController(IFriendService friendService, IUserService userService,
-        IChatService chatService, ConnectionTracker tracker, IHubContext<NotificationHub> hub)
+        IChatService chatService, ConnectionTracker tracker,
+        INotificationService notifService, IUnitOfWork uow)
     {
         _friendService = friendService;
         _userService = userService;
         _chatService = chatService;
         _tracker = tracker;
-        _hub = hub;
+        _notifService = notifService;
+        _uow = uow;
     }
 
     [HttpGet]
@@ -107,12 +113,10 @@ public class FriendsController : Controller
             var receiver = await _userService.GetUserByUsernameAsync(username);
             if (receiver != null)
             {
-                await _hub.Clients.Group(receiver.Id).SendAsync("ReceiveNotification", new
-                {
-                    title = "Friend Request",
-                    message = $"{HttpContext.Session.GetString("Username")} sent you a friend request.",
-                    type = "info"
-                });
+                await _notifService.SendToUserAsync(receiver.Id,
+                    "Friend Request",
+                    $"{HttpContext.Session.GetString("Username")} sent you a friend request.",
+                    "info", category: "Friends");
             }
         }
 
@@ -128,6 +132,20 @@ public class FriendsController : Controller
             return Json(new { success = false, message = "Please login first." });
 
         var (success, message) = await _friendService.AcceptRequestAsync(friendshipId, userId);
+
+        if (success)
+        {
+            var friendship = await _uow.Repository<Friendship>().Query()
+                .FirstOrDefaultAsync(f => f.Id == friendshipId);
+            if (friendship != null)
+            {
+                await _notifService.SendToUserAsync(friendship.RequesterId,
+                    "Friend Request Accepted",
+                    $"{HttpContext.Session.GetString("Username")} accepted your friend request.",
+                    "success", category: "Friends", referenceId: friendshipId);
+            }
+        }
+
         return Json(new { success, message });
     }
 

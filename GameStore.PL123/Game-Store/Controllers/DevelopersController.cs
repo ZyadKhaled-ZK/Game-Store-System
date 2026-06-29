@@ -3,10 +3,12 @@ namespace GameStore.PL.Controllers;
 public class DevelopersController : Controller
 {
     private readonly IDeveloperService _devService;
+    private readonly IUserService _userService;
 
-    public DevelopersController(IDeveloperService devService)
+    public DevelopersController(IDeveloperService devService, IUserService userService)
     {
         _devService = devService;
+        _userService = userService;
     }
 
     [HttpGet]
@@ -23,14 +25,9 @@ public class DevelopersController : Controller
         var dev = await _devService.GetByIdAsync(id);
         if (dev == null) return NotFound();
 
-        ViewData["Title"] = dev.Name;
-        var games = await _devService.GetGamesAsync(id);
-        var stats = await _devService.GetDashboardStatsAsync(id);
+        var user = await _userService.GetByIdAsync(dev.UserId);
+        if (user == null) return NotFound();
 
-        ViewData["GameCount"] = stats.GameCount;
-        ViewData["TotalDownloads"] = stats.TotalDownloads;
-        ViewData["AvgRating"] = stats.AvgRating;
-
-        return View(Tuple.Create(dev, games));
+        return RedirectToAction("Index", "Profile", new { username = user.Username });
     }
 }

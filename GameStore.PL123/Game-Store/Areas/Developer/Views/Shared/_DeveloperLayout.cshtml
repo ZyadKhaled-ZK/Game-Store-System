@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
       :root {
         --gold: #f5c542; --gold-dim: #b8922e;
@@ -55,46 +57,55 @@
         0% { transform: translate(0, 0); }
         100% { transform: translate(-60px, -60px); }
       }
+      @Html.Raw("@keyframes navFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }")
+      @Html.Raw("@keyframes logoBreath { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }")
+      @Html.Raw("@keyframes bellSwing { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(8deg); } 75% { transform: rotate(-8deg); } }")
+
       nav {
         position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
         display: flex; align-items: center; justify-content: space-between;
-        padding: 0 40px; height: 70px;
-        background: linear-gradient(180deg, rgba(7,7,9,0.95) 0%, rgba(7,7,9,0.88) 100%);
+        padding: 0 40px; height: 64px;
+        background: #111111;
         backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-        border-bottom: 1px solid rgba(0,229,255,0.12);
-      }
-      nav::after {
-        content: ''; position: absolute; bottom: 0; left: 5%; right: 5%; height: 1px;
-        background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-        opacity: 0.3;
+        box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+        animation: navFadeIn 0.4s ease;
       }
       nav .nav-logo {
         display: flex; align-items: center; gap: 12px; text-decoration: none;
       }
       nav .nav-logo-text {
-        font-family: var(--font-display); font-size: 17px; letter-spacing: 3px;
-        text-transform: uppercase; color: var(--cyan);
+        font-family: var(--font-display); font-size: 16px; letter-spacing: 2px;
+        text-transform: uppercase; color: #e0e0e0;
         transition: opacity 0.3s;
       }
       nav .nav-logo-text:hover { opacity: 0.8; }
-      nav .nav-logo-text span { color: var(--text-dim); font-weight: 300; }
+      nav .nav-logo-text span { color: var(--cyan); font-weight: 300; }
       nav ul.nav-links {
         list-style: none; display: flex; align-items: center; gap: 2px;
       }
       nav ul.nav-links li a {
-        font-family: var(--font-mono); font-size: 11px; letter-spacing: 1.2px;
-        text-transform: uppercase; color: var(--text-dim); text-decoration: none;
-        padding: 8px 14px; transition: all 0.2s; border: 1px solid transparent;
-        border-radius: var(--radius-sm); position: relative;
+        font-family: var(--font-mono); font-size: 13px; letter-spacing: 1px;
+        text-transform: uppercase; color: #a0a0a0; text-decoration: none;
+        padding: 8px 14px; transition: all 0.2s; border: none;
+        border-radius: 6px; position: relative;
+      }
+      nav ul.nav-links li a::after {
+        content: ''; position: absolute; bottom: 2px; left: 50%;
+        width: 0; height: 2px; background: var(--cyan);
+        transition: all 0.3s ease; transform: translateX(-50%); opacity: 0;
       }
       nav ul.nav-links li a:hover {
-        color: var(--gold); background: rgba(245,197,66,0.04);
-        border-color: rgba(245,197,66,0.12);
+        color: #ffffff; background: rgba(255,255,255,0.06);
+        transform: translateY(-1px);
+      }
+      nav ul.nav-links li a:hover::after {
+        width: 60%; opacity: 1;
       }
       nav ul.nav-links li a.active {
-        color: var(--cyan); background: rgba(0,229,255,0.06);
-        border-color: rgba(0,229,255,0.15);
-        box-shadow: inset 0 -1px 0 var(--cyan);
+        color: var(--cyan); background: rgba(0,229,255,0.08);
+      }
+      nav ul.nav-links li a.active::after {
+        width: 60%; opacity: 1; background: var(--cyan);
       }
       main {
         margin-top: 70px; padding: 40px; flex: 1; position: relative; z-index: 1;
@@ -303,6 +314,7 @@
       <ul class="nav-links">
         <li><a asp-area="Developer" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
         <li><a asp-area="Developer" asp-controller="Games" asp-action="Index">My Games</a></li>
+        <li><a asp-area="Developer" asp-controller="Sales" asp-action="Index">Sales</a></li>
         <li><a asp-area="Developer" asp-controller="Reviews" asp-action="Index">Reviews</a></li>
         <li><a asp-area="Developer" asp-controller="Profile" asp-action="Index">Profile</a></li>
         <li><a asp-area="" asp-controller="Friends" asp-action="Index"><i class="bi bi-people"></i> Social</a></li>
@@ -498,7 +510,7 @@
           connection.invoke("JoinUserGroup", userId).catch(function(){});
         }).catch(function(){});
 
-        $(document).trigger('chatConnectionReady');
+        document.dispatchEvent(new CustomEvent('chatConnectionReady'));
       })();
     </script>
     @* ── Global Confirm Delete Modal ── *@
@@ -513,6 +525,9 @@
       </div>
     </div>
 
+    <footer style="text-align:center;padding:20px 40px;font-family:var(--font-mono);font-size:10px;color:#555;border-top:1px solid rgba(255,255,255,0.04);margin-top:40px;">
+        <a asp-area="" asp-controller="Support" asp-action="Index" style="color:#555;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">Support Center</a>
+    </footer>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

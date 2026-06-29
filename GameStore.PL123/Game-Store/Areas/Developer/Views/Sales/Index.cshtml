@@ -1,0 +1,80 @@
+@model List<Sale>
+
+<div id="alertMessage" data-msg="@ViewData["Message"]" data-error="@ViewData["IsError"]"></div>
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
+    <div>
+        <h1>Sales & Offers</h1>
+        <p>Create and manage discount sales for your games.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">+ NEW SALE</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card" style="text-align:center;padding:60px;">
+        <h3 style="font-size:16px;color:var(--text-dim);">NO SALES YET</h3>
+        <p style="color:var(--text-dim);margin:10px 0 20px;">Create a sale offer for one of your games.</p>
+        <a asp-action="Create" class="btn btn-primary">CREATE SALE</a>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="cyber-table">
+            <thead>
+                <tr>
+                    <th>GAME</th>
+                    <th>ORIGINAL</th>
+                    <th>SALE PRICE</th>
+                    <th>PERIOD</th>
+                    <th>STATUS</th>
+                    <th>SUBMITTED</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sale in Model)
+                {
+                    <tr>
+                        <td style="font-weight:700;color:white;">@(sale.Game?.Title ?? "Unknown")</td>
+                        <td style="color:var(--text-dim);text-decoration:line-through;">$@(sale.Game?.Price.ToString("N2") ?? "0.00")</td>
+                        <td style="color:var(--gold);font-weight:700;">$@sale.NewPrice.ToString("N2")</td>
+                        <td style="font-size:12px;">
+                            @sale.StartDate.ToString("MMM dd") - @sale.EndDate.ToString("MMM dd, yyyy")
+                        </td>
+                        <td>
+                            @{
+                                var statusLabel = sale.Status switch
+                                {
+                                    SaleStatus.Pending => "PENDING",
+                                    SaleStatus.Approved when sale.IsActive => "ACTIVE",
+                                    SaleStatus.Approved => "SCHEDULED",
+                                    SaleStatus.Rejected => "REJECTED",
+                                    SaleStatus.Cancelled => "CANCELLED",
+                                    SaleStatus.Expired => "EXPIRED",
+                                    _ => sale.Status.ToString().ToUpper()
+                                };
+                                var statusColor = sale.Status switch
+                                {
+                                    SaleStatus.Pending => "var(--gold)",
+                                    SaleStatus.Approved when sale.IsActive => "#4ade80",
+                                    SaleStatus.Approved => "var(--cyan)",
+                                    SaleStatus.Rejected => "var(--red)",
+                                    SaleStatus.Cancelled => "var(--text-dim)",
+                                    SaleStatus.Expired => "var(--text-dim)",
+                                    _ => "var(--text-dim)"
+                                };
+                            }
+                            <span style="color:@statusColor;font-family:var(--font-mono);font-size:11px;font-weight:600;">@statusLabel</span>
+                            @if (sale.Status == SaleStatus.Rejected && !string.IsNullOrEmpty(sale.RejectReason))
+                            {
+                                <br/><span style="font-size:10px;color:var(--text-dim);">@sale.RejectReason</span>
+                            }
+                        </td>
+                        <td style="font-size:11px;color:var(--text-dim);">@sale.CreatedAt.ToString("MMM dd, yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

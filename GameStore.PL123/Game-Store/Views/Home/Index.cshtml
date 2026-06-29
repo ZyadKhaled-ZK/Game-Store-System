@@ -255,13 +255,17 @@
         }
         else
         {
-            @foreach (var game in Model.Games)
+            var activeSalesGrid = ViewData["ActiveSales"] as Dictionary<string, decimal> ?? new();
+            foreach (var game in Model.Games)
             {
                 var gameIsNew = game.CreatedAt >= DateTime.UtcNow.AddDays(-30);
                 var cats = string.Join(" ", game.GameCategories.Select(gc => gc.Category.Name?.ToLower() ?? ""));
-                var gameJson = System.Text.Json.JsonSerializer.Serialize(new { id = game.Id, title = game.Title, developer = game.Developer ?? "UNKNOWN", price = game.Price, description = game.Description, trailerUrl = game.TrailerUrl, screenshots = game.ScreenshotUrls, coverImageUrl = game.CoverImageUrl, releaseDate = game.ReleaseDate.ToString("yyyy-MM-dd"), categories = game.GameCategories.Select(gc => gc.Category.Name).ToList(), hasFile = game.GameFileUrl != null, fileName = game.GameFileName, fileSizeBytes = game.GameFileSizeBytes });
-                <div class="game-card" data-title="@game.Title.ToLower()" data-cats="@cats" data-price="@game.Price" data-date="@game.ReleaseDate.Ticks" onclick='openModal(@Html.Raw(gameJson))'>
+                var salePrice = activeSalesGrid.TryGetValue(game.Id, out var sp) ? sp : (decimal?)null;
+                var effectivePrice = salePrice ?? game.Price;
+                var gameJson = System.Text.Json.JsonSerializer.Serialize(new { id = game.Id, title = game.Title, developer = game.Developer ?? "UNKNOWN", price = game.Price, salePrice, description = game.Description, trailerUrl = game.TrailerUrl, screenshots = game.ScreenshotUrls, coverImageUrl = game.CoverImageUrl, releaseDate = game.ReleaseDate.ToString("yyyy-MM-dd"), categories = game.GameCategories.Select(gc => gc.Category.Name).ToList(), hasFile = game.GameFileUrl != null, fileName = game.GameFileName, fileSizeBytes = game.GameFileSizeBytes });
+                <div class="game-card" data-title="@game.Title.ToLower()" data-cats="@cats" data-price="@effectivePrice" data-date="@game.ReleaseDate.Ticks" data-game-id="@game.Id" onclick='openModal(@Html.Raw(gameJson))'>
                     @if (gameIsNew) { <div class="game-card-badge-new">🔥 NEW</div> }
+                    @if (salePrice.HasValue) { <div class="game-card-badge-new" style="background:var(--red);color:white;">SALE</div> }
                     @if (!string.IsNullOrEmpty(game.CoverImageUrl)) { <img class="game-card-img" src="@game.CoverImageUrl" alt="@game.Title" loading="lazy"/> }
                     else if (game.ScreenshotUrls.Any()) { <img class="game-card-img" src="@game.ScreenshotUrls[0]" alt="@game.Title" loading="lazy"/> }
                     else { <div class="game-card-placeholder">⊗</div> }
@@ -270,7 +274,12 @@
                         <div class="game-card-dev">@((game.Developer ?? "Anon").ToUpper())</div>
                         <div class="game-card-tags">@foreach (var gc in game.GameCategories.Take(3)) { <span class="game-tag">@gc.Category.Name</span> }</div>
                         <div class="game-card-footer">
-                            @if (game.Price == 0) { <span class="price-free">FREE</span> } else { <span class="price-paid">$@game.Price.ToString("0.00")</span> }
+                            @if (salePrice.HasValue)
+                            {
+                                <span style="color:var(--text-dim);font-size:10px;text-decoration:line-through;margin-right:6px;">$@game.Price.ToString("0.00")</span>
+                                <span class="price-paid" style="color:var(--red);">$@salePrice.Value.ToString("0.00")</span>
+                            }
+                            else if (game.Price == 0) { <span class="price-free">FREE</span> } else { <span class="price-paid">$@game.Price.ToString("0.00")</span> }
                             @if (game.GameFileUrl != null && Model.OwnedGameIds.Contains(game.Id)) { <a href="@Url.Action("Download", "Home", new { id = game.Id })" class="has-file-badge" style="text-decoration:none;cursor:pointer;">▼ DOWNLOAD</a> }
                         </div>
                     </div>
@@ -361,7 +370,10 @@
         if (shots.length > 0) html += `<div class="modal-screenshots">` + shots.map(s => `<img src="${s}" onclick="this.requestFullscreen && this.requestFullscreen()"/>`).join('') + `</div>`;
         if (game.trailerUrl) html += `<div class="modal-trailer-wrap"><iframe class="modal-trailer" src="${getEmbedUrl(game.trailerUrl)}" allowfullscreen loading="lazy"></iframe></div>`;
         html += `<div class="modal-price-box">`;
-        if (game.price === 0) html += `<div class="modal-price-val" style="color:var(--gold);">FREE</div>`;
+        if (game.salePrice && game.salePrice < game.price) {
+            html += `<span style="color:var(--text-dim);font-size:12px;text-decoration:line-through;margin-right:8px;">$${game.price.toFixed(2)}</span>`;
+            html += `<div class="modal-price-val" style="color:var(--red);">$${game.salePrice.toFixed(2)}</div>`;
+        } else if (game.price === 0) html += `<div class="modal-price-val" style="color:var(--gold);">FREE</div>`;
         else html += `<div class="modal-price-val">$${game.price.toFixed(2)}</div>`;
         if (ownedGameIds.includes(game.id)) html += `<span style="font-family:var(--font-mono);font-size:11px;color:#4ade80;margin-left:12px;">[ OWNED ]</span>`;
         if (game.hasFile && ownedGameIds.includes(game.id)) html += `<div class="modal-download-box"><span class="modal-download-icon">💾</span><div class="modal-download-info"><div class="modal-download-name">${e(game.fileName) || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Home/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
@@ -477,5 +489,12 @@
         el.classList.add('ripple');
         el.addEventListener('mousedown', function(e) { const rect = this.getBoundingClientRect(); this.style.setProperty('--mx', (e.clientX - rect.left) + 'px'); this.style.setProperty('--my', (e.clientY - rect.top) + 'px'); });
     });
+
+    var hash = window.location.hash;
+    if (hash && hash.startsWith('#game-')) {
+        var gameId = hash.substring(6);
+        var card = document.querySelector('.game-card[data-game-id="' + gameId + '"]');
+        if (card) { card.click(); }
+    }
 </script>
 }

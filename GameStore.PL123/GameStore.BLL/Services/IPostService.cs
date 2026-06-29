@@ -6,4 +6,5 @@ public interface IPostService
     Task<List<Post>> GetUserPostsAsync(string userId, int page = 1, int pageSize = 20);
     Task<bool> DeleteAsync(string postId, string userId);
     Task<int> GetUserPostCountAsync(string userId);
+    Task<DateTime?> GetLastPostTimeAsync(string userId);
 }

@@ -201,7 +201,7 @@
         }
 
         // Listen for connection established (in layout)
-        $(document).on('chatConnectionReady', function() {
+        document.addEventListener('chatConnectionReady', function() {
             if (activeUserId) {
                 window.chatConnection.invoke('MarkRead', activeUserId);
             }

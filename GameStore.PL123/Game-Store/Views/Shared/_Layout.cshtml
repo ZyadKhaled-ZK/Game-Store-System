@@ -30,6 +30,7 @@
             --text: #e8e8f0;
             --text-dim: #7a7a99;
             --cyan: #00e5ff;
+            --accent: #60a5fa;
             --glow-gold: 0 0 20px rgba(245, 197, 66, 0.4);
             --glow-red: 0 0 20px rgba(230, 57, 70, 0.4);
             --font-display: 'Orbitron', monospace;
@@ -79,8 +80,6 @@
 
         /* ── Subtle entrance fade ── */
         main { animation: pageIn 0.35s ease; }
-        @Html.Raw("@keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }")
-
         /* ── Focus glow pulse ── */
         input:focus, select:focus, textarea:focus, button:focus-visible, a:focus-visible {
           outline: none;
@@ -96,8 +95,6 @@
         .btn.loading::after { content: ''; display: inline-block; width: 12px; height: 12px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: 8px; vertical-align: middle; }
         .btn.loading { pointer-events: none; opacity: 0.7; }
         .btn.loading::after { content: ''; display: inline-block; width: 12px; height: 12px; border: 2px solid transparent; border-top-color: currentColor; border-radius: 50%; animation: spin 0.6s linear infinite; margin-left: 8px; vertical-align: middle; }
-        @Html.Raw("@keyframes spin { to { transform: rotate(360deg); } }")
-
         /* ── Card hover lift ── */
         .game-card, .wishlist-card, .hero-card { transition: all 0.3s; }
         .game-card:hover, .wishlist-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.4), var(--glow-red); }
@@ -115,12 +112,13 @@
         /* ── Section title glitch on hover ── */
         .section-title, .glitch { position: relative; }
         .section-title:hover, .glitch:hover { animation: glitch 0.2s steps(2) infinite; }
-        @Html.Raw("@keyframes glitch { 0% { text-shadow: 1.5px 0 var(--gold), -1.5px 0 var(--red); } 33% { text-shadow: -1.5px 0 var(--gold), 1.5px 0 var(--red); } 66% { text-shadow: 1.5px 0 var(--red), -1.5px 0 var(--gold); } 100% { text-shadow: -1.5px 0 var(--red), 1.5px 0 var(--gold); } }")
-        @Html.Raw("@keyframes spin { to { transform: rotate(360deg); } }")
-
         /* ── Table row subtle pulse on hover ── */
         .cyber-table tr { transition: background 0.2s; }
         .cyber-table tr:hover { background: rgba(230,57,70,0.04); }
+
+        @Html.Raw("@keyframes navFadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }")
+        @Html.Raw("@keyframes logoBreath { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }")
+        @Html.Raw("@keyframes bellSwing { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(8deg); } 75% { transform: rotate(-8deg); } }")
 
         nav {
             position: fixed !important;
@@ -132,21 +130,11 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 40px;
-            height: 70px;
-            background: rgba(7, 7, 9, 0.9) !important;
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-red) !important;
-        }
-
-        nav::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--red), transparent);
-            opacity: 0.8;
+            height: 64px;
+            background: #111111 !important;
+            backdrop-filter: blur(24px);
+            box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+            animation: navFadeIn 0.4s ease;
         }
 
         .navbar-brand {
@@ -154,43 +142,18 @@
             align-items: center;
             gap: 12px;
             text-decoration: none;
-            color: white !important;
-        }
-
-        .nav-logo-icon {
-            width: 36px;
-            height: 36px;
-            border: 1.5px solid var(--red);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--glow-red), inset 0 0 12px rgba(230, 57, 70, 0.15);
-            font-family: var(--font-display);
-            font-size: 14px;
-            font-weight: 900;
-            color: var(--red);
-            animation: logoGlow 3s ease-in-out infinite;
-        }
-
-        @Html.Raw("@keyframes logoGlow { 0%, 100% { box-shadow: var(--glow-red), inset 0 0 12px rgba(230, 57, 70, 0.15); } 50% { box-shadow: 0 0 30px rgba(230, 57, 70, 0.6), inset 0 0 20px rgba(230, 57, 70, 0.25); } }")
-
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            text-decoration: none;
-            color: white !important;
-            padding: 6px 16px 6px 12px;
-            border: 1px solid rgba(230,57,70,0.2);
-            background: linear-gradient(135deg, rgba(230,57,70,0.05) 0%, transparent 100%);
-            transition: all 0.3s;
-            clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+            color: #e0e0e0 !important;
+            padding: 6px 10px;
+            transition: opacity 0.2s;
+            border: none;
+            background: none;
+            clip-path: none;
         }
         .navbar-brand:hover {
-            border-color: var(--red);
-            background: linear-gradient(135deg, rgba(230,57,70,0.12) 0%, transparent 100%);
-            box-shadow: 0 0 20px rgba(230,57,70,0.15);
+            opacity: 0.8;
+        }
+        .navbar-brand img {
+            animation: logoBreath 4s ease-in-out infinite;
         }
         .brand-text {
             display: flex;
@@ -199,26 +162,24 @@
         }
         .brand-text .brand-game {
             font-family: var(--font-display);
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--text-dim);
-            letter-spacing: 3px;
+            font-size: 10px;
+            font-weight: 400;
+            color: #888;
+            letter-spacing: 2px;
             text-transform: uppercase;
         }
         .brand-text .brand-store {
             font-family: var(--font-display);
-            font-size: 20px;
-            font-weight: 900;
-            color: white;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(230,57,70,0.4);
-            transition: text-shadow 0.3s;
+            font-size: 18px;
+            font-weight: 700;
+            color: #e0e0e0;
+            letter-spacing: 1.5px;
         }
         .brand-text .brand-store span {
-            color: var(--red);
+            color: var(--accent);
         }
         .navbar-brand:hover .brand-store {
-            text-shadow: 0 0 20px rgba(230,57,70,0.7);
+            opacity: 0.8;
         }
 
         .navbar-nav {
@@ -231,34 +192,59 @@
         .nav-link {
             font-family: var(--font-mono);
             font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 1.5px;
+            font-weight: 500;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            color: var(--text) !important;
+            color: #a0a0a0 !important;
             text-decoration: none;
             padding: 8px 16px !important;
-            border: 1px solid transparent;
             transition: all 0.2s;
+            border-radius: 6px;
+            border: none;
+            position: relative;
         }
-
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+            opacity: 0;
+        }
         .nav-link:hover {
-            color: var(--red) !important;
-            border-color: var(--border-red);
-            background: rgba(230, 57, 70, 0.05);
-            text-shadow: var(--glow-red);
+            color: #ffffff !important;
+            background: rgba(255,255,255,0.06);
+            transform: translateY(-1px);
+        }
+        .nav-link:hover::after {
+            width: 60%;
+            opacity: 1;
+        }
+        .nav-link.active {
+            color: var(--accent) !important;
+        }
+        .nav-link.active::after {
+            width: 60%;
+            opacity: 1;
+            background: var(--accent);
         }
 
         .btn {
-            display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px;
-            font-family: var(--font-ui); font-size: 14px; font-weight: 700; letter-spacing: 2px;
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
+            font-family: var(--font-ui); font-size: 13px; font-weight: 600; letter-spacing: 1.5px;
             text-transform: uppercase; text-decoration: none; border: none; cursor: pointer;
-            position: relative; transition: all 0.25s;
-            clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+            position: relative; transition: all 0.2s; border-radius: 6px;
+            clip-path: none;
         }
-        .btn-primary { background: linear-gradient(135deg, var(--red-dim), var(--red)); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--glow-red); filter: brightness(1.2); color: white; }
-        .btn-secondary { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border-red); clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); }
-        .btn-secondary:hover { border-color: var(--red); color: var(--red) !important; background: rgba(230,57,70,0.08); transform: translateY(-2px); }
+        .btn-primary { background: var(--red); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(230,57,70,0.3); }
+        .btn-secondary { background: rgba(255,255,255,0.04); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; }
+        .btn-secondary:hover { border-color: rgba(255,255,255,0.2); color: var(--text) !important; background: rgba(255,255,255,0.06); transform: translateY(-1px); }
+        #notificationBell.hasNew i { animation: bellSwing 0.4s ease; }
 
         main {
             padding: 120px 40px 60px;
@@ -338,27 +324,32 @@
                                 <a class="nav-link" asp-area="" asp-controller="Orders" asp-action="Index">Orders</a>
                             </li>
                             <li class="nav-item position-relative" style="align-self:center;">
-                                <button class="btn-cyber btn-sm" id="notificationBell" style="position:relative;background:none;border:1px solid var(--border);color:var(--text);padding:6px 12px;cursor:pointer;font-size:16px;line-height:1;">
+                                <button class="btn-cyber btn-sm" id="notificationBell" style="position:relative;background:none;border:1px solid rgba(255,255,255,0.08);color:#a0a0a0;padding:6px 12px;cursor:pointer;font-size:16px;line-height:1;border-radius:6px;transition:all 0.2s;"
+                                   onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)';this.style.color='#a0a0a0'">
                                     <i class="fas fa-bell"></i>
-                                    <span id="notificationBadge" class="badge" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;font-size:9px;padding:1px 6px;border-radius:0;min-width:18px;text-align:center;">0</span>
+                                    <span id="notificationBadge" class="badge" style="display:none;position:absolute;top:-6px;right:-6px;background:#888;color:#111;font-size:9px;padding:1px 6px;border-radius:0;min-width:18px;text-align:center;font-weight:700;">0</span>
                                 </button>
-                                <div id="notificationDropdown" class="notification-dropdown" style="display:none;position:absolute;top:100%;right:0;width:340px;background:var(--bg2);border:1px solid var(--border);z-index:2000;margin-top:8px;">
-                                    <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-family:var(--font-display);font-size:12px;letter-spacing:2px;color:var(--red);">NOTIFICATIONS</div>
+                                <div id="notificationDropdown" class="notification-dropdown" style="display:none;position:absolute;top:100%;right:0;width:340px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);z-index:2000;margin-top:8px;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+                                    <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);font-family:var(--font-display);font-size:12px;letter-spacing:2px;color:#e0e0e0;">NOTIFICATIONS</div>
                                     <div id="notificationList" style="max-height:360px;overflow-y:auto;">
-                                        <div class="notification-empty" style="padding:24px 16px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
+                                        <div class="notification-empty" style="padding:24px 16px;text-align:center;font-family:var(--font-mono);font-size:11px;color:#888;">
                                             <i class="fas fa-check-circle" style="font-size:1.5rem;opacity:0.3;margin-bottom:8px;display:block;"></i>
                                             No new notifications
                                         </div>
                                     </div>
-                                    <div style="border-top:1px solid var(--border);padding:8px 16px;display:flex;gap:8px;">
-                                        <a href="@Url.Action("Requests","Friends")" class="btn-cyber btn-xs" style="flex:1;text-align:center;text-decoration:none;"><i class="fas fa-user-friends"></i> View Requests</a>
-                                        <a href="@Url.Action("Index","Friends")" class="btn-cyber btn-xs" style="flex:1;text-align:center;text-decoration:none;"><i class="fas fa-comment"></i> Open Social</a>
+                                    <div style="border-top:1px solid rgba(255,255,255,0.06);padding:8px 16px;display:flex;gap:8px;">
+                                        <a href="#" onclick="document.getElementById('notificationDropdown').style.display='none';return false;" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-bell"></i> Close</a>
+                                        <a href="@Url.Action("Requests","Friends")" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-user-friends"></i> Requests</a>
+                                        <a href="@Url.Action("Index","Friends")" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-comment"></i> Social</a>
                                     </div>
                                 </div>
                             </li>
-                            <li class="nav-item" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);align-self:center;">
-                                <a asp-area="" asp-controller="Auth" asp-action="Profile" style="color:var(--text-dim);text-decoration:none;transition:color 0.2s;display:flex;align-items:center;gap:6px;"
-                                   onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'"><span id="navAvatarContainer"><span id="navAvatarText" style="display:inline-block;width:28px;height:28px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;color:var(--red);background:rgba(230,57,70,0.06);">@(username?.Substring(0,1)??"?")</span></span>[ @username ]@if (role == "ADMIN") {<span style="font-size:9px;color:var(--gold);border:1px solid var(--gold);padding:1px 6px;">ADMIN</span>}@if (role == "DEVELOPER") {<span style="font-size:9px;color:var(--cyan);border:1px solid var(--cyan);padding:1px 6px;">DEV</span>}</a>
+                            <li class="nav-item" style="font-family:var(--font-mono);font-size:12px;color:#a0a0a0;align-self:center;">
+                                <a asp-area="" asp-controller="Profile" asp-action="Edit" style="color:#a0a0a0;text-decoration:none;transition:all 0.2s;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;"
+                                   onmouseover="this.style.color='#ffffff';this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.color='#a0a0a0';this.style.background='transparent'"><span id="navAvatarContainer"><span id="navAvatarText" style="display:inline-block;width:28px;height:28px;border:1px solid rgba(255,255,255,0.08);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;color:#e0e0e0;background:rgba(255,255,255,0.04);">@(username?.Substring(0,1)??"?")</span></span>[ @username ]@if (role == "ADMIN") {<span style="font-size:9px;color:#888;border:1px solid rgba(255,255,255,0.08);padding:1px 6px;margin-left:4px;">ADMIN</span>}@if (role == "DEVELOPER") {<span style="font-size:9px;color:#00e5ff;border:1px solid rgba(0,229,255,0.2);padding:1px 6px;margin-left:4px;">DEV</span>}</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Support" asp-action="MyTickets">Support</a>
                             </li>
                             <li class="nav-item ms-2">
                                 <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-controller="Auth" asp-action="Logout">Logout</a>
@@ -386,7 +377,7 @@
 
     <footer class="border-top footer text-muted mt-auto">
         <div class="container">
-            &copy; 2026 - Game_Store - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - Game_Store - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a> - <a asp-area="" asp-controller="Support" asp-action="Index">Support Center</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -405,39 +396,54 @@
           if (typeof showToast === 'function') {
             showToast(data.message || data.title, type);
           }
+          var bell = document.getElementById('notificationBell');
+          if (bell) { bell.classList.add('hasNew'); setTimeout(function(){ bell.classList.remove('hasNew'); }, 500); }
         });
 
         // ── Notifications ──
         function updateNotifications() {
-          fetch('/Friends/GetNotificationData').then(function(r) { return r.json(); }).then(function(d) {
-            var badge = document.getElementById('notificationBadge');
-            if (!badge) return;
-            var total = (d.pendingRequests || 0) + (d.unreadMessages || 0);
-            if (total > 0) { badge.textContent = total; badge.style.display = 'inline'; }
-            else badge.style.display = 'none';
+          var badge = document.getElementById('notificationBadge');
+          var list = document.getElementById('notificationList');
+          if (!badge || !list) return;
 
-            var list = document.getElementById('notificationList');
-            if (!list) return;
-            var html = '';
+          var total = 0;
+          var html = '';
+
+          // Fetch friend data + system notifications in parallel
+          Promise.all([
+            fetch('/Friends/GetNotificationData').then(function(r) { return r.json(); }),
+            fetch('/Notifications/GetRecent').then(function(r) { return r.json(); })
+          ]).then(function(results) {
+            var d = results[0];
+            var notifData = results[1];
+
+            total = (d.pendingRequests || 0) + (d.unreadMessages || 0);
 
             // Show friend requests
-              if (d.requests && d.requests.length > 0) {
-                d.requests.forEach(function(r) {
-                  var reqAv = r.avatar ? '<img src="' + r.avatar + '" style="width:32px;height:32px;object-fit:cover;" />' : r.username[0];
-                  html += '<div class="notif-item" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);">' +
-                    '<div style="width:32px;height:32px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:13px;color:var(--gold);background:rgba(245,197,66,0.06);flex-shrink:0;">' + reqAv + '</div>' +
-                  '<div style="flex:1;min-width:0;">' +
-                    '<div style="font-family:var(--font-mono);font-size:12px;">' + r.username + '</div>' +
-                    '<div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">Sent you a friend request</div>' +
-                  '</div>' +
-                  '<div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);flex-shrink:0;">' + r.sentAt + '</div>' +
-                '</div>';
+            if (d.requests && d.requests.length > 0) {
+              html += '<div style="padding:6px 16px;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:10px;color:var(--gold);letter-spacing:1px;">FRIEND REQUESTS</div>';
+              d.requests.forEach(function(r) {
+                var reqAv = r.avatar ? '<img src="' + r.avatar + '" style="width:32px;height:32px;object-fit:cover;" />' : '<span style="font-family:var(--font-display);font-size:13px;">' + r.username[0] + '</span>';
+                html += '<div class="notif-item" style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:all 0.15s;"' +
+                  ' onmouseover="this.style.backgroundColor=\'rgba(245,197,66,0.04)\';this.style.borderLeft=\'2px solid var(--gold)\';this.style.paddingLeft=\'14px\'"' +
+                  ' onmouseout="this.style.backgroundColor=\'\';this.style.borderLeft=\'\';this.style.paddingLeft=\'16px\'">' +
+                  '<div style="width:32px;height:32px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:13px;color:var(--gold);background:rgba(245,197,66,0.06);flex-shrink:0;">' + reqAv + '</div>' +
+                '<div style="flex:1;min-width:0;">' +
+                  '<div style="font-family:var(--font-mono);font-size:12px;">' + r.username + '</div>' +
+                  '<div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);">Sent you a friend request</div>' +
+                '</div>' +
+                '<div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);flex-shrink:0;">' + r.sentAt + '</div>' +
+              '</div>';
               });
             }
 
             // Show unread messages
             if (d.unreadMessages > 0) {
-              html += '<div class="notif-item" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);">' +
+              total += d.unreadMessages;
+              html += '<div style="padding:6px 16px;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:10px;color:var(--cyan);letter-spacing:1px;">MESSAGES</div>';
+              html += '<div class="notif-item" style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:all 0.15s;"' +
+                ' onmouseover="this.style.backgroundColor=\'rgba(0,229,255,0.04)\';this.style.borderLeft=\'2px solid var(--cyan)\';this.style.paddingLeft=\'14px\'"' +
+                ' onmouseout="this.style.backgroundColor=\'\';this.style.borderLeft=\'\';this.style.paddingLeft=\'16px\'">' +
                 '<div style="width:32px;height:32px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:13px;color:var(--cyan);background:rgba(0,255,255,0.05);flex-shrink:0;"><i class="fas fa-envelope" style="font-size:14px;"></i></div>' +
                 '<div style="flex:1;min-width:0;">' +
                   '<div style="font-family:var(--font-mono);font-size:12px;">Unread Messages</div>' +
@@ -447,11 +453,37 @@
               '</div>';
             }
 
+            // Show system notifications
+            if (notifData.notifications && notifData.notifications.length > 0) {
+              if (html) html += '<div style="padding:6px 16px;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:1px;">SYSTEM</div>';
+              notifData.notifications.forEach(function(n) {
+                if (!n.isRead) total++;
+                var iconMap = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+                var icon = iconMap[n.type] || 'fa-info-circle';
+                var colorMap = { success: '#4ade80', error: 'var(--red)', warning: 'var(--gold)', info: 'var(--cyan)' };
+                var bgMap = { success: 'rgba(74,222,128,0.06)', error: 'rgba(230,57,70,0.06)', warning: 'rgba(245,197,66,0.06)', info: 'rgba(0,229,255,0.06)' };
+                html += '<div class="notif-item" style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);text-decoration:none;cursor:pointer;transition:all 0.15s;' + (n.isRead ? '' : 'background:rgba(230,57,70,0.03);') + '"' +
+                  (n.referenceUrl ? ' onclick="window.location.href=\'' + n.referenceUrl + '\'"' : '') +
+                  ' onmouseover="this.style.backgroundColor=\'rgba(255,255,255,0.03)\';this.style.borderLeft=\'2px solid var(--red)\';this.style.paddingLeft=\'14px\'"' +
+                  ' onmouseout="this.style.backgroundColor=\'\';this.style.borderLeft=\'\';this.style.paddingLeft=\'16px\'">' +
+                  '<div style="width:28px;height:28px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:' + (colorMap[n.type] || 'var(--text-dim)') + ';background:' + (bgMap[n.type] || 'rgba(255,255,255,0.02)') + ';flex-shrink:0;"><i class="fas ' + icon + '"></i></div>' +
+                  '<div style="flex:1;min-width:0;">' +
+                    '<div style="font-family:var(--font-mono);font-size:11px;' + (n.isRead ? '' : 'color:white;') + '">' + n.title + '</div>' +
+                    '<div style="font-size:10px;color:var(--text-dim);font-family:var(--font-mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + n.message + '</div>' +
+                    '<div style="font-size:9px;color:var(--text-dim);font-family:var(--font-mono);margin-top:2px;">' + n.createdAt + '</div>' +
+                  '</div>' +
+                '</div>';
+              });
+            }
+
             if (!html) {
               html = '<div class="notification-empty" style="padding:24px 16px;text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">' +
                 '<i class="fas fa-check-circle" style="font-size:1.5rem;opacity:0.3;margin-bottom:8px;display:block;"></i>' +
                 'No new notifications</div>';
             }
+
+            if (total > 0) { badge.textContent = total; badge.style.display = 'inline'; }
+            else badge.style.display = 'none';
             list.innerHTML = html;
           }).catch(function(){});
         }
@@ -527,7 +559,7 @@
         setInterval(updateNotifications, 30000);
 
         // Trigger event for chat page
-        $(document).trigger('chatConnectionReady');
+        document.dispatchEvent(new CustomEvent('chatConnectionReady'));
       })();
     </script>
 
@@ -545,7 +577,6 @@
       .toast.warning i { color: var(--gold); }
       .toast-content { flex: 1; font-family: var(--font-mono); font-size: 12px; }
       .toast-close { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; }
-      @Html.Raw("@keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }")
     </style>
 
     <script>
@@ -584,7 +615,7 @@
 
       // Navbar avatar
       function updateNavAvatar() {
-        fetch('/Auth/GetAvatarUrl').then(function(r) { return r.json(); }).then(function(d) {
+        fetch('/Profile/GetAvatarUrl').then(function(r) { return r.json(); }).then(function(d) {
           var container = document.getElementById('navAvatarContainer');
           if (!container) return;
           if (d.url) {

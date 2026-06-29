@@ -66,36 +66,169 @@
     else
     {
       <div style="margin-top:16px;">
-        <a asp-area="" asp-controller="Auth" asp-action="Profile" class="btn btn-primary btn-sm">EDIT PROFILE</a>
+        <a asp-area="" asp-controller="Profile" asp-action="Edit" class="btn btn-primary btn-sm">EDIT PROFILE</a>
       </div>
     }
   </div>
 
+  @* Developer section *@
+  @if (Model.IsDeveloper)
+  {
+    <div class="dev-studio-card" style="background:linear-gradient(135deg,rgba(245,197,66,0.04),rgba(245,197,66,0.01) 70%);border:1px solid rgba(245,197,66,0.25);padding:36px;margin-bottom:24px;border-radius:8px;box-shadow:0 0 40px rgba(245,197,66,0.04);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;border-bottom:1px solid rgba(245,197,66,0.1);padding-bottom:16px;">
+        <div style="width:32px;height:32px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--gold);background:rgba(245,197,66,0.06);flex-shrink:0;"><i class="fas fa-hammer"></i></div>
+        <span style="font-family:var(--font-display);font-size:12px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;">Developer Studio</span>
+      </div>
+
+      <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+        <div style="flex-shrink:0;">
+          @if (!string.IsNullOrEmpty(Model.DeveloperLogoUrl))
+          {
+            <img src="@Model.DeveloperLogoUrl" alt="@Model.DeveloperName" style="width:100px;height:100px;object-fit:contain;border:1px solid rgba(245,197,66,0.2);padding:4px;background:var(--bg3);box-shadow:0 0 20px rgba(245,197,66,0.08);" loading="lazy" />
+          }
+          else
+          {
+            <div style="width:100px;height:100px;background:var(--bg3);border:1px solid rgba(245,197,66,0.2);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:42px;color:var(--gold);">@Model.DeveloperName?[0]</div>
+          }
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-bottom:2px;">@Model.Username operates as</div>
+          <h3 style="font-family:var(--font-display);font-size:22px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">@Model.DeveloperName</h3>
+          @if (!string.IsNullOrEmpty(Model.DeveloperCountry))
+          {
+            <span style="font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:4px;margin-bottom:6px;"><i class="fas fa-map-pin" style="font-size:10px;color:var(--gold);"></i> @Model.DeveloperCountry</span>
+          }
+          @if (!string.IsNullOrEmpty(Model.DeveloperDescription))
+          {
+            <p style="font-size:12px;color:var(--text);line-height:1.7;margin-bottom:8px;">@Model.DeveloperDescription</p>
+          }
+          @if (!string.IsNullOrEmpty(Model.DeveloperWebsite))
+          {
+            <a href="@Model.DeveloperWebsite" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;color:var(--gold);text-decoration:none;border:1px solid rgba(245,197,66,0.15);padding:6px 14px;transition:0.2s;"
+               onmouseover="this.style.borderColor='rgba(245,197,66,0.4)';this.style.background='rgba(245,197,66,0.04)'"
+               onmouseout="this.style.borderColor='rgba(245,197,66,0.15)';this.style.background='transparent'"><i class="fas fa-external-link-alt"></i> VISIT WEBSITE &#8599;</a>
+          }
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="text-align:center;padding:14px 18px;background:var(--bg3);border:1px solid rgba(245,197,66,0.12);min-width:88px;">
+            <div style="font-family:var(--font-display);font-size:22px;color:var(--gold);">@Model.DevGameCount</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:1px;">GAMES</div>
+          </div>
+          <div style="text-align:center;padding:14px 18px;background:var(--bg3);border:1px solid rgba(245,197,66,0.12);min-width:88px;">
+            <div style="font-family:var(--font-display);font-size:22px;color:var(--gold);">@Model.DevTotalDownloads</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:1px;">DOWNLOADS</div>
+          </div>
+          <div style="text-align:center;padding:14px 18px;background:var(--bg3);border:1px solid rgba(245,197,66,0.12);min-width:88px;">
+            <div style="font-family:var(--font-display);font-size:22px;color:var(--gold);">@Model.DevAvgRating.ToString("0.0")</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:1px;">RATING</div>
+          </div>
+        </div>
+      </div>
+
+      @if (Model.DevGames.Any())
+      {
+        var profileSales = ViewData["ProfileSales"] as Dictionary<string, decimal> ?? new();
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(245,197,66,0.1);">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+            <i class="fas fa-gamepad" style="font-size:12px;color:var(--gold);"></i>
+            <span style="color:var(--gold);font-family:var(--font-mono);font-size:11px;letter-spacing:1px;">GAMES BY @Model.DeveloperName.ToUpper()</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+            @foreach (var game in Model.DevGames)
+            {
+              var salePrice = profileSales.TryGetValue(game.Id, out var sp) ? sp : (decimal?)null;
+              <a href="/Home/Index#game-@game.Id" style="text-decoration:none;">
+                <div style="background:var(--bg3);border:1px solid rgba(245,197,66,0.08);padding:16px;transition:0.25s;border-radius:4px;"
+                     onmouseover="this.style.borderColor='rgba(245,197,66,0.3)';this.style.boxShadow='0 0 20px rgba(245,197,66,0.08)'"
+                     onmouseout="this.style.borderColor='rgba(245,197,66,0.08)';this.style.boxShadow=''">
+                  @if (!string.IsNullOrEmpty(game.CoverImageUrl))
+                  {
+                    <img src="@game.CoverImageUrl" alt="@game.Title" style="width:100%;height:120px;object-fit:cover;margin-bottom:10px;border-radius:3px;" loading="lazy" />
+                  }
+                  <h4 style="font-family:var(--font-mono);font-size:12px;color:var(--text);margin-bottom:4px;">@game.Title</h4>
+                  @if (salePrice.HasValue)
+                  {
+                    <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);text-decoration:line-through;">$@game.Price.ToString("F2")</span>
+                    <span style="font-family:var(--font-mono);font-size:11px;color:var(--red);margin-left:6px;">$@salePrice.Value.ToString("F2")</span>
+                  }
+                  else
+                  {
+                    <span style="font-family:var(--font-mono);font-size:11px;color:var(--gold);">@(game.Price == 0 ? "FREE" : $"${game.Price:F2}")</span>
+                  }
+                </div>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
   @* Posts *@
   <div class="pp-card">
-    <div style="color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); padding: 5px 15px; display: inline-block; font-size: 12px; margin-bottom: 20px; font-family: var(--font-mono);">
-      POSTS — @Model.PostCount
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+      <i class="fas fa-feather-alt" style="font-size:12px;color:var(--cyan);"></i>
+      <span style="color:var(--cyan);border:1px solid rgba(0,229,255,0.3);padding:5px 15px;font-size:12px;font-family:var(--font-mono);">POSTS — @Model.PostCount</span>
     </div>
 
-    @if (!Model.Posts.Any())
+    @if (Model.IsOwn)
     {
-      <div style="text-align:center;padding:20px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
-        @(Model.IsOwn ? "You haven't posted anything yet." : "No posts yet.")
+      <div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <form method="post" asp-controller="Posts" asp-action="Create" id="createPostForm">
+          @Html.AntiForgeryToken()
+          <textarea id="newPostContent" name="content" rows="2" maxlength="1000" placeholder="What's on your mind..." style="width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,0.06);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:12px;resize:none;outline:none;transition:border 0.2s;" onfocus="this.style.borderColor='rgba(0,229,255,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.06)'"></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+            <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);"><span id="charCount">0</span> / 1000</span>
+            <button type="submit" class="btn btn-primary" id="postSubmitBtn" style="padding:6px 18px;font-size:11px;">POST</button>
+          </div>
+        </form>
       </div>
     }
-    @foreach (var post in Model.Posts)
-    {
-      <div class="post-item">
-        <div class="post-content">@post.Content</div>
-        <div class="post-meta">@post.CreatedAt.ToString("MMM dd, yyyy HH:mm")</div>
-      </div>
-    }
+
+    <div id="postsList">
+      @if (!Model.Posts.Any())
+      {
+        <div style="text-align:center;padding:24px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">
+          <i class="fas fa-feather-alt" style="font-size:1.5rem;opacity:0.2;display:block;margin-bottom:8px;"></i>
+          @(Model.IsOwn ? "You haven't posted anything yet." : "No posts yet.")
+        </div>
+      }
+      @foreach (var post in Model.Posts)
+      {
+        <div class="post-card" data-id="@post.Id" style="display:flex;gap:12px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:15px;color:var(--red);background:rgba(230,57,70,0.04);">
+            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+            {
+              <img src="@Model.AvatarUrl" alt="" style="width:100%;height:100%;object-fit:cover;" />
+            }
+            else
+            {
+              @Model.Username[0]
+            }
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+              <span style="font-family:var(--font-mono);font-size:12px;color:var(--text);">@Model.Username</span>
+              <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">@post.CreatedAt.ToString("MMM dd, yyyy  ·  HH:mm")</span>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:13px;color:var(--text);line-height:1.5;">@post.Content</div>
+            @if (Model.IsOwn)
+            {
+              <div style="margin-top:6px;">
+                <button class="del-post" data-id="@post.Id" style="background:none;border:none;cursor:pointer;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);padding:2px 6px;transition:0.2s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-dim)'"><i class="fas fa-trash-alt" style="font-size:8px;"></i> Delete</button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
   </div>
 </div>
 
 @section Scripts {
   @Html.AntiForgeryToken()
   <script>
+    // ── Friend request ──
     $(document).on('click', '.add-from-profile', function() {
       var btn = $(this);
       var username = btn.data('username');
@@ -114,6 +247,93 @@
       }).fail(function() {
         showToast('Failed to send request', 'error');
         btn.prop('disabled', false).html('<i class="fas fa-user-plus"></i> ADD FRIEND');
+      });
+    });
+
+    // ── Character counter ──
+    $('#newPostContent').on('input', function() {
+      var len = $(this).val().length;
+      $('#charCount').text(len);
+    });
+
+    // ── Create post ──
+    $('#createPostForm').on('submit', function(e) {
+      e.preventDefault();
+      var btn = $('#postSubmitBtn');
+      var content = $('#newPostContent').val().trim();
+      if (!content || content.length > 1000) return;
+
+      btn.prop('disabled', true).text('POSTING...');
+      $.post('@Url.Action("Create", "Posts")', {
+        content,
+        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+      }, function(data) {
+        if (data.success) {
+          var avatarUrl = '@Model.AvatarUrl';
+          var username = '@Model.Username';
+          var avHtml = avatarUrl ? '<img src="' + avatarUrl + '" alt="" style="width:100%;height:100%;object-fit:cover;" />' : username[0];
+          var html = '<div class="post-card" data-id="' + data.id + '" style="display:flex;gap:12px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.04);">' +
+            '<div style="flex-shrink:0;width:36px;height:36px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:15px;color:var(--red);background:rgba(230,57,70,0.04);">' + avHtml + '</div>' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">' +
+                '<span style="font-family:var(--font-mono);font-size:12px;color:var(--text);">@Model.Username</span>' +
+                '<span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">' + data.createdAt + '</span>' +
+              '</div>' +
+              '<div style="font-family:var(--font-mono);font-size:13px;color:var(--text);line-height:1.5;">' + $('<div>').text(content).html() + '</div>' +
+              '<div style="margin-top:6px;">' +
+                '<button class="del-post" data-id="' + data.id + '" style="background:none;border:none;cursor:pointer;font-family:var(--font-mono);font-size:9px;color:var(--text-dim);padding:2px 6px;transition:0.2s;" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--text-dim)\'"><i class="fas fa-trash-alt" style="font-size:8px;"></i> Delete</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+          if ($('#postsList .post-card').length === 0) {
+            $('#postsList').html(html);
+          } else {
+            $('#postsList').prepend(html);
+          }
+          $('#newPostContent').val('');
+          $('#charCount').text('0');
+          showToast('Post created!', 'success');
+
+          // Cooldown timer
+          var cooldown = 30;
+          btn.text('WAIT ' + cooldown + 's');
+          var timer = setInterval(function() {
+            cooldown--;
+            if (cooldown > 0) {
+              btn.text('WAIT ' + cooldown + 's');
+            } else {
+              clearInterval(timer);
+              btn.prop('disabled', false).text('POST');
+            }
+          }, 1000);
+        } else {
+          showToast(data.message, 'error');
+          btn.prop('disabled', false).text('POST');
+        }
+      }).fail(function() { showToast('Failed to create post', 'error'); btn.prop('disabled', false).text('POST'); });
+    });
+
+    // ── Delete post ──
+    $(document).on('click', '.del-post', function() {
+      var id = $(this).data('id');
+      var card = $(this).closest('.post-card');
+      $.post('@Url.Action("Delete", "Posts")', {
+        postId: id,
+        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+      }, function(data) {
+        if (data.success) {
+          card.fadeOut(200, function() {
+            $(this).remove();
+            if ($('#postsList .post-card').length === 0) {
+              $('#postsList').html('<div style="text-align:center;padding:24px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">' +
+                '<i class="fas fa-feather-alt" style="font-size:1.5rem;opacity:0.2;display:block;margin-bottom:8px;"></i>' +
+                'You haven\'t posted anything yet.</div>');
+            }
+          });
+          showToast('Post deleted.', 'info');
+        } else {
+          showToast(data.message, 'error');
+        }
       });
     });
   </script>

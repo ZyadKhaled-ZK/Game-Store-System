@@ -51,4 +51,13 @@ public class PostService : IPostService
             .Where(p => p.UserId == userId)
             .CountAsync();
     }
+
+    public async Task<DateTime?> GetLastPostTimeAsync(string userId)
+    {
+        return await _uow.Repository<Post>().Query()
+            .Where(p => p.UserId == userId)
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => (DateTime?)p.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
 }

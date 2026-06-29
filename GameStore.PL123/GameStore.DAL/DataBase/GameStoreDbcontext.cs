@@ -24,6 +24,10 @@ namespace GameStore.DAL.DataBase
         public DbSet<Friendship> Friendships { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Post> Posts { get; set; }
+        public DbSet<Sale> Sales { get; set; }
+        public DbSet<UserNotification> UserNotifications { get; set; }
+        public DbSet<SupportTicket> SupportTickets { get; set; }
+        public DbSet<SupportTicketReply> SupportTicketReplies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -307,6 +311,87 @@ namespace GameStore.DAL.DataBase
                  .WithMany()
                  .HasForeignKey(a => a.UserId)
                  .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ── Sale ─────────────────────────────────────────────────────────────
+            modelBuilder.Entity<Sale>(e =>
+            {
+                e.HasKey(s => s.Id);
+                e.Property(s => s.NewPrice).HasColumnType("decimal(10,2)").IsRequired();
+                e.Property(s => s.Status).HasConversion<int>();
+                e.Property(s => s.RejectReason).HasMaxLength(500);
+
+                e.HasOne(s => s.Game)
+                 .WithMany()
+                 .HasForeignKey(s => s.GameId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(s => s.Developer)
+                 .WithMany()
+                 .HasForeignKey(s => s.DeveloperId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(s => new { s.Status, s.EndDate });
+            });
+
+            // ── UserNotification ─────────────────────────────────────────────────
+            modelBuilder.Entity<UserNotification>(e =>
+            {
+                e.HasKey(n => n.Id);
+                e.Property(n => n.Title).HasMaxLength(200).IsRequired();
+                e.Property(n => n.Message).HasMaxLength(1000).IsRequired();
+                e.Property(n => n.Type).HasMaxLength(20).IsRequired();
+                e.Property(n => n.Category).HasMaxLength(50).IsRequired();
+                e.Property(n => n.ReferenceUrl).HasMaxLength(500);
+                e.HasIndex(n => n.UserId);
+                e.HasIndex(n => n.CreatedAt);
+
+                e.HasOne(n => n.User)
+                 .WithMany()
+                 .HasForeignKey(n => n.UserId)
+                 .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasOne(n => n.SenderUser)
+                 .WithMany()
+                 .HasForeignKey(n => n.SenderUserId)
+                 .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            // ── SupportTicket ─────────────────────────────────────────────────────
+            modelBuilder.Entity<SupportTicket>(e =>
+            {
+                e.HasKey(t => t.Id);
+                e.Property(t => t.Subject).HasMaxLength(200).IsRequired();
+                e.Property(t => t.Message).HasMaxLength(2000).IsRequired();
+                e.Property(t => t.Email).HasMaxLength(200);
+                e.Property(t => t.Status).HasConversion<int>();
+
+                e.HasOne(t => t.User)
+                 .WithMany()
+                 .HasForeignKey(t => t.UserId)
+                 .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasIndex(t => t.CreatedAt);
+            });
+
+            // ── SupportTicketReply ─────────────────────────────────────────────────
+            modelBuilder.Entity<SupportTicketReply>(e =>
+            {
+                e.HasKey(r => r.Id);
+                e.Property(r => r.Message).HasMaxLength(2000).IsRequired();
+
+                e.HasOne(r => r.Ticket)
+                 .WithMany(t => t.Replies)
+                 .HasForeignKey(r => r.TicketId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(r => r.User)
+                 .WithMany()
+                 .HasForeignKey(r => r.UserId)
+                 .OnDelete(DeleteBehavior.SetNull);
+
+                e.HasIndex(r => r.TicketId);
+                e.HasIndex(r => r.CreatedAt);
             });
         }
     }

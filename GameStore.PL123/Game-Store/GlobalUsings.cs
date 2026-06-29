@@ -8,4 +8,5 @@ global using GameStore.DAL.Repo;
 global using GameStore.PL;
 global using GameStore.PL.Filters;
 global using GameStore.PL.Hubs;
+global using AutoMapper;
 global using GameStore.PL.Services;

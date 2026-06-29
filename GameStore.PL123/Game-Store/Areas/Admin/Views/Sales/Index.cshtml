@@ -1,0 +1,75 @@
+@model List<Sale>
+@{
+    var message = ViewData["Message"] as string;
+    var isError = ViewData["IsError"] is true;
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+  <div class="alert @(isError ? "alert-danger" : "alert-success")" style="text-align:center;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;margin-bottom:20px;">
+    @message
+  </div>
+}
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
+  <div>
+    <h1>Pending Sales</h1>
+    <p>Sale requests awaiting approval.</p>
+  </div>
+</div>
+
+@if (!Model.Any())
+{
+  <div style="text-align:center;padding:80px;font-family:var(--font-mono);color:var(--text-dim);">
+    [ NO PENDING SALES ]
+  </div>
+}
+else
+{
+  <div class="table-responsive">
+    <table class="cyber-table">
+      <thead>
+        <tr>
+          <th>GAME</th>
+          <th>DEVELOPER</th>
+          <th>ORIGINAL</th>
+          <th>SALE PRICE</th>
+          <th>DISCOUNT</th>
+          <th>START</th>
+          <th>END</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        @foreach (var sale in Model)
+        {
+          var discountPct = sale.Game?.Price > 0
+              ? (int)((1 - sale.NewPrice / sale.Game.Price) * 100)
+              : 0;
+          <tr>
+            <td style="color:var(--gold);font-weight:600;">@(sale.Game?.Title ?? "Unknown")</td>
+            <td style="font-size:11px;color:var(--text-dim);">@(sale.Developer?.Name ?? "—")</td>
+            <td style="color:var(--text-dim);text-decoration:line-through;">$@(sale.Game?.Price.ToString("N2") ?? "0.00")</td>
+            <td style="color:#4ade80;font-weight:700;">$@sale.NewPrice.ToString("N2")</td>
+            <td style="color:var(--red);font-weight:700;">-@discountPct%</td>
+            <td style="font-size:11px;">@sale.StartDate.ToString("MMM dd, yyyy")</td>
+            <td style="font-size:11px;">@sale.EndDate.ToString("MMM dd, yyyy")</td>
+            <td style="white-space:nowrap;">
+              <form method="post" asp-action="Approve" asp-route-id="@sale.Id" style="display:inline;"
+                onsubmit="event.preventDefault(); showConfirmModal('APPROVE sale for @(sale.Game?.Title)?', this)">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-primary" style="padding:4px 10px;font-size:10px;">APPROVE</button>
+              </form>
+              <form method="post" asp-action="Reject" asp-route-id="@sale.Id" style="display:inline-flex;align-items:center;gap:4px;"
+                onsubmit="event.preventDefault(); showConfirmModal('REJECT sale for @(sale.Game?.Title)?', this)">
+                @Html.AntiForgeryToken()
+                <input type="text" name="reason" placeholder="Reason (optional)" style="width:100px;padding:4px 6px;font-size:10px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:4px;"/>
+                <button type="submit" class="btn btn-danger" style="padding:4px 10px;font-size:10px;">REJECT</button>
+              </form>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

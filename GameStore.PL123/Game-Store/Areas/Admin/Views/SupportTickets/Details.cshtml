@@ -1,0 +1,121 @@
+@model SupportTicket
+@{
+    ViewData["Title"] = "Ticket - " + Model.Subject;
+    var adminId = Context.Session.GetString("UserId");
+}
+
+<style>
+    .td-container { max-width:700px; margin:0 auto; }
+    .td-header { background:var(--bg2); border:1px solid var(--border); padding:24px; margin-bottom:20px; }
+    .td-subject { font-family:var(--font-display); font-size:16px; letter-spacing:2px; color:var(--text); }
+    .td-meta { font-family:var(--font-mono); font-size:10px; color:var(--text-dim); margin-top:8px; }
+    .td-message { font-family:var(--font-mono); font-size:13px; color:var(--text); line-height:1.7; margin-top:16px; padding:16px; background:var(--bg3); border:1px solid rgba(255,255,255,0.04); }
+    .td-reply { display:flex; gap:12px; padding:16px; margin-bottom:8px; background:var(--bg2); border:1px solid var(--border); }
+    .td-reply-av { width:32px; height:32px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:13px; flex-shrink:0; }
+    .td-reply-body { flex:1; min-width:0; }
+    .td-reply-name { font-family:var(--font-mono); font-size:11px; color:var(--cyan); }
+    .td-reply-time { font-family:var(--font-mono); font-size:9px; color:var(--text-dim); margin-left:8px; }
+    .td-reply-text { font-family:var(--font-mono); font-size:12px; color:var(--text); line-height:1.6; margin-top:4px; }
+</style>
+
+<div class="td-container mt-4 pt-4">
+
+    <a asp-action="Index" style="display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-decoration:none;margin-bottom:16px;transition:0.2s;"
+       onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text-dim)'"><i class="fas fa-arrow-left"></i> BACK TO TICKETS</a>
+
+    @if (TempData["Message"] != null)
+    {
+      <div class="alert @((bool)(TempData["IsError"] ?? false) ? "alert-danger" : "alert-success")" style="text-align:center;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;margin-bottom:20px;">
+        @TempData["Message"]
+      </div>
+    }
+
+    <div class="td-header">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+            <div>
+                <div class="td-subject">@Model.Subject</div>
+                <div class="td-meta">
+                    Opened @Model.CreatedAt.ToString("MMM dd, yyyy  ·  HH:mm")
+                    @if (Model.User != null)
+                    {
+                        <span> by @Model.User.Username</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <span> — <a href="mailto:@Model.Email" style="color:var(--gold);">@Model.Email</a></span>
+                    }
+                </div>
+            </div>
+            <div>
+                <form method="post" asp-action="UpdateStatus" asp-route-id="@Model.Id" style="display:flex;gap:6px;align-items:center;">
+                    @Html.AntiForgeryToken()
+                    @{
+                        var st = (int)Model.Status;
+                    }
+                    <select name="status" style="background:var(--bg3);border:1px solid rgba(255,255,255,0.08);color:var(--text);font-family:var(--font-mono);font-size:10px;padding:4px 8px;outline:none;">
+                        <option value="0" selected="@(st == 0)">OPEN</option>
+                        <option value="1" selected="@(st == 1)">IN PROGRESS</option>
+                        <option value="2" selected="@(st == 2)">RESOLVED</option>
+                        <option value="3" selected="@(st == 3)">CLOSED</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary" style="padding:4px 10px;font-size:10px;">UPDATE</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="td-message">@Model.Message</div>
+    </div>
+
+    @* Replies *@
+    @if (Model.Replies.Any())
+    {
+        <div style="margin-bottom:20px;">
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-bottom:12px;">REPLIES (@Model.Replies.Count)</div>
+            @foreach (var reply in Model.Replies)
+            {
+                var isStaff = reply.UserId == adminId || reply.User?.Role == Role.ADMIN;
+                <div class="td-reply" style="@(isStaff ? "border-color:var(--gold);background:rgba(245,197,66,0.02);" : "")">
+                    <div class="td-reply-av" style="@(isStaff ? "border-color:var(--gold);color:var(--gold);" : "color:var(--cyan);")">
+                        @if (reply.User != null && !string.IsNullOrEmpty(reply.User.AvatarUrl))
+                        {
+                            <img src="@reply.User.AvatarUrl" alt="" style="width:100%;height:100%;object-fit:cover;" />
+                        }
+                        else if (reply.User != null)
+                        {
+                            @reply.User.Username[0]
+                        }
+                        else
+                        {
+                            <i class="fas fa-user" style="font-size:12px;"></i>
+                        }
+                    </div>
+                    <div class="td-reply-body">
+                        <div>
+                            <span class="td-reply-name" style="@(isStaff ? "color:var(--gold);" : "")">@(reply.User?.Username ?? "Support Team")</span>
+                            @if (isStaff)
+                            {
+                                <span style="font-size:8px;color:var(--gold);border:1px solid var(--gold);padding:1px 5px;margin-left:4px;">STAFF</span>
+                            }
+                            <span class="td-reply-time">@reply.CreatedAt.ToString("MMM dd, yyyy  ·  HH:mm")</span>
+                        </div>
+                        <div class="td-reply-text">@reply.Message</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* Admin reply form *@
+    <div style="background:var(--bg2);border:1px solid var(--border);padding:20px;">
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--gold);margin-bottom:12px;"><i class="fas fa-reply"></i> STAFF REPLY</div>
+        <form method="post" asp-action="Reply" asp-route-id="@Model.Id">
+            @Html.AntiForgeryToken()
+            <textarea name="message" rows="3" maxlength="2000" placeholder="Type your reply..." required
+                style="width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,0.06);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:12px;resize:none;outline:none;transition:border 0.2s;"
+                onfocus="this.style.borderColor='rgba(245,197,66,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.06)'"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                <button type="submit" class="btn btn-primary" style="padding:8px 20px;font-size:11px;">SEND REPLY</button>
+            </div>
+        </form>
+    </div>
+</div>

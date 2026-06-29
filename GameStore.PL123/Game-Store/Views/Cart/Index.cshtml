@@ -83,14 +83,30 @@
   <div style="display:flex; justify-content:space-between; align-items:center; margin-top:32px; padding:24px 32px; background:var(--bg2); border:1px solid var(--border-red);">
     <div>
       <div style="font-family:var(--font-mono); font-size:12px; color:var(--text-dim); letter-spacing:1px;">TOTAL</div>
-      <div class="cart-total">$@Model.TotalPrice.ToString("N2")</div>
+      <div class="cart-total">@(Model.TotalPrice == 0 ? "FREE" : "$" + Model.TotalPrice.ToString("N2"))</div>
     </div>
-    <form method="post" asp-action="Checkout"
-      data-msg="Confirm purchase of @Model.CartItems.Count game(s) for $@Model.TotalPrice.ToString("N2")?"
-      onsubmit="event.preventDefault(); showConfirmModal(this.dataset.msg, this)">
-      @Html.AntiForgeryToken()
-      <button type="submit" class="btn btn-primary" style="padding:14px 36px; font-size:14px;">PROCEED TO CHECKOUT</button>
-    </form>
+    @if (Model.TotalPrice == 0)
+    {
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="freeConfirm" onchange="document.getElementById('claimBtn').disabled = !this.checked;" style="accent-color:var(--gold);width:18px;height:18px;">
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);">I confirm I want to add these free games to my library</span>
+        </label>
+        <form method="post" asp-action="Checkout">
+          @Html.AntiForgeryToken()
+          <button type="submit" id="claimBtn" class="btn btn-primary" style="padding:14px 36px;font-size:14px;" disabled>CLAIM FREE GAMES</button>
+        </form>
+      </div>
+    }
+    else
+    {
+      <form method="post" asp-action="Checkout"
+        data-msg="Confirm purchase of @Model.CartItems.Count game(s) for $@Model.TotalPrice.ToString("N2")?"
+        onsubmit="event.preventDefault(); showConfirmModal(this.dataset.msg, this)">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-primary" style="padding:14px 36px; font-size:14px;">PROCEED TO CHECKOUT</button>
+      </form>
+    }
   </div>
 }
 else
