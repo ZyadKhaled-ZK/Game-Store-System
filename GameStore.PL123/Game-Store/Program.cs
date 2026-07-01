@@ -1,7 +1,9 @@
 using System.IO.Compression;
+using System.Security.Claims;
 using GameStore.PL.Hubs;
 using GameStore.PL.Mappings;
 using GameStore.PL.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
@@ -102,6 +104,38 @@ builder.Services.AddSession(options => // TECHNOLOGY: Session Auth - Custom (no 
     options.Cookie.Name        = ".GameStore.Session";
 });
 
+// Cookie-based authentication (replacing session-only auth)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath        = "/Auth/Login";
+        options.LogoutPath       = "/Auth/Logout";
+        options.AccessDeniedPath = "/Home/Index";
+        options.Cookie.Name      = ".GameStore.Auth";
+        options.Cookie.HttpOnly  = true;
+        options.Cookie.SameSite  = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.ExpireTimeSpan   = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+    })
+    .AddGoogle(options =>
+    {
+        options.ClientId     = builder.Configuration["Google:ClientId"] ?? "";
+        options.ClientSecret = builder.Configuration["Google:ClientSecret"] ?? "";
+        options.CallbackPath = "/auth/google-callback";
+        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.SaveTokens   = true;
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly",     p => p.RequireClaim("Role", "ADMIN"));
+    options.AddPolicy("DeveloperOnly", p => p.RequireClaim("Role", "DEVELOPER"));
+    options.AddPolicy("CustomerOnly",  p => p.RequireClaim("Role", "CUSTOMER"));
+});
+
 var app = builder.Build();
 
 // ── Database: migrate + seed ────────────────────────────────────────────────
@@ -166,7 +200,8 @@ app.UseCors(); // TECHNOLOGY: CORS - Same-origin with credentials
 
 app.UseOutputCache(); // TECHNOLOGY: Output caching - 10 min default TTL
 app.UseSession(); // TECHNOLOGY: Session - Auth state
-app.UseAuthorization(); // TECHNOLOGY: Auth - Role-based filters
+app.UseAuthentication(); // TECHNOLOGY: Cookie Auth - ClaimsPrincipal
+app.UseAuthorization(); // TECHNOLOGY: Auth - Role-based filters + policies
 
 app.MapHealthChecks("/health"); // TECHNOLOGY: Health check - load balancer probe
 

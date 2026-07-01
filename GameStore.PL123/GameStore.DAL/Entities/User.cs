@@ -22,6 +22,8 @@ namespace GameStore.DAL.Entities
 
         public Role Role { get; set; } = Role.CUSTOMER;
 
+        public bool IsExternalAccount { get; set; }
+
         // Navigation Properties
         public Cart? Cart { get; set; }
         public Library? Library { get; set; }

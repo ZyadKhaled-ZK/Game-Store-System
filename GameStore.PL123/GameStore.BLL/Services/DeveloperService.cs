@@ -100,6 +100,7 @@ namespace GameStore.BLL.Services
                 .Include(g => g.LibraryGames)
                 .Include(g => g.Reviews)
                 .Include(g => g.OrderItems)
+                .AsSplitQuery()
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -122,6 +123,7 @@ namespace GameStore.BLL.Services
                 .Include(g => g.Reviews)
                 .Include(g => g.GameCategories).ThenInclude(gc => gc.Category)
                 .OrderByDescending(g => g.CreatedAt)
+                .AsSplitQuery()
                 .AsNoTracking()
                 .ToListAsync();
 

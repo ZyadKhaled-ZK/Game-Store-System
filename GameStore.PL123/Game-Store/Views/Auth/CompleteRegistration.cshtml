@@ -1,0 +1,117 @@
+@model CompleteRegistrationViewModel
+@{
+    ViewData["Title"] = "Complete Registration";
+}
+
+<style>
+  .reg-box {
+    background: var(--bg2);
+    border: 1px solid var(--border-cyan);
+    padding: 40px;
+    box-shadow: var(--glow-cyan);
+    animation: loginIn 0.4s ease;
+  }
+  .reg-input {
+    background: var(--bg3) !important;
+    border: 1px solid var(--border-cyan) !important;
+    color: var(--text) !important;
+    border-radius: 0 !important;
+    padding: 12px 16px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 13px !important;
+    transition: all 0.25s !important;
+  }
+  .reg-input:focus {
+    border-color: var(--cyan) !important;
+    box-shadow: 0 0 0 2px #070709, 0 0 16px 3px rgba(82,190,220,0.35) !important;
+    background: #0a0a0e !important;
+  }
+  .reg-input::placeholder {
+    color: var(--text-dim) !important;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .gs-submit-btn {
+    all: unset;
+    cursor: pointer;
+    width: 100%;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #fff;
+    position: relative;
+    transition: transform .2s ease;
+    margin-top: 1.5rem;
+    display: block;
+    text-align: center;
+  }
+  .gs-submit-btn::before {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom right, #0f6b7a, var(--cyan));
+    transform: scale(1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .gs-submit-btn span {
+    position: relative;
+    padding: 14px 24px;
+    width: 100%;
+    display: block;
+    z-index: 2;
+  }
+  .gs-submit-btn:hover { transform: scale(1.02); }
+  .gs-submit-btn:hover::before { transform: scale(1.04); box-shadow: 0 0 30px rgba(82,190,220,0.5); }
+</style>
+
+<div class="row w-100 justify-content-center mt-5 pt-5">
+    <div class="col-md-5">
+        <div class="section-header text-center mb-4">
+            <h2 class="section-title">COMPLETE PROFILE</h2>
+            <div class="section-tag d-inline-flex">One more step</div>
+        </div>
+
+        <div class="reg-box">
+            <div style="color: var(--cyan); border: 1px solid var(--cyan); padding: 5px 15px; display: inline-block; font-size: 12px; margin-bottom: 20px; font-family: var(--font-mono);">
+                WELCOME TO GAMESTORE
+            </div>
+
+            <p style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; margin-bottom: 20px;">
+                Choose your username and optional bio to complete your profile.
+            </p>
+
+            <partial name="_Alert" />
+
+            <form method="post">
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">USERNAME //:</label>
+                    <input asp-for="Username" class="form-control reg-input" placeholder="Choose a unique username" maxlength="100" />
+                    <span asp-validation-for="Username" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Bio" class="form-label" style="color: var(--text-dim); font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px;">BIO //: <span style="color: var(--text-dim); opacity: 0.5;">(optional)</span></label>
+                    <textarea asp-for="Bio" class="form-control reg-input" rows="3" placeholder="Tell us about yourself..." maxlength="500" style="resize: vertical;"></textarea>
+                    <span asp-validation-for="Bio" class="text-danger" style="font-family:var(--font-mono);font-size:11px;"></span>
+                </div>
+
+                <button type="submit" class="gs-submit-btn">
+                    <span>COMPLETE REGISTRATION</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="/Auth/Logout" style="color: var(--text-dim); font-family: var(--font-mono); text-decoration: none; transition: all 0.2s; font-size: 12px;"
+               onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text-dim)'">
+                &lt; CANCEL &amp; LOGOUT
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

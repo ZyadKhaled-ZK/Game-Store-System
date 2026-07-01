@@ -127,6 +127,59 @@ namespace GameStore.BLL.Services
             return (true, string.Empty);
         }
 
+        public async Task<(User? User, bool IsNew)> GetOrCreateExternalUserAsync(string email, string username, string? avatarUrl)
+        {
+            var user = await _uow.Repository<User>().FirstOrDefaultAsync(u => u.Email == email);
+            if (user != null) return (user, false);
+
+            var baseUsername = username;
+            int suffix = 1;
+            while (await _uow.Repository<User>().AnyAsync(u => u.Username == username))
+            {
+                username = $"{baseUsername}{suffix}";
+                suffix++;
+            }
+
+            user = new User
+            {
+                Username = username,
+                Email = email,
+                AvatarUrl = avatarUrl,
+                PasswordHash = HashPassword(Guid.NewGuid().ToString()),
+                Role = Role.CUSTOMER,
+                IsExternalAccount = true
+            };
+
+            await _uow.Repository<User>().AddAsync(user);
+            await _uow.SaveChangesAsync();
+            return (user, true);
+        }
+
+        public async Task<bool> IsExternalAccountAsync(string email)
+        {
+            var user = await _uow.Repository<User>().FirstOrDefaultAsync(u => u.Email == email);
+            return user?.IsExternalAccount ?? false;
+        }
+
+        public async Task<(bool Success, string Error)> UpdateProfileAsync(string userId, string username, string? bio)
+        {
+            var user = await _uow.Repository<User>().GetByIdAsync(userId);
+            if (user == null) return (false, "User not found.");
+
+            if (user.Username != username && await _uow.Repository<User>().AnyAsync(u => u.Username == username))
+                return (false, "Username already taken.");
+
+            user.Username = username;
+            user.Bio = bio;
+            await _uow.SaveChangesAsync();
+            return (true, string.Empty);
+        }
+
+        public async Task<bool> UsernameExistsAsync(string username)
+        {
+            return await _uow.Repository<User>().AnyAsync(u => u.Username == username);
+        }
+
         public async Task<(bool Success, string Error)> UpdateEmailAsync(string userId, string newEmail)
         {
             if (await _uow.Repository<User>().AnyAsync(u => u.Email == newEmail && u.Id != userId))
