@@ -4,7 +4,6 @@ namespace GameStore.BLL.Services
     {
         Task<Developer?> GetByUserIdAsync(string userId);
         Task<Developer?> GetByIdAsync(string id);
-        Task<Developer?> GetBySlugAsync(string slug);
         Task<List<Developer>> GetAllAsync();
         Task<List<Game>> GetGamesAsync(string developerId);
         Task<(bool Success, string Error)> CreateOrUpdateProfileAsync(string userId, string name, string? slug, string? description, string? website, string? logoUrl, string? country);

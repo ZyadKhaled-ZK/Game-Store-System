@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"><!-- TECHNOLOGY: Chart.js, Bootstrap Icons, SignalR JS, Google Fonts -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - Admin Portal</title>
+    @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+    <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
     @await RenderSectionAsync("MetaTags", required: false)
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -326,8 +328,9 @@
              <div id="adminNotifList" style="max-height:320px;overflow-y:auto;"></div>
              <div style="border-top:1px solid rgba(255,255,255,0.06);padding:8px 16px;display:flex;gap:8px;">
                 <a href="#" onclick="document.getElementById('adminNotifDropdown').style.display='none';return false;" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="bi bi-bell"></i> Close</a>
-               <a href="/Admin/DeveloperApplications" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="bi bi-person-plus"></i> Apps</a>
-               <a href="/Admin/Sales" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="bi bi-tag"></i> Sales</a>
+                <a href="#" onclick="adminMarkAllAsRead();return false;" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="bi bi-check-all"></i> Read All</a>
+                <a href="/Admin/DeveloperApplications" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="bi bi-person-plus"></i> Apps</a>
+                <a href="/Admin/Sales" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="bi bi-tag"></i> Sales</a>
              </div>
            </div>
          </li>
@@ -394,6 +397,45 @@
         }
         if (!bellBtn || !dropdown || !notifList || !isAdmin()) return;
 
+        window.adminMarkAllAsRead = function() {
+          try {
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            if (!meta) { console.error('CSRF meta tag not found'); return; }
+            var token = meta.getAttribute('content');
+            fetch('/Notifications/MarkAllAsRead', {
+              method: 'POST',
+              headers: { 'RequestVerificationToken': token }
+            }).then(function(r) {
+              if (r.ok) updateAdminNotifs(); else console.error('adminMarkAllAsRead failed', r.status);
+            }).catch(function(e) { console.error('adminMarkAllAsRead error', e); });
+          } catch(e) { console.error('adminMarkAllAsRead exception', e); }
+        };
+
+        window.adminMarkAsRead = function(id, url) {
+          try {
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            if (!meta) { console.error('CSRF meta tag not found'); return; }
+            var token = meta.getAttribute('content');
+            fetch('/Notifications/MarkAsRead', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+              },
+              body: 'id=' + encodeURIComponent(id)
+            }).then(function(r) {
+              if (r.ok) {
+                var item = document.querySelector('[data-notif-id="' + id + '"]');
+                if (item) item.remove();
+                updateAdminNotifs();
+                if (url) window.location.href = url;
+              } else {
+                console.error('adminMarkAsRead failed', r.status);
+              }
+            }).catch(function(e) { console.error('adminMarkAsRead error', e); });
+          } catch(e) { console.error('adminMarkAsRead exception', e); }
+        };
+
         function updateAdminNotifs() {
           fetch('/Notifications/GetAdminNotificationData').then(function(r) { return r.json(); }).then(function(d) {
             var total = d.total || 0;
@@ -406,7 +448,7 @@
             if (d.pendingSales > 0 || d.pendingApplications > 0) {
               html += '<div style="padding:8px 16px;border-bottom:1px solid var(--border);">';
               if (d.pendingApplications > 0) {
-                html += '<a href="/Admin/DeveloperApplications" style="display:flex;align-items:center;gap:12px;padding:8px 0;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">' +
+                html += '<a href="/Admin/DeveloperApplications" onclick="adminMarkAllAsRead()" style="display:flex;align-items:center;gap:12px;padding:8px 0;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">' +
                   '<div style="width:32px;height:32px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gold);background:rgba(245,197,66,0.06);flex-shrink:0;"><i class="bi bi-person-plus"></i></div>' +
                   '<div style="flex:1;min-width:0;">' +
                     '<div style="font-family:var(--font-mono);font-size:12px;">Pending Applications</div>' +
@@ -416,7 +458,7 @@
                 '</a>';
               }
               if (d.pendingSales > 0) {
-                html += '<a href="/Admin/Sales" style="display:flex;align-items:center;gap:12px;padding:8px 0;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">' +
+                html += '<a href="/Admin/Sales" onclick="adminMarkAllAsRead()" style="display:flex;align-items:center;gap:12px;padding:8px 0;text-decoration:none;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">' +
                   '<div style="width:32px;height:32px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gold);background:rgba(245,197,66,0.06);flex-shrink:0;"><i class="bi bi-tag"></i></div>' +
                   '<div style="flex:1;min-width:0;">' +
                     '<div style="font-family:var(--font-mono);font-size:12px;">Pending Sales</div>' +
@@ -436,8 +478,8 @@
                 var icon = iconMap[n.type] || 'bi-info-circle-fill';
                 var bgMap = { success: 'rgba(74,222,128,0.06)', error: 'rgba(230,57,70,0.06)', warning: 'rgba(245,197,66,0.06)', info: 'rgba(0,229,255,0.06)' };
                 var colorMap = { success: '#4ade80', error: 'var(--red)', warning: 'var(--gold)', info: 'var(--cyan)' };
-                html += '<div class="notif-item" style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);text-decoration:none;' + (n.isRead ? '' : 'background:rgba(230,57,70,0.03);') + '" ' +
-                  (n.referenceUrl ? 'onclick="window.location.href=\'' + n.referenceUrl + '\'" style="cursor:pointer;"' : '') + '>' +
+                html += '<div class="notif-item" data-notif-id="' + n.id + '" style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);text-decoration:none;cursor:pointer;' + (n.isRead ? '' : 'background:rgba(230,57,70,0.03);') + '"' +
+                  ' onclick="adminMarkAsRead(\'' + n.id + '\', \'' + (n.referenceUrl || '') + '\')">' +
                   '<div style="width:28px;height:28px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:' + (colorMap[n.type] || 'var(--text-dim)') + ';background:' + (bgMap[n.type] || 'rgba(255,255,255,0.02)') + ';flex-shrink:0;"><i class="bi ' + icon + '"></i></div>' +
                   '<div style="flex:1;min-width:0;">' +
                     '<div style="font-family:var(--font-mono);font-size:11px;' + (n.isRead ? '' : 'color:white;') + '">' + n.title + '</div>' +
@@ -488,7 +530,8 @@
         connection.on("ReceiveNotification", function(data) {
           var type = data.type || 'info';
           if (typeof showToast === 'function') {
-            showToast(data.message || data.title, type);
+            var msg = data.senderName ? data.senderName + ': ' + (data.message || data.title) : (data.message || data.title);
+            showToast(msg, type);
           }
           var bell = document.getElementById('adminNotificationBell');
           if (bell) { bell.classList.add('hasNew'); setTimeout(function(){ bell.classList.remove('hasNew'); }, 500); }

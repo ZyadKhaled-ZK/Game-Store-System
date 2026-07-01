@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using GameStore.DAL.Enum;
 
 namespace GameStore.DAL.Entities;
 

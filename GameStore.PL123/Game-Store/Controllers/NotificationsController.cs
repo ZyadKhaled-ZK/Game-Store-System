@@ -93,8 +93,7 @@ public class NotificationsController : Controller
         if (notif.UserId != null && notif.UserId != userId) return NotFound();
         if (notif.UserId == null && !isAdmin) return NotFound();
 
-        notif.ReadAt = DateTime.UtcNow;
-        _uow.Repository<UserNotification>().Update(notif);
+        _uow.Repository<UserNotification>().Delete(notif);
         await _uow.SaveChangesAsync();
 
         return Ok();
@@ -114,9 +113,17 @@ public class NotificationsController : Controller
             .ToListAsync();
 
         foreach (var n in unread)
-            n.ReadAt = DateTime.UtcNow;
+            _uow.Repository<UserNotification>().Delete(n);
 
-        await _uow.SaveChangesAsync();
+        var unreadMessages = await _uow.Repository<Message>().Query()
+            .Where(m => m.ReceiverId == userId && m.ReadAt == null)
+            .ToListAsync();
+
+        foreach (var m in unreadMessages)
+            m.ReadAt = DateTime.UtcNow;
+
+        if (unread.Count > 0 || unreadMessages.Count > 0)
+            await _uow.SaveChangesAsync();
 
         return Ok();
     }

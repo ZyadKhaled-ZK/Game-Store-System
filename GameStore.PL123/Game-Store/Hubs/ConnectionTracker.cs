@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 
 namespace GameStore.PL.Hubs;
 
-public class ConnectionTracker
+public class ConnectionTracker // TECHNOLOGY: SignalR - Online presence tracking
 {
     private readonly ConcurrentDictionary<string, HashSet<string>> _connections = new();
     private readonly ConcurrentDictionary<string, DateTime> _lastSeen = new();

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace GameStore.PL.Hubs;
 
-public class NotificationHub : Hub
+public class NotificationHub : Hub // TECHNOLOGY: SignalR Hub - Real-time notifications + chat
 {
     private readonly ConnectionTracker _tracker;
     private readonly IChatService _chatService;

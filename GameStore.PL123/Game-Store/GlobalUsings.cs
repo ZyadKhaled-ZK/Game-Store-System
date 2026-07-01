@@ -1,3 +1,4 @@
+// TECHNOLOGY: ASP.NET Core MVC, AutoMapper, SignalR, EF Core - Web app globals
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.EntityFrameworkCore;
 global using GameStore.BLL.Services;

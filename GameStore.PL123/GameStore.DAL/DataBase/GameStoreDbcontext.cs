@@ -1,6 +1,6 @@
 namespace GameStore.DAL.DataBase
 {
-    public class GameStoreDbContext : DbContext
+    public class GameStoreDbContext : DbContext // TECHNOLOGY: EF Core DbContext - All entity configs
     {
         public GameStoreDbContext(DbContextOptions<GameStoreDbContext> options)
             : base(options) { }

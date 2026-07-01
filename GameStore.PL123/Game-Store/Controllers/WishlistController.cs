@@ -51,6 +51,29 @@ public class WishlistController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ToggleWishlist([FromBody] string gameId)
+    {
+        if (string.IsNullOrEmpty(UserId))
+            return Json(new { success = false, message = "Please login first." });
+
+        var inWishlist = await _wishlistService.IsInWishlistAsync(UserId, gameId);
+
+        if (inWishlist)
+        {
+            var items = await _wishlistService.GetWishlistAsync(UserId);
+            var item = items.FirstOrDefault(w => w.GameId == gameId);
+            if (item != null) await _wishlistService.RemoveFromWishlistAsync(item.Id, UserId);
+            return Json(new { success = true, inWishlist = false });
+        }
+        else
+        {
+            var (success, message) = await _wishlistService.AddToWishlistAsync(UserId, gameId);
+            return Json(new { success, inWishlist = success, message });
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddToCart(string gameId)
     {
         if (string.IsNullOrEmpty(UserId)) return RedirectToAction("Login", "Auth");

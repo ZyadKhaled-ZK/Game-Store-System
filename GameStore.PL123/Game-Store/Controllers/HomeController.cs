@@ -9,30 +9,29 @@ namespace GameStore.PL.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
-    private readonly IWebHostEnvironment _env;
-    private readonly ICartService _cartService;
-    private readonly IReviewService _reviewService;
     private readonly IGameService _gameService;
     private readonly ICategoryService _categoryService;
+    private readonly ICartService _cartService;
     private readonly IWishlistService _wishlistService;
     private readonly ILibraryService _libraryService;
     private readonly ISaleService _saleService;
+    private readonly IReviewService _reviewService;
     private readonly IMapper _mapper;
 
-    public HomeController(ILogger<HomeController> logger, IWebHostEnvironment env,
-        ICartService cartService, IReviewService reviewService, IGameService gameService,
-        ICategoryService categoryService, IWishlistService wishlistService,
-        ILibraryService libraryService, ISaleService saleService, IMapper mapper)
+    public HomeController(ILogger<HomeController> logger,
+        IGameService gameService, ICategoryService categoryService,
+        ICartService cartService, IWishlistService wishlistService,
+        ILibraryService libraryService, ISaleService saleService,
+        IReviewService reviewService, IMapper mapper)
     {
         _logger = logger;
-        _env = env;
-        _cartService = cartService;
-        _reviewService = reviewService;
         _gameService = gameService;
         _categoryService = categoryService;
+        _cartService = cartService;
         _wishlistService = wishlistService;
         _libraryService = libraryService;
         _saleService = saleService;
+        _reviewService = reviewService;
         _mapper = mapper;
     }
 
@@ -108,79 +107,6 @@ public class HomeController : Controller
         );
 
         return View(model);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Download(string id)
-    {
-        var userId = HttpContext.Session.GetString("UserId");
-        if (string.IsNullOrEmpty(userId))
-            return RedirectToAction("Login", "Auth");
-
-        var game = await _gameService.GetByIdAsync(id);
-        if (game == null || string.IsNullOrEmpty(game.GameFileUrl))
-            return NotFound();
-
-        var owns = await _libraryService.HasGame(userId, id);
-        if (!owns)
-            return Unauthorized();
-
-        var filePath = Path.Combine(_env.WebRootPath, game.GameFileUrl.TrimStart('/'));
-        if (!System.IO.File.Exists(filePath))
-            return NotFound();
-
-        return PhysicalFile(filePath, "application/octet-stream", game.GameFileName ?? "game.zip");
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddToCart([FromBody] string gameId)
-    {
-        var userId = HttpContext.Session.GetString("UserId");
-        if (string.IsNullOrEmpty(userId))
-            return Json(new { success = false, message = "Please login first." });
-
-        var (success, message) = await _cartService.AddToCartAsync(userId, gameId);
-        return Json(new { success, message });
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleWishlist([FromBody] string gameId)
-    {
-        var userId = HttpContext.Session.GetString("UserId");
-        if (string.IsNullOrEmpty(userId))
-            return Json(new { success = false, message = "Please login first." });
-
-        var inWishlist = await _wishlistService.IsInWishlistAsync(userId, gameId);
-
-        if (inWishlist)
-        {
-            var items = await _wishlistService.GetWishlistAsync(userId);
-            var item = items.FirstOrDefault(w => w.GameId == gameId);
-            if (item != null) await _wishlistService.RemoveFromWishlistAsync(item.Id, userId);
-            return Json(new { success = true, inWishlist = false });
-        }
-        else
-        {
-            var (success, message) = await _wishlistService.AddToWishlistAsync(userId, gameId);
-            return Json(new { success, inWishlist = success, message });
-        }
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddReview([FromBody] ReviewRequest request)
-    {
-        if (!ModelState.IsValid)
-            return Json(new { success = false, message = "Invalid input." });
-
-        var userId = HttpContext.Session.GetString("UserId");
-        if (string.IsNullOrEmpty(userId))
-            return Json(new { success = false, message = "Please login first." });
-
-        var (success, error) = await _reviewService.CreateAsync(userId, request.GameId, request.Rating, request.Comment);
-        return Json(new { success, message = error });
     }
 
     [HttpGet]

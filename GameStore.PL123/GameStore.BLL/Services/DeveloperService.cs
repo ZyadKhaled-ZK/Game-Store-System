@@ -22,12 +22,6 @@ namespace GameStore.BLL.Services
             return await _uow.Repository<Developer>().GetByIdAsync(id);
         }
 
-        public async Task<Developer?> GetBySlugAsync(string slug)
-        {
-            return await _uow.Repository<Developer>().Query()
-                .FirstOrDefaultAsync(d => d.Slug == slug);
-        }
-
         public async Task<List<Developer>> GetAllAsync()
         {
             return await _uow.Repository<Developer>().Query()

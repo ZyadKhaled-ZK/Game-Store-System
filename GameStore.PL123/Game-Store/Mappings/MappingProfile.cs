@@ -5,7 +5,7 @@ using GameStore.PL.Models.Home;
 
 namespace GameStore.PL.Mappings;
 
-public class MappingProfile : Profile
+public class MappingProfile : Profile // TECHNOLOGY: AutoMapper Profile - Entity ↔ ViewModel
 {
     public MappingProfile()
     {

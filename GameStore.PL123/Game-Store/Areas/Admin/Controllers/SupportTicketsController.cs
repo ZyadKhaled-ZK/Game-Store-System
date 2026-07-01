@@ -8,11 +8,13 @@ public class SupportTicketsController : Controller
 {
     private readonly ISupportTicketService _ticketService;
     private readonly INotificationService _notificationService;
+    private readonly IUnitOfWork _uow;
 
-    public SupportTicketsController(ISupportTicketService ticketService, INotificationService notificationService)
+    public SupportTicketsController(ISupportTicketService ticketService, INotificationService notificationService, IUnitOfWork uow)
     {
         _ticketService = ticketService;
         _notificationService = notificationService;
+        _uow = uow;
     }
 
     [HttpGet]
@@ -112,8 +114,7 @@ public class SupportTicketsController : Controller
     {
         if (string.IsNullOrEmpty(id)) return RedirectToAction("Index");
 
-        var uow = HttpContext.RequestServices.GetRequiredService<IUnitOfWork>();
-        var repo = uow.Repository<SupportTicket>();
+        var repo = _uow.Repository<SupportTicket>();
         var ticket = await repo.GetByIdAsync(id);
 
         if (ticket == null)
@@ -124,7 +125,7 @@ public class SupportTicketsController : Controller
         }
 
         repo.Delete(ticket);
-        await uow.SaveChangesAsync();
+        await _uow.SaveChangesAsync();
 
         TempData["Message"] = "Ticket deleted.";
         return RedirectToAction("Index");

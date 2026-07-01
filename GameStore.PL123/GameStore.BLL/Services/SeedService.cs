@@ -30,7 +30,7 @@ namespace GameStore.BLL.Services
                 {
                     Username = "Developer",
                     Email = "dev@gamestore.com",
-                    PasswordHash = AuthService.HashPassword("Dev@1234"),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Dev@1234"),
                     Role = Role.DEVELOPER
                 });
                 await _uow.SaveChangesAsync();
@@ -42,7 +42,7 @@ namespace GameStore.BLL.Services
                 {
                     Username = "Admin",
                     Email = "admin@gamestore.com",
-                    PasswordHash = AuthService.HashPassword("Admin@1234"),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@1234"),
                     Role = Role.ADMIN
                 });
                 await _uow.SaveChangesAsync();

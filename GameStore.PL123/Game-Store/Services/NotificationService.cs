@@ -2,6 +2,7 @@ using GameStore.DAL.Entities;
 using GameStore.DAL.Repo;
 using GameStore.PL.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameStore.PL.Services;
 
@@ -33,12 +34,19 @@ public class NotificationService : INotificationService
         await _uow.Repository<UserNotification>().AddAsync(notification);
         await _uow.SaveChangesAsync();
 
+        var senderName = string.IsNullOrEmpty(senderUserId) ? null
+            : await _uow.Repository<User>().Query()
+                .Where(u => u.Id == senderUserId)
+                .Select(u => u.Username)
+                .FirstOrDefaultAsync();
+
         await _hubContext.Clients.Group(userId).SendAsync("ReceiveNotification", new
         {
             id = notification.Id,
             title,
             message,
             type,
+            senderName,
             category = notification.Category,
             referenceUrl,
             createdAt = notification.CreatedAt

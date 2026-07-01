@@ -30,6 +30,27 @@ public class CategoryServiceTests
     }
 
     [Fact]
+    public async Task GetAllWithGameCountAsync_Includes_Game_Counts()
+    {
+        using var ctx = CreateContext("Cat_WithCount");
+        ctx.Categories.AddRange(
+            new Category { Id = "c1", Name = "Action" },
+            new Category { Id = "c2", Name = "RPG" }
+        );
+        ctx.Games.Add(new Game { Id = "g1", Title = "Game", Price = 10m, ReleaseDate = DateTime.UtcNow });
+        ctx.GameCategories.Add(new GameCategory { GameId = "g1", CategoryId = "c1" });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new CategoryService(uow);
+
+        var cats = await service.GetAllWithGameCountAsync();
+
+        cats.Should().HaveCount(2);
+        cats.Single(c => c.Id == "c1").GameCategories.Should().HaveCount(1);
+        cats.Single(c => c.Id == "c2").GameCategories.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task CreateAsync_Creates_Category()
     {
         using var ctx = CreateContext("Cat_Create");

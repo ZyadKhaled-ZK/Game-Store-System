@@ -376,7 +376,7 @@
         } else if (game.price === 0) html += `<div class="modal-price-val" style="color:var(--gold);">FREE</div>`;
         else html += `<div class="modal-price-val">$${game.price.toFixed(2)}</div>`;
         if (ownedGameIds.includes(game.id)) html += `<span style="font-family:var(--font-mono);font-size:11px;color:#4ade80;margin-left:12px;">[ OWNED ]</span>`;
-        if (game.hasFile && ownedGameIds.includes(game.id)) html += `<div class="modal-download-box"><span class="modal-download-icon">💾</span><div class="modal-download-info"><div class="modal-download-name">${e(game.fileName) || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Home/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
+        if (game.hasFile && ownedGameIds.includes(game.id)) html += `<div class="modal-download-box"><span class="modal-download-icon">💾</span><div class="modal-download-info"><div class="modal-download-name">${e(game.fileName) || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Library/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
         html += `<div class="modal-actions">`;
         if (isLoggedIn) {
             if (ownedGameIds.includes(game.id)) { html += `<span class="btn btn-primary" style="background:rgba(74,222,128,0.08);border-color:rgba(74,222,128,0.2);color:#4ade80;cursor:default;opacity:0.8;">✓ IN LIBRARY</span>`; }
@@ -390,7 +390,7 @@
         html += `<div class="modal-reviews"><div class="modal-reviews-title">> REVIEWS (${gameReviews.length})</div>`;
         if (gameReviews.length === 0) { html += `<div class="modal-no-reviews">No reviews yet.</div>`; }
         else { gameReviews.forEach(r => { html += `<div class="modal-review-card"><div class="modal-review-top"><span class="modal-review-user">${e(r.username)}</span><span class="modal-review-stars">${renderStars(r.rating)}</span></div>${r.comment ? `<div class="modal-review-comment">${e(r.comment)}</div>` : ''}<div class="modal-review-date">${e(r.createdAt)}</div></div>`; }); }
-        if (isLoggedIn) {
+        if (isLoggedIn && ownedGameIds.includes(game.id)) {
             html += `<div class="modal-review-form-box"><div class="modal-review-form-title">WRITE A REVIEW</div><div class="modal-stars-select">`;
             for (let i = 1; i <= 5; i++) html += `<span onclick="setRating(this, ${i})" class="modal-star" data-rating="${i}">☆</span>`;
             html += `</div><textarea id="reviewComment" class="modal-review-textarea" placeholder="Share your thoughts..."></textarea><button onclick="submitReview('${game.id}')" class="btn btn-primary" style="margin-top:12px; padding:8px 16px; font-size:12px;">SUBMIT REVIEW</button><div id="reviewMsg" class="modal-review-msg"></div></div>`;
@@ -409,7 +409,7 @@
 
     function addToCart(gameId, btn) {
         btn.textContent = 'ADDING...'; btn.disabled = true;
-        fetch('/Home/AddToCart', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value }, body: JSON.stringify(gameId) })
+        fetch('/Cart/AddToCart', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value }, body: JSON.stringify(gameId) })
         .then(r => r.json()).then(d => {
             if (d.success) { btn.textContent = '✓ ADDED'; btn.classList.remove('btn-primary'); btn.classList.add('btn-secondary'); cartIds.push(gameId); showToast('Added to cart!', 'success'); }
             else { alert(d.message); btn.textContent = '+ ADD TO CART'; btn.disabled = false; }
@@ -418,7 +418,7 @@
 
     function toggleWishlist(gameId, btn) {
         btn.textContent = '...'; btn.disabled = true;
-        fetch('/Home/ToggleWishlist', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value }, body: JSON.stringify(gameId) })
+        fetch('/Wishlist/ToggleWishlist', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value }, body: JSON.stringify(gameId) })
         .then(r => r.json()).then(d => {
             if (d.success) {
                 if (d.inWishlist) { wishlistIds.push(gameId); btn.innerHTML = '&#9829;'; showToast('Added to wishlist!', 'success'); }
@@ -433,7 +433,7 @@
         const msg = document.getElementById('reviewMsg');
         if (selectedRating === 0) { msg.textContent = '[ERROR] Please select a rating.'; msg.style.color = 'var(--red)'; return; }
         msg.textContent = '[SUBMITTING...]'; msg.style.color = 'var(--text-dim)';
-        fetch('/Home/AddReview', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value }, body: JSON.stringify({ gameId, rating: selectedRating, comment }) })
+        fetch('/Reviews/AddReview', { method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value }, body: JSON.stringify({ gameId, rating: selectedRating, comment }) })
         .then(r => r.json()).then(d => {
             if (d.success) { msg.textContent = '[OK] Review submitted!'; msg.style.color = '#4ade80'; document.getElementById('reviewComment').value = ''; selectedRating = 0; document.querySelectorAll('#modalContent [data-rating]').forEach(s => { s.textContent = '☆'; s.style.color = 'var(--text-dim)'; }); }
             else { msg.textContent = '[ERROR] ' + d.message; msg.style.color = 'var(--red)'; }

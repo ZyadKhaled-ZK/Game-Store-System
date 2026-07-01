@@ -1,3 +1,4 @@
+// TECHNOLOGY: xUnit, Moq, FluentAssertions, EF InMemory - Unit test stack
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;

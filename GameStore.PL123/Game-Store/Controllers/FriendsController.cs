@@ -11,17 +11,21 @@ namespace GameStore.PL.Controllers;
 public class FriendsController : Controller
 {
     private readonly IFriendService _friendService;
+    private readonly IFriendSuggestionService _friendSuggestionService;
     private readonly IUserService _userService;
     private readonly IChatService _chatService;
     private readonly ConnectionTracker _tracker;
     private readonly INotificationService _notifService;
     private readonly IUnitOfWork _uow;
 
-    public FriendsController(IFriendService friendService, IUserService userService,
+    public FriendsController(IFriendService friendService,
+        IFriendSuggestionService friendSuggestionService,
+        IUserService userService,
         IChatService chatService, ConnectionTracker tracker,
         INotificationService notifService, IUnitOfWork uow)
     {
         _friendService = friendService;
+        _friendSuggestionService = friendSuggestionService;
         _userService = userService;
         _chatService = chatService;
         _tracker = tracker;
@@ -40,13 +44,17 @@ public class FriendsController : Controller
 
         var friends = await _friendService.GetFriendsAsync(userId);
         var pending = await _friendService.GetPendingRequestsAsync(userId);
-        var suggestions = await _friendService.GetSuggestionsAsync(userId, 6);
+        var suggestions = await _friendSuggestionService.GetSuggestionsAsync(userId, 6);
+
+        var conversations = await _chatService.GetConversationsAsync(userId);
+        var unreadMap = conversations.ToDictionary(c => c.UserId, c => c.UnreadCount);
 
         var model = new FriendsIndexViewModel
         {
             Friends = friends.Select(f =>
             {
                 var friendUser = f.RequesterId == userId ? f.Receiver : f.Requester;
+                if (friendUser == null) return null;
                 return new FriendViewModel
                 {
                     FriendshipId = f.Id,
@@ -54,15 +62,16 @@ public class FriendsController : Controller
                     Username = friendUser.Username,
                     Avatar = friendUser.AvatarUrl,
                     IsOnline = _tracker.IsOnline(friendUser.Id),
-                    LastSeen = _tracker.GetLastSeen(friendUser.Id)
+                    LastSeen = _tracker.GetLastSeen(friendUser.Id),
+                    UnreadCount = unreadMap.GetValueOrDefault(friendUser.Id, 0)
                 };
-            }).ToList(),
+            }).Where(f => f != null).ToList()!,
             PendingRequests = pending.Select(r => new FriendRequestViewModel
             {
                 FriendshipId = r.Id,
-                RequesterId = r.Requester.Id,
-                Username = r.Requester.Username,
-                Avatar = r.Requester.AvatarUrl,
+                RequesterId = r.Requester?.Id ?? "",
+                Username = r.Requester?.Username ?? "[Deleted User]",
+                Avatar = r.Requester?.AvatarUrl,
                 SentAt = r.CreatedAt
             }).ToList(),
             Suggestions = suggestions.Select(s => new SuggestionViewModel
@@ -90,8 +99,8 @@ public class FriendsController : Controller
         var model = pending.Select(r => new FriendRequestViewModel
         {
             FriendshipId = r.Id,
-            RequesterId = r.Requester.Id,
-            Username = r.Requester.Username,
+            RequesterId = r.Requester?.Id ?? "",
+            Username = r.Requester?.Username ?? "[Deleted User]",
             SentAt = r.CreatedAt
         }).ToList();
 
@@ -183,6 +192,12 @@ public class FriendsController : Controller
         var pending = await _friendService.GetPendingRequestsAsync(userId);
         var unread = await _chatService.GetUnreadCountAsync(userId);
 
+        var refIds = pending.Select(r => r.Id.ToString()).ToList();
+        var notifs = await _uow.Repository<UserNotification>().Query()
+            .Where(n => n.Category == "FriendRequest" && refIds.Contains(n.ReferenceId))
+            .ToListAsync();
+        var notifMap = notifs.ToDictionary(n => n.ReferenceId, n => n.Id);
+
         return Json(new
         {
             pendingRequests = pending.Count,
@@ -190,8 +205,9 @@ public class FriendsController : Controller
             requests = pending.Select(r => new
             {
                 friendshipId = r.Id,
-                username = r.Requester.Username,
-                avatar = r.Requester.AvatarUrl,
+                notifId = notifMap.GetValueOrDefault(r.Id.ToString()),
+                username = r.Requester?.Username ?? "[Deleted User]",
+                avatar = r.Requester?.AvatarUrl,
                 sentAt = r.CreatedAt.ToString("MMM dd")
             })
         });

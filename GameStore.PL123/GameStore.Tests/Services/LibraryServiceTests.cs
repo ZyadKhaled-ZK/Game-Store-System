@@ -60,6 +60,55 @@ public class LibraryServiceTests
     }
 
     [Fact]
+    public async Task AddGameToLibraryAsync_Adds_Game_To_Library()
+    {
+        using var ctx = CreateContext("Lib_Add");
+        ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "a@t.com", PasswordHash = "h" });
+        ctx.Games.Add(new Game { Id = "g1", Title = "Game", Price = 10m, ReleaseDate = DateTime.UtcNow });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new LibraryService(uow);
+
+        await service.AddGameToLibraryAsync("u1", "g1");
+
+        ctx.Libraries.Should().HaveCount(1);
+        ctx.LibraryGames.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task AddGameToLibraryAsync_Creates_Library_If_Not_Exists()
+    {
+        using var ctx = CreateContext("Lib_AddNoLib");
+        ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "a@t.com", PasswordHash = "h" });
+        ctx.Games.Add(new Game { Id = "g1", Title = "Game", Price = 10m, ReleaseDate = DateTime.UtcNow });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new LibraryService(uow);
+
+        await service.AddGameToLibraryAsync("u1", "g1");
+
+        ctx.Libraries.Should().HaveCount(1);
+        ctx.LibraryGames.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public async Task AddGameToLibraryAsync_Does_Not_Duplicate()
+    {
+        using var ctx = CreateContext("Lib_AddDup");
+        ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "a@t.com", PasswordHash = "h" });
+        ctx.Games.Add(new Game { Id = "g1", Title = "Game", Price = 10m, ReleaseDate = DateTime.UtcNow });
+        ctx.Libraries.Add(new Library { Id = "lib1", UserId = "u1" });
+        ctx.LibraryGames.Add(new LibraryGame { LibraryId = "lib1", GameId = "g1" });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new LibraryService(uow);
+
+        await service.AddGameToLibraryAsync("u1", "g1");
+
+        ctx.LibraryGames.Should().HaveCount(1);
+    }
+
+    [Fact]
     public async Task HasGame_Returns_False_If_Not_Owned()
     {
         using var ctx = CreateContext("Lib_NotOwned");

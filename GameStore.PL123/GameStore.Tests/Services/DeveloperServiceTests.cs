@@ -74,20 +74,6 @@ public class DeveloperServiceTests
     }
 
     [Fact]
-    public async Task GetBySlugAsync_Returns_Developer()
-    {
-        using var ctx = CreateContext("Dev_BySlug");
-        ctx.Developers.Add(new Developer { Id = "d1", Name = "Studio", UserId = "u1", Slug = "my-studio" });
-        await ctx.SaveChangesAsync();
-        var uow = new UnitOfWork(ctx);
-        var service = new DeveloperService(uow);
-
-        var dev = await service.GetBySlugAsync("my-studio");
-
-        dev.Should().NotBeNull();
-    }
-
-    [Fact]
     public async Task GetAllAsync_Returns_All()
     {
         using var ctx = CreateContext("Dev_GetAll");
@@ -181,6 +167,50 @@ public class DeveloperServiceTests
 
         success.Should().BeFalse();
         error.Should().Be("Cannot demote yourself.");
+    }
+
+    [Fact]
+    public async Task GetDashboardStatsAsync_Returns_Stats()
+    {
+        using var ctx = CreateContext("Dev_Dashboard");
+        ctx.Games.AddRange(
+            new Game { Id = "g1", Title = "A", DeveloperId = "d1", Price = 10m, ReleaseDate = DateTime.UtcNow },
+            new Game { Id = "g2", Title = "B", DeveloperId = "d1", Price = 20m, ReleaseDate = DateTime.UtcNow }
+        );
+        ctx.Reviews.Add(new Review { Id = "r1", UserId = "u1", GameId = "g1", Rating = 4 });
+        ctx.OrderItems.Add(new OrderItem { Id = "oi1", OrderId = "o1", GameId = "g1", PriceAtPurchase = 10m });
+        ctx.LibraryGames.Add(new LibraryGame { LibraryId = "lib1", GameId = "g1" });
+        ctx.Users.Add(new User { Id = "u1", Username = "A", Email = "a@t.com", PasswordHash = "h" });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new DeveloperService(uow);
+
+        var stats = await service.GetDashboardStatsAsync("d1");
+
+        stats.GameCount.Should().Be(2);
+        stats.TotalRevenue.Should().Be(10);
+    }
+
+    [Fact]
+    public async Task GetGameStatsAsync_Returns_Game_Stats()
+    {
+        using var ctx = CreateContext("Dev_GameStats");
+        ctx.Games.Add(new Game { Id = "g1", Title = "A", DeveloperId = "d1", Price = 10m, ReleaseDate = DateTime.UtcNow });
+        ctx.Reviews.AddRange(
+            new Review { Id = "r1", UserId = "u1", GameId = "g1", Rating = 4 },
+            new Review { Id = "r2", UserId = "u2", GameId = "g1", Rating = 5 }
+        );
+        ctx.LibraryGames.Add(new LibraryGame { LibraryId = "lib1", GameId = "g1" });
+        ctx.Users.Add(new User { Id = "u1", Username = "A", Email = "a@t.com", PasswordHash = "h" });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new DeveloperService(uow);
+
+        var stats = await service.GetGameStatsAsync("d1");
+
+        stats.Should().HaveCount(1);
+        stats[0].Downloads.Should().Be(1);
+        stats[0].AvgRating.Should().Be(4.5);
     }
 
     [Fact]

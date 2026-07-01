@@ -20,16 +20,6 @@ namespace GameStore.BLL.Services
             return cart?.CartItems.ToList() ?? new();
         }
 
-        public async Task<int> GetCartCountAsync(string userId)
-        {
-            var cart = await _uow.Repository<Cart>().Query()
-                .AsNoTracking()
-                .Include(c => c.CartItems)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
-
-            return cart?.CartItems.Count ?? 0;
-        }
-
         public async Task<(bool Success, string Error)> AddToCartAsync(string userId, string gameId)
         {
             var game = await _uow.Repository<Game>().GetByIdAsync(gameId);
@@ -69,19 +59,6 @@ namespace GameStore.BLL.Services
             _uow.Repository<CartItem>().Delete(item);
             await _uow.SaveChangesAsync();
             return true;
-        }
-
-        public async Task ClearCartAsync(string userId)
-        {
-            var cart = await _uow.Repository<Cart>().Query()
-                .Include(c => c.CartItems)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
-
-            if (cart != null)
-            {
-                _uow.Repository<CartItem>().RemoveRange(cart.CartItems);
-                await _uow.SaveChangesAsync();
-            }
         }
     }
 }

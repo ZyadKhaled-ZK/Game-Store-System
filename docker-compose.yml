@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=GameStore_Prod_P@ss123
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "GameStore_Prod_P@ss123" -Q "SELECT 1" -C 2>/dev/null || exit 1
+      interval: 10s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+
+  gamestore:
+    build:
+      context: GameStore.PL123
+      dockerfile: Game-Store/Dockerfile
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/cert.pfx
+      - ConnectionStrings__GameStoreConnection=Server=sqlserver;Database=GameStoreDB;User Id=sa;Password=GameStore_Prod_P@ss123;TrustServerCertificate=True;
+      - ConnectionStrings__Redis=redis:6379
+      - STRIPE__SECRETKEY=
+      - STRIPE__PUBLISHABLEKEY=
+      - STRIPE__WEBHOOKSECRET=
+      - PasswordSalt=
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/wwwroot/uploads
+
+volumes:
+  mssql-data:
+  redis-data:
+  uploads:

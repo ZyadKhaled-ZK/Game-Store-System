@@ -156,6 +156,101 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task GetUsersByRoleAsync_Returns_Grouped_Counts()
+    {
+        using var ctx = CreateContext("User_ByRole");
+        ctx.Users.AddRange(
+            new User { Id = "u1", Username = "A", Email = "a@t.com", PasswordHash = "h", Role = Role.CUSTOMER },
+            new User { Id = "u2", Username = "B", Email = "b@t.com", PasswordHash = "h", Role = Role.CUSTOMER },
+            new User { Id = "u3", Username = "C", Email = "c@t.com", PasswordHash = "h", Role = Role.ADMIN }
+        );
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new UserService(uow);
+
+        var data = await service.GetUsersByRoleAsync();
+
+        data.Should().HaveCount(2);
+        data.Single(r => r.Role == "CUSTOMER").Count.Should().Be(2);
+        data.Single(r => r.Role == "ADMIN").Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetUsersByMonthAsync_Returns_Monthly_Counts()
+    {
+        using var ctx = CreateContext("User_ByMonth");
+        ctx.Users.Add(new User { Id = "u1", Username = "A", Email = "a@t.com", PasswordHash = "h", CreatedAt = DateTime.UtcNow });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new UserService(uow);
+
+        var data = await service.GetUsersByMonthAsync(1);
+
+        data.Should().HaveCount(1);
+        data[0].Count.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_Updates_Avatar_And_Bio()
+    {
+        using var ctx = CreateContext("User_UpdateProfile");
+        ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "a@t.com", PasswordHash = "h" });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new UserService(uow);
+
+        var (success, _) = await service.UpdateProfileAsync("u1", "https://avatar.url", "Hello!");
+
+        success.Should().BeTrue();
+        ctx.Users.Find("u1")!.AvatarUrl.Should().Be("https://avatar.url");
+        ctx.Users.Find("u1")!.Bio.Should().Be("Hello!");
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_Fails_If_User_Not_Found()
+    {
+        using var ctx = CreateContext("User_UpdateProfileNF");
+        var uow = new UnitOfWork(ctx);
+        var service = new UserService(uow);
+
+        var (success, error) = await service.UpdateProfileAsync("nonexistent", null, null);
+
+        success.Should().BeFalse();
+        error.Should().Be("User not found.");
+    }
+
+    [Fact]
+    public async Task GetUsersByIdsAsync_Returns_Matching_Users()
+    {
+        using var ctx = CreateContext("User_ByIds");
+        ctx.Users.AddRange(
+            new User { Id = "u1", Username = "A", Email = "a@t.com", PasswordHash = "h" },
+            new User { Id = "u2", Username = "B", Email = "b@t.com", PasswordHash = "h" },
+            new User { Id = "u3", Username = "C", Email = "c@t.com", PasswordHash = "h" }
+        );
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new UserService(uow);
+
+        var users = await service.GetUsersByIdsAsync(new List<string> { "u1", "u3" });
+
+        users.Should().HaveCount(2);
+        users.Select(u => u.Id).Should().Contain(new[] { "u1", "u3" });
+    }
+
+    [Fact]
+    public async Task GetUsersByIdsAsync_Returns_Empty_If_Null()
+    {
+        using var ctx = CreateContext("User_ByIdsNull");
+        var uow = new UnitOfWork(ctx);
+        var service = new UserService(uow);
+
+        var users = await service.GetUsersByIdsAsync(null!);
+
+        users.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task SearchUsersAsync_Returns_Empty_For_Empty_Query()
     {
         using var ctx = CreateContext("User_SearchEmpty");

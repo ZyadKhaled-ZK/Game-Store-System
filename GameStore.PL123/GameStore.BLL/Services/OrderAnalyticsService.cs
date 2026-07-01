@@ -94,22 +94,6 @@ namespace GameStore.BLL.Services
             return await query.OrderByDescending(c => c.Revenue).ToListAsync();
         }
 
-        public async Task<List<MonthlyRevenue>> GetOrdersCountByMonthAsync(int months = 12)
-        {
-            var since = DateTime.UtcNow.AddMonths(-months);
-            var data = await _uow.Repository<Order>().Query()
-                .Where(o => o.CreatedAt >= since)
-                .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
-                .Select(g => new MonthlyRevenue
-                {
-                    Year = g.Key.Year,
-                    Month = g.Key.Month,
-                    Revenue = g.Count()
-                })
-                .OrderBy(r => r.Year).ThenBy(r => r.Month)
-                .ToListAsync();
-            return data;
-        }
         public async Task<int> GetOrderCountSinceAsync(DateTime since)
         {
             return await _uow.Repository<Order>().CountAsync(o => o.CreatedAt >= since);

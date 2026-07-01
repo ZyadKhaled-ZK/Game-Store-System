@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <defs>
+    <linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff1f36"/>
+      <stop offset="100%" stop-color="#80000d"/>
+    </linearGradient>
+    <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#9cb0c5"/>
+    </linearGradient>
+    <filter id="g">
+      <feDropShadow dx="0" dy="0" stdDeviation="1" flood-color="#ff1f36" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <rect width="32" height="32" rx="4" fill="#07090e"/>
+  <circle cx="16" cy="16" r="13" fill="none" stroke="url(#fg)" stroke-width="1.5" stroke-dasharray="18,6,4,6" filter="url(#g)"/>
+  <circle cx="16" cy="16" r="10" fill="none" stroke="url(#fg)" stroke-width="0.5" stroke-dasharray="2,3" opacity="0.4"/>
+  <circle cx="16" cy="16" r="6" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-dasharray="4,2" opacity="0.5"/>
+  <circle cx="16" cy="16" r="1.5" fill="#ffffff"/>
+  <text x="16" y="20" font-family="'Orbitron',monospace" font-size="11" font-weight="900" fill="url(#tg)" text-anchor="middle" letter-spacing="1">GS</text>
+</svg>

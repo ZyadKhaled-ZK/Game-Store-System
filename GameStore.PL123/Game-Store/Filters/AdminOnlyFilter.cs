@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace GameStore.PL.Filters;
 
-public class AdminOnlyFilter : IAsyncAuthorizationFilter
+public class AdminOnlyFilter : IAsyncAuthorizationFilter // TECHNOLOGY: Auth filter - Admin role gate
 {
     private readonly IUserService _userService;
 

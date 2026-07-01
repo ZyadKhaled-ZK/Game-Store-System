@@ -25,6 +25,7 @@ public class FriendViewModel
     public string? Avatar { get; set; }
     public bool IsOnline { get; set; }
     public DateTime? LastSeen { get; set; }
+    public int UnreadCount { get; set; }
 }
 
 public class FriendRequestViewModel

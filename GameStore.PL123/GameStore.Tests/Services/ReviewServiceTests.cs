@@ -24,8 +24,13 @@ public class ReviewServiceTests
     {
         using var ctx = CreateContext("Rev_Create");
         await SeedBasic(ctx);
+        var lib = new Library { Id = "lib1", UserId = "u1" };
+        ctx.Libraries.Add(lib);
+        ctx.LibraryGames.Add(new LibraryGame { LibraryId = lib.Id, GameId = "g1" });
+        await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new ReviewService(uow);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
 
         var (success, error) = await service.CreateAsync("u1", "g1", 4, "Great game!");
 
@@ -36,14 +41,33 @@ public class ReviewServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_Fails_If_Not_Owned()
+    {
+        using var ctx = CreateContext("Rev_NotOwned");
+        await SeedBasic(ctx);
+        var uow = new UnitOfWork(ctx);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
+
+        var (success, error) = await service.CreateAsync("u1", "g1", 4, "Great game!");
+
+        success.Should().BeFalse();
+        error.Should().Be("You can only review games you have purchased.");
+    }
+
+    [Fact]
     public async Task CreateAsync_Fails_If_Duplicate_Review()
     {
         using var ctx = CreateContext("Rev_CreateDup");
         await SeedBasic(ctx);
+        var lib = new Library { Id = "libdup", UserId = "u1" };
+        ctx.Libraries.Add(lib);
+        ctx.LibraryGames.Add(new LibraryGame { LibraryId = lib.Id, GameId = "g1" });
         ctx.Reviews.Add(new Review { Id = "r1", UserId = "u1", GameId = "g1", Rating = 5 });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new ReviewService(uow);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
 
         var (success, error) = await service.CreateAsync("u1", "g1", 3, null);
 
@@ -57,7 +81,8 @@ public class ReviewServiceTests
         using var ctx = CreateContext("Rev_CreateBadRating");
         await SeedBasic(ctx);
         var uow = new UnitOfWork(ctx);
-        var service = new ReviewService(uow);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
 
         var (success, error) = await service.CreateAsync("u1", "g1", 0, null);
 
@@ -73,7 +98,8 @@ public class ReviewServiceTests
         ctx.Reviews.Add(new Review { Id = "r1", UserId = "u1", GameId = "g1", Rating = 4 });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new ReviewService(uow);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
 
         var reviews = await service.GetByGameAsync("g1");
 
@@ -88,7 +114,8 @@ public class ReviewServiceTests
         ctx.Reviews.Add(new Review { Id = "r1", UserId = "u1", GameId = "g1", Rating = 4 });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new ReviewService(uow);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
 
         var result = await service.DeleteAsync("r1");
 
@@ -101,10 +128,48 @@ public class ReviewServiceTests
     {
         using var ctx = CreateContext("Rev_DeleteNF");
         var uow = new UnitOfWork(ctx);
-        var service = new ReviewService(uow);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
 
         var result = await service.DeleteAsync("nonexistent");
 
         result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetAllWithDetailsAsync_Returns_All_Reviews()
+    {
+        using var ctx = CreateContext("Rev_GetAll");
+        ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "a@t.com", PasswordHash = "h" });
+        ctx.Games.Add(new Game { Id = "g1", Title = "Game", Price = 10m, ReleaseDate = DateTime.UtcNow });
+        ctx.Reviews.AddRange(
+            new Review { Id = "r1", UserId = "u1", GameId = "g1", Rating = 4 },
+            new Review { Id = "r2", UserId = "u1", GameId = "g1", Rating = 5 }
+        );
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
+
+        var reviews = await service.GetAllWithDetailsAsync();
+
+        reviews.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetByUserAsync_Returns_User_Reviews()
+    {
+        using var ctx = CreateContext("Rev_ByUser");
+        ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "a@t.com", PasswordHash = "h" });
+        ctx.Games.Add(new Game { Id = "g1", Title = "Game", Price = 10m, ReleaseDate = DateTime.UtcNow });
+        ctx.Reviews.Add(new Review { Id = "r1", UserId = "u1", GameId = "g1", Rating = 4 });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var libraryService = new LibraryService(uow);
+        var service = new ReviewService(uow, libraryService);
+
+        var reviews = await service.GetByUserAsync("u1");
+
+        reviews.Should().HaveCount(1);
     }
 }

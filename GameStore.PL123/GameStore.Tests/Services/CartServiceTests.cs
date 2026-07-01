@@ -114,22 +114,6 @@ public class CartServiceTests
     }
 
     [Fact]
-    public async Task GetCartCountAsync_Returns_Correct_Count()
-    {
-        using var ctx = CreateContext("Cart_Count");
-        await SeedBasicData(ctx);
-        var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
-
-        await service.AddToCartAsync("u1", "g1");
-        await service.AddToCartAsync("u1", "g2");
-
-        var count = await service.GetCartCountAsync("u1");
-
-        count.Should().Be(2);
-    }
-
-    [Fact]
     public async Task RemoveFromCartAsync_Removes_Item()
     {
         using var ctx = CreateContext("Cart_Remove");
@@ -158,20 +142,4 @@ public class CartServiceTests
         removed.Should().BeFalse();
     }
 
-    [Fact]
-    public async Task ClearCartAsync_Removes_All_Items()
-    {
-        using var ctx = CreateContext("Cart_Clear");
-        await SeedBasicData(ctx);
-        var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
-
-        await service.AddToCartAsync("u1", "g1");
-        await service.AddToCartAsync("u1", "g2");
-        await service.AddToCartAsync("u1", "g3");
-
-        await service.ClearCartAsync("u1");
-
-        ctx.CartItems.Should().BeEmpty();
-    }
 }

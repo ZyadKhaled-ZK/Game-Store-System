@@ -1,47 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 60" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 100" fill="none">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#fff"/>
-      <stop offset="100%" stop-color="#e63946"/>
+    <linearGradient id="scanGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FFF000" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#FFF000" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#FFF000" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#e63946"/>
-      <stop offset="100%" stop-color="#8a1c24"/>
-    </linearGradient>
-    <linearGradient id="scan" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#e63946" stop-opacity="0"/>
-      <stop offset="50%" stop-color="#e63946" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#e63946" stop-opacity="0"/>
-    </linearGradient>
-    <filter id="glow">
-      <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#e63946" flood-opacity="0.6"/>
-    </filter>
   </defs>
 
-  <style>
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes pulseGlow { 0%,100% { opacity: 1; filter: drop-shadow(0 0 4px #e63946); } 50% { opacity: 0.7; filter: drop-shadow(0 0 12px #e63946); } }
-    @keyframes slideScan { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
-    @keyframes glitchText { 0%,100% { transform: translate(0); } 5% { transform: translate(-2px,1px); } 10% { transform: translate(2px,-1px); } 15% { transform: translate(0); } }
-    @keyframes loadingBar { 0% { width: 0; } 100% { width: 100%; } }
-    .dpad { animation: spin 4s linear infinite; transform-origin: 24px 30px; }
-    .dpad-inner { animation: spin 4s linear infinite reverse; transform-origin: 24px 30px; }
-    .gs-text { animation: pulseGlow 2s ease-in-out infinite, glitchText 8s ease-in-out infinite; }
-    .scan-line { animation: slideScan 3s linear infinite; }
-    .load-bar { animation: loadingBar 2s ease-in-out infinite alternate; transform-origin: left; }
-  </style>
+  <rect width="260" height="100" rx="8" fill="#07090e"/>
 
-  <!-- D-pad outer ring -->
-  <polygon class="dpad" points="12,30 24,18 36,30 24,42" fill="url(#g2)" filter="url(#glow)"/>
-  <!-- D-pad inner -->
-  <polygon class="dpad-inner" points="18,30 24,24 30,30 24,36" fill="#070709"/>
+  <!-- Glow behind text -->
+  <text x="130" y="68" font-family="monospace,sans-serif" font-size="56" font-weight="bold" fill="#FFF000" text-anchor="middle" letter-spacing="8" opacity="0.15">
+    <animate attributeName="opacity" values="0.15;0.35;0.15" dur="2s" repeatCount="indefinite"/>
+    GS
+  </text>
 
-  <!-- GS text -->
-  <text class="gs-text" x="52" y="40" font-family="'Orbitron',monospace" font-size="32" font-weight="900" fill="url(#g)" letter-spacing="3">GS</text>
+  <!-- Main text -->
+  <text x="130" y="68" font-family="monospace,sans-serif" font-size="56" font-weight="bold" fill="#FFF000" text-anchor="middle" letter-spacing="8">GS</text>
 
-  <!-- scanning line on text -->
-  <line class="scan-line" x1="52" y1="16" x2="130" y2="16" stroke="url(#scan)" stroke-width="16" opacity="0.15"/>
+  <!-- Scan line across text -->
+  <rect x="60" y="30" width="140" height="30" fill="url(#scanGrad)" opacity="0.5">
+    <animateTransform attributeName="transform" type="translate" values="-200,0;200,0;-200,0" dur="3s" repeatCount="indefinite"/>
+  </rect>
 
-  <!-- loading bar -->
-  <rect x="52" y="46" width="0" height="2" rx="1" fill="#e63946" class="load-bar" opacity="0.6"/>
+  <!-- Animated underline -->
+  <line x1="70" y1="76" x2="190" y2="76" stroke="#52BEDC" stroke-width="2" stroke-linecap="round">
+    <animate attributeName="x1" values="70;190;70" dur="2.5s" repeatCount="indefinite"/>
+  </line>
+
+  <!-- Corner dots -->
+  <circle cx="30" cy="20" r="2" fill="#52BEDC" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="230" cy="20" r="2" fill="#52BEDC" opacity="0.4">
+    <animate attributeName="opacity" values="0;0.4;0" dur="2s" repeatCount="indefinite" begin="1s"/>
+  </circle>
+  <circle cx="30" cy="80" r="2" fill="#52BEDC" opacity="0.4">
+    <animate attributeName="opacity" values="0;0.4;0" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+  </circle>
+  <circle cx="230" cy="80" r="2" fill="#52BEDC" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite" begin="1.5s"/>
+  </circle>
 </svg>

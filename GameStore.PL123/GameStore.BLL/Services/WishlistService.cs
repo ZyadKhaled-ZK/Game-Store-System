@@ -52,10 +52,5 @@ namespace GameStore.BLL.Services
             await _uow.SaveChangesAsync();
             return true;
         }
-
-        public async Task<int> GetWishlistCountAsync(string userId)
-        {
-            return await _uow.Repository<WishlistItem>().CountAsync(w => w.UserId == userId);
-        }
     }
 }

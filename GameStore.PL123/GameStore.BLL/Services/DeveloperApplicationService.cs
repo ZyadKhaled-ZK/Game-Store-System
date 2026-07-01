@@ -14,7 +14,7 @@ public class DeveloperApplicationService : IDeveloperApplicationService
         _devService = devService;
         _userService = userService;
     }
-
+        
     public async Task<DeveloperApplication?> GetByIdAsync(string id)
     {
         return await _uow.Repository<DeveloperApplication>().Query()
@@ -33,16 +33,6 @@ public class DeveloperApplicationService : IDeveloperApplicationService
     {
         return await _uow.Repository<DeveloperApplication>().Query()
             .Include(a => a.User)
-            .OrderByDescending(a => a.CreatedAt)
-            .AsNoTracking()
-            .ToListAsync();
-    }
-
-    public async Task<List<DeveloperApplication>> GetPendingAsync()
-    {
-        return await _uow.Repository<DeveloperApplication>().Query()
-            .Include(a => a.User)
-            .Where(a => a.Status == ApplicationStatus.Pending)
             .OrderByDescending(a => a.CreatedAt)
             .AsNoTracking()
             .ToListAsync();

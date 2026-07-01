@@ -11,7 +11,6 @@ namespace GameStore.BLL.Services
         Task<List<DailyOrderCount>> GetOrdersByDayAsync(int days = 30);
         Task<List<TopGameSale>> GetTopSellingGamesAsync(int count = 5);
         Task<List<CategoryRevenue>> GetRevenueByCategoryAsync();
-        Task<List<MonthlyRevenue>> GetOrdersCountByMonthAsync(int months = 12);
         Task<int> GetOrderCountSinceAsync(DateTime since);
         Task<decimal> GetRevenueSinceAsync(DateTime since);
     }

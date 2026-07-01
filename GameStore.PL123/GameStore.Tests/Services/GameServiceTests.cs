@@ -181,6 +181,28 @@ public class GameServiceTests
     }
 
     [Fact]
+    public async Task GetGamesByCategoryAsync_Returns_Grouped_Games()
+    {
+        using var ctx = CreateContext("Game_ByCat");
+        ctx.Categories.Add(new Category { Id = "c1", Name = "Action" });
+        ctx.Games.AddRange(
+            new Game { Id = "g1", Title = "Game A", Price = 10m, ReleaseDate = DateTime.UtcNow },
+            new Game { Id = "g2", Title = "Game B", Price = 20m, ReleaseDate = DateTime.UtcNow }
+        );
+        ctx.GameCategories.AddRange(
+            new GameCategory { GameId = "g1", CategoryId = "c1" },
+            new GameCategory { GameId = "g2", CategoryId = "c1" }
+        );
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new GameService(uow);
+
+        var result = await service.GetGamesByCategoryAsync();
+
+        result.Should().HaveCount(1);
+    }
+
+    [Fact]
     public async Task GetFreeGamesCountAsync_Returns_Free_Games_Only()
     {
         using var ctx = CreateContext("Game_FreeCount");

@@ -3,10 +3,12 @@ namespace GameStore.BLL.Services
     public class ReviewService : IReviewService
     {
         private readonly IUnitOfWork _uow;
+        private readonly ILibraryService _libraryService;
 
-        public ReviewService(IUnitOfWork uow)
+        public ReviewService(IUnitOfWork uow, ILibraryService libraryService)
         {
             _uow = uow;
+            _libraryService = libraryService;
         }
 
         public async Task<List<Review>> GetAllWithDetailsAsync()
@@ -53,6 +55,9 @@ namespace GameStore.BLL.Services
         {
             if (rating < 1 || rating > 5)
                 return (false, "Rating must be between 1 and 5.");
+
+            if (!await _libraryService.HasGame(userId, gameId))
+                return (false, "You can only review games you have purchased.");
 
             if (await _uow.Repository<Review>().AnyAsync(r => r.UserId == userId && r.GameId == gameId))
                 return (false, "You already reviewed this game.");

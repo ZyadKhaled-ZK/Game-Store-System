@@ -361,7 +361,7 @@ public class FriendServiceTests
         );
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new FriendService(uow);
+        var service = new FriendSuggestionService(uow);
 
         var suggestions = await service.GetSuggestionsAsync("u1", 10);
 

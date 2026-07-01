@@ -53,6 +53,17 @@ public class CartController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddToCart([FromBody] string gameId)
+    {
+        if (string.IsNullOrEmpty(UserId))
+            return Json(new { success = false, message = "Please login first." });
+
+        var (success, message) = await _cartService.AddToCartAsync(UserId, gameId);
+        return Json(new { success, message });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Remove(string id)
     {
         if (string.IsNullOrEmpty(UserId)) return Json(new { success = false, message = "Please login first." });

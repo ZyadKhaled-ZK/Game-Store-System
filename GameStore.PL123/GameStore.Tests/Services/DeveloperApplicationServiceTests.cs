@@ -85,6 +85,44 @@ public class DeveloperApplicationServiceTests
     }
 
     [Fact]
+    public async Task GetByUserIdAsync_Returns_Application()
+    {
+        using var ctx = CreateContext("DA_ByUserId");
+        ctx.Users.Add(new User { Id = "u1", Username = "A", Email = "a@t.com", PasswordHash = "h" });
+        ctx.DeveloperApplications.Add(new DeveloperApplication { Id = "a1", UserId = "u1", Name = "Studio", Status = ApplicationStatus.Pending });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var devService = new DeveloperService(uow);
+        var userService = new UserService(uow);
+        var service = new DeveloperApplicationService(uow, devService, userService);
+
+        var app = await service.GetByUserIdAsync("u1");
+
+        app.Should().NotBeNull();
+        app!.Name.Should().Be("Studio");
+    }
+
+    [Fact]
+    public async Task GetAllAsync_Returns_All_Applications()
+    {
+        using var ctx = CreateContext("DA_GetAll");
+        ctx.Users.Add(new User { Id = "u1", Username = "A", Email = "a@t.com", PasswordHash = "h" });
+        ctx.DeveloperApplications.AddRange(
+            new DeveloperApplication { Id = "a1", UserId = "u1", Name = "Studio", Status = ApplicationStatus.Pending },
+            new DeveloperApplication { Id = "a2", UserId = "u1", Name = "Other", Status = ApplicationStatus.Approved }
+        );
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var devService = new DeveloperService(uow);
+        var userService = new UserService(uow);
+        var service = new DeveloperApplicationService(uow, devService, userService);
+
+        var apps = await service.GetAllAsync();
+
+        apps.Should().HaveCount(2);
+    }
+
+    [Fact]
     public async Task GetByIdAsync_Returns_Application()
     {
         using var ctx = CreateContext("DA_GetById");
@@ -100,27 +138,6 @@ public class DeveloperApplicationServiceTests
 
         app.Should().NotBeNull();
         app!.Name.Should().Be("Studio");
-    }
-
-    [Fact]
-    public async Task GetPendingAsync_Returns_Only_Pending()
-    {
-        using var ctx = CreateContext("DA_Pending");
-        ctx.Users.Add(new User { Id = "u1", Username = "A", Email = "a@t.com", PasswordHash = "h" });
-        ctx.DeveloperApplications.AddRange(
-            new DeveloperApplication { Id = "a1", UserId = "u1", Name = "A", Status = ApplicationStatus.Pending },
-            new DeveloperApplication { Id = "a2", UserId = "u1", Name = "B", Status = ApplicationStatus.Approved }
-        );
-        await ctx.SaveChangesAsync();
-        var uow = new UnitOfWork(ctx);
-        var devService = new DeveloperService(uow);
-        var userService = new UserService(uow);
-        var service = new DeveloperApplicationService(uow, devService, userService);
-
-        var pending = await service.GetPendingAsync();
-
-        pending.Should().HaveCount(1);
-        pending[0].Id.Should().Be("a1");
     }
 
     [Fact]
