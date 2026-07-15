@@ -13,7 +13,7 @@ namespace GameStore.BLL.Services
 
         public async Task<List<Game>> GetAllWithCategoriesAsync()
         {
-            return await _uow.Repository<Game>().Query()
+            var games = await _uow.Repository<Game>().Query()
                 .Include(g => g.DeveloperNav)
                 .Include(g => g.GameCategories)
                     .ThenInclude(gc => gc.Category)
@@ -21,9 +21,32 @@ namespace GameStore.BLL.Services
                 .OrderByDescending(g => g.ReleaseDate)
                 .AsNoTracking()
                 .ToListAsync();
+
+            foreach (var game in games)
+                game.Developer ??= game.DeveloperNav?.Name;
+
+            return games;
         }
 
-        public async Task<PagedResult<Game>> GetPagedAsync(int page = 1, int pageSize = 12)
+        public async Task<List<Game>> GetHeroGamesAsync(int count = 5)
+        {
+            var games = await _uow.Repository<Game>().Query()
+                .Include(g => g.DeveloperNav)
+                .Include(g => g.GameCategories)
+                    .ThenInclude(gc => gc.Category)
+                .Where(g => g.DeveloperId == null || g.DeveloperNav == null || g.DeveloperNav.IsActive)
+                .OrderByDescending(g => g.ReleaseDate)
+                .Take(count)
+                .AsNoTracking()
+                .ToListAsync();
+
+            foreach (var game in games)
+                game.Developer ??= game.DeveloperNav?.Name;
+
+            return games;
+        }
+
+        public async Task<PagedResult<Game>> GetPagedAsync(int page = 1, int pageSize = 12, string? search = null)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 12;
@@ -32,15 +55,24 @@ namespace GameStore.BLL.Services
             var query = _uow.Repository<Game>().Query()
                 .Include(g => g.DeveloperNav)
                 .Include(g => g.GameCategories).ThenInclude(gc => gc.Category)
-                .Where(g => g.DeveloperId == null || g.DeveloperNav == null || g.DeveloperNav.IsActive)
-                .OrderByDescending(g => g.ReleaseDate)
-                .AsNoTracking();
+                .Where(g => g.DeveloperId == null || g.DeveloperNav == null || g.DeveloperNav.IsActive);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var q = search.Trim().ToLower();
+                query = query.Where(g => g.Title.ToLower().Contains(q) || (g.Developer != null && g.Developer.ToLower().Contains(q)));
+            }
+
+            query = query.OrderByDescending(g => g.ReleaseDate).AsNoTracking();
 
             var totalCount = await query.CountAsync();
             var items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+
+            foreach (var game in items)
+                game.Developer ??= game.DeveloperNav?.Name;
 
             return new PagedResult<Game>
             {
@@ -56,6 +88,7 @@ namespace GameStore.BLL.Services
             return await _uow.Repository<Game>().Query()
                 .Include(g => g.DeveloperNav)
                 .Include(g => g.GameCategories)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(g => g.Id == id);
         }
 

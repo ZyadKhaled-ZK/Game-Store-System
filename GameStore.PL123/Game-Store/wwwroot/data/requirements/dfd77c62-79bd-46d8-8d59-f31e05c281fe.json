@@ -1,0 +1,22 @@
+{
+  "minimum": {
+    "os": "Windows 10 (64-bit)",
+    "processor": "Intel Core i3-6100 / AMD FX-6300",
+    "memory": "4 GB RAM",
+    "graphics": "NVIDIA GTX 750 Ti / AMD Radeon R7 260X",
+    "directX": "Version 11",
+    "storage": "5 GB available space",
+    "network": null,
+    "notes": null
+  },
+  "recommended": {
+    "os": "Windows 11 (64-bit)",
+    "processor": "Intel Core i5-9400F / AMD Ryzen 5 2600",
+    "memory": "8 GB RAM",
+    "graphics": "NVIDIA GTX 1660 / AMD RX 580",
+    "directX": "Version 12",
+    "storage": "8 GB available space",
+    "network": null,
+    "notes": null
+  }
+}

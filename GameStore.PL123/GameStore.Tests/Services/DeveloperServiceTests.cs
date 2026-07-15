@@ -189,6 +189,7 @@ public class DeveloperServiceTests
 
         stats.GameCount.Should().Be(2);
         stats.TotalRevenue.Should().Be(10);
+        stats.NetRevenue.Should().Be(8); // 10 * 85% = 8.5 → (int)8
     }
 
     [Fact]
@@ -211,6 +212,7 @@ public class DeveloperServiceTests
         stats.Should().HaveCount(1);
         stats[0].Downloads.Should().Be(1);
         stats[0].AvgRating.Should().Be(4.5);
+        stats[0].TotalRevenue.Should().Be(0);
     }
 
     [Fact]

@@ -12,6 +12,14 @@
     .success-order-row { display: flex; justify-content: space-between; padding: 8px 0; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); border-bottom: 1px solid rgba(255,255,255,0.04); }
     .success-order-row:last-child { border-bottom: none; }
     .success-order-row span:last-child { color: #fff; font-weight: 600; }
+    @@media (max-width: 576px) {
+      .success-container { padding: 40px 16px; }
+      .success-icon { font-size: 2.5rem; }
+      .success-title { font-size: 1.3rem; }
+      .success-order-box { padding: 16px; }
+      .success-order-row { font-size: 11px; flex-direction: column; gap: 4px; }
+      .success-order-row span:last-child { align-self: flex-start; }
+    }
 </style>
 
 <div class="success-container">

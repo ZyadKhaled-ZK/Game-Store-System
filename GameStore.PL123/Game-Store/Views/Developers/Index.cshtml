@@ -4,7 +4,22 @@
     Layout = "_Layout";
 }
 
-<div class="container" style="padding:40px 20px;max-width:1200px;margin:0 auto;">
+<style>
+  @@media (max-width: 768px) {
+    .dev-container { padding: 28px 16px !important; }
+    .dev-container h1 { font-size: 26px !important; }
+  }
+  @@media (max-width: 576px) {
+    .dev-container { padding: 20px 12px !important; }
+    .dev-container h1 { font-size: 20px !important; letter-spacing: 2px !important; }
+    .dev-container > div:first-child { margin-bottom: 24px !important; }
+    .dev-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+    .dev-grid > a > div { padding: 20px !important; }
+    .dev-grid img[style*="width:80px;height:80px"], .dev-grid div[style*="width:80px;height:80px"] { width: 60px !important; height: 60px !important; font-size: 22px !important; }
+  }
+</style>
+
+<div class="container dev-container" style="padding:40px 20px;max-width:1200px;margin:0 auto;">
     <div style="margin-bottom:40px;border-bottom:1px solid var(--border);padding-bottom:20px;">
         <h1 style="font-family:var(--font-display);font-size:32px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);">Developers</h1>
         <p style="color:var(--text-dim);margin-top:8px;">Game development studios and publishers.</p>
@@ -18,7 +33,7 @@
     }
     else
     {
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;">
+        <div class="dev-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;">
             @foreach (var dev in Model)
             {
                 <a asp-action="Details" asp-route-id="@dev.Id" style="text-decoration:none;">

@@ -15,6 +15,11 @@ namespace GameStore.DAL.Entities
         [Required, Column(TypeName = "decimal(10,2)")]
         public decimal PriceAtPurchase { get; set; }
 
+        /// <summary>Platform commission percentage at time of purchase (default 15%).</summary>
+        [Range(0, 100)]
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal CommissionPercent { get; set; } = 15m;
+
         // ── Navigation Properties ─────────────────────────────────────────
         [ForeignKey(nameof(OrderId))]
         public Order Order { get; set; } = null!;

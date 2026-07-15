@@ -3,6 +3,18 @@
     ViewData["Title"] = "Edit Developer";
 }
 
+<style>
+  @@media (max-width: 768px) {
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .section-title { font-size: 1.4rem !important; }
+    .panel { padding: 20px !important; }
+    .panel .flex { flex-direction: column; }
+    .panel .flex .btn { width: 100%; text-align: center; }
+  }
+</style>
+
 <div class="section-header">
   <div class="section-tag">Developer Administration</div>
   <h2 class="section-title glitch">EDIT: @Model.Name</h2>

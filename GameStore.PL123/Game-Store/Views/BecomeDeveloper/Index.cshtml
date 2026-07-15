@@ -7,7 +7,20 @@
     var hasPending = ViewData["HasPendingApplication"] is true;
 }
 
-<div class="row w-100 justify-content-center mt-4 pt-3">
+<style>
+  @@media (max-width: 768px) {
+    .bd-card { padding: 24px !important; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .bd-card { padding: 16px !important; }
+    .section-title { font-size: 1.4rem !important; }
+    .bd-form-grid { grid-template-columns: 1fr !important; }
+    .bd-card h3 { font-size: 15px !important; }
+  }
+</style>
+
+<div class="row w-100 justify-content-center mt-2 mt-md-4 pt-1 pt-md-3">
   <div class="col-md-7">
     <div class="section-header text-center mb-3">
       <h2 class="section-title glitch">BECOME A DEVELOPER</h2>
@@ -16,7 +29,7 @@
 
     @if (isAdmin)
     {
-      <div style="background:var(--bg2);border:1px solid var(--border-red);padding:40px;text-align:center;margin-top:20px;">
+      <div class="bd-card" style="background:var(--bg2);border:1px solid var(--border-red);padding:40px;text-align:center;margin-top:20px;">
         <div style="font-size:40px;color:var(--red);opacity:0.3;margin-bottom:12px;"><i class="bi bi-shield-lock-fill"></i></div>
         <h3 style="font-family:var(--font-display);color:var(--red);font-size:18px;letter-spacing:2px;margin-bottom:12px;">ADMIN ACCESS DETECTED</h3>
         <p style="color:var(--text-dim);font-size:13px;margin-bottom:20px;">Administrators cannot become developers. Use a standard customer account if you wish to publish games.</p>
@@ -25,7 +38,7 @@
     }
     else if (notLoggedIn)
     {
-      <div style="background:var(--bg2);border:1px solid var(--border-red);padding:40px;text-align:center;margin-top:20px;">
+      <div class="bd-card" style="background:var(--bg2);border:1px solid var(--border-red);padding:40px;text-align:center;margin-top:20px;">
         <div style="font-size:40px;color:var(--gold);opacity:0.3;margin-bottom:12px;"><i class="bi bi-person-lock"></i></div>
         <h3 style="font-family:var(--font-display);color:var(--gold);font-size:18px;letter-spacing:2px;margin-bottom:12px;">SIGN IN REQUIRED</h3>
         <p style="color:var(--text-dim);font-size:13px;margin-bottom:20px;">You need to be logged in to register as a developer.</p>
@@ -35,7 +48,7 @@
     }
     else if (noProfile)
     {
-      <div style="background:var(--bg2);border:1px solid var(--border-red);padding:40px;text-align:center;margin-top:20px;">
+      <div class="bd-card" style="background:var(--bg2);border:1px solid var(--border-red);padding:40px;text-align:center;margin-top:20px;">
         <div style="font-size:40px;color:var(--cyan);opacity:0.3;margin-bottom:12px;"><i class="bi bi-person-gear"></i></div>
         <h3 style="font-family:var(--font-display);color:var(--cyan);font-size:18px;letter-spacing:2px;margin-bottom:12px;">COMPLETE YOUR PROFILE</h3>
         <p style="color:var(--text-dim);font-size:13px;margin-bottom:20px;">Your account is set as a developer but you haven't created your studio profile yet.</p>
@@ -43,7 +56,7 @@
     }
     else if (hasPending)
     {
-      <div style="background:var(--bg2);border:1px solid var(--border-gold);padding:40px;text-align:center;margin-top:20px;box-shadow:var(--glow-gold);">
+      <div class="bd-card" style="background:var(--bg2);border:1px solid var(--border-gold);padding:40px;text-align:center;margin-top:20px;box-shadow:var(--glow-gold);">
         <div style="font-size:40px;color:var(--gold);opacity:0.3;margin-bottom:12px;"><i class="bi bi-hourglass-split"></i></div>
         <h3 style="font-family:var(--font-display);color:var(--gold);font-size:18px;letter-spacing:2px;margin-bottom:12px;">APPLICATION PENDING</h3>
         <p style="color:var(--text-dim);font-size:13px;margin-bottom:8px;">Your developer application has been submitted and is awaiting review by an administrator.</p>
@@ -56,7 +69,7 @@
 
     @if (!isAdmin && isLoggedIn && !notLoggedIn && !hasPending && !noProfile)
     {
-      <div style="background:var(--bg2);border:1px solid var(--border-red);padding:40px;box-shadow:var(--glow-red);margin-top:20px;">
+      <div class="bd-card" style="background:var(--bg2);border:1px solid var(--border-red);padding:40px;box-shadow:var(--glow-red);margin-top:20px;">
         <div style="color:var(--red);border:1px solid var(--red);padding:5px 15px;display:inline-block;font-size:12px;margin-bottom:20px;font-family:var(--font-mono);letter-spacing:1px;">
           DEVELOPER REGISTRATION
         </div>
@@ -71,7 +84,7 @@
         <partial name="_Alert" />
 
         <form method="post" enctype="multipart/form-data">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="bd-form-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
             <div>
               <label style="color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:1px;margin-bottom:4px;display:block;">Studio Name *</label>
               <input type="text" name="name" class="form-control" placeholder="Your studio or brand name" required maxlength="200" />

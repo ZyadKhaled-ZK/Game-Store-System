@@ -1,0 +1,26 @@
+@model dynamic
+@{
+    if (Model == null) { return; }
+    int curPage = (int)Model.Page;
+    int totalPages = (int)Model.TotalPages;
+    int totalCount = (int)Model.TotalCount;
+    bool hasPrev = (bool)Model.HasPrevious;
+    bool hasNext = (bool)Model.HasNext;
+    if (totalPages <= 1) return;
+    var httpCtx = ViewContext.HttpContext;
+    var here = httpCtx.Request.Path;
+    var rawQuery = httpCtx.Request.QueryString.Value ?? "";
+    var baseQuery = string.Join("&", rawQuery.TrimStart('?').Split('&').Where(q => !q.StartsWith("page=", StringComparison.OrdinalIgnoreCase)));
+    string Url(int pg) => $"{here}?page={pg}" + (string.IsNullOrEmpty(baseQuery) ? "" : "&" + baseQuery);
+}
+<nav class="pagination-bar">
+    <span class="pagination-info">Page @curPage of @totalPages (@totalCount total)</span>
+    <a href="@Url(1)" class="pagination-link @(hasPrev ? "" : "disabled")">&laquo;</a>
+    <a href="@Url(curPage - 1)" class="pagination-link @(hasPrev ? "" : "disabled")">&lsaquo;</a>
+    @for (var i = Math.Max(1, curPage - 2); i <= Math.Min(totalPages, curPage + 2); i++)
+    {
+        <a href="@Url(i)" class="pagination-link @(i == curPage ? "active" : "")">@i</a>
+    }
+    <a href="@Url(curPage + 1)" class="pagination-link @(hasNext ? "" : "disabled")">&rsaquo;</a>
+    <a href="@Url(totalPages)" class="pagination-link @(hasNext ? "" : "disabled")">&raquo;</a>
+</nav>

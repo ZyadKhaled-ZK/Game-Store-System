@@ -2,6 +2,13 @@
     var games = ViewData["Games"] as List<Game> ?? new();
 }
 
+<style>
+  @@media (max-width: 576px) {
+    .page-header h1 { font-size: 1.2rem; }
+    .card[style*="max-width:600px"] { max-width: 100% !important; }
+  }
+</style>
+
 <div class="page-header">
     <div>
         <h1>New Sale</h1>

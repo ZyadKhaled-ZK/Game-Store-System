@@ -1,9 +1,11 @@
 using System.IO.Compression;
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 using GameStore.PL.Hubs;
 using GameStore.PL.Mappings;
 using GameStore.PL.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
@@ -49,9 +51,15 @@ builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<IDeveloperService, DeveloperService>();
 builder.Services.AddScoped<IDeveloperApplicationService, DeveloperApplicationService>();
+builder.Services.AddScoped<IGameAccessService, GameAccessService>();
 builder.Services.AddScoped<ISaleService, SaleService>();
 builder.Services.AddScoped<SeedService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSingleton<IJsonFileStore, JsonFileStore>();
+builder.Services.AddScoped<ISystemRequirementService, SystemRequirementService>();
+builder.Services.AddScoped<IRefundService, RefundService>();
+builder.Services.AddScoped<IGameVersionService, GameVersionService>();
+builder.Services.AddScoped<ICreditService, CreditService>();
 builder.Services.AddScoped<IFriendService, FriendService>();
 builder.Services.AddScoped<IFriendSuggestionService, FriendSuggestionService>();
 builder.Services.AddScoped<IChatService, ChatService>();
@@ -59,7 +67,13 @@ builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ISupportTicketService, SupportTicketService>();
 builder.Services.AddAutoMapper(typeof(MappingProfile)); // TECHNOLOGY: AutoMapper 12 - Entity → ViewModel mapping
 builder.Services.AddSingleton<ConnectionTracker>();
+var keysDir = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtectionKeys");
+Directory.CreateDirectory(keysDir);
+builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysDir)); // TECHNOLOGY: Data Protection - Persistent keys
 builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe")); // TECHNOLOGY: Stripe - Payment processing
+builder.Services.Configure<MailjetApiSettings>(builder.Configuration.GetSection("Mailjet")); // TECHNOLOGY: Mailjet - Email sending
+builder.Services.AddScoped<IEmailService, MailjetEmailService>(); // TECHNOLOGY: Mailjet - Outbound email
+builder.Services.AddHostedService<TokenCleanupService>(); // TECHNOLOGY: BG Service - Expired email token cleanup
 var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
 if (!string.IsNullOrEmpty(stripeSecretKey))
     Stripe.StripeConfiguration.ApiKey = stripeSecretKey; // TECHNOLOGY: Stripe - API key configuration
@@ -77,7 +91,7 @@ builder.Services.AddResponseCompression(o =>
     o.Providers.Add<GzipCompressionProvider>();
     o.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(["image/svg+xml"]);
 });
-builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
+builder.Services.Configure<BrotliCompressionProviderOptions>(o => o.Level = CompressionLevel.Optimal);
 builder.Services.Configure<GzipCompressionProviderOptions>(o => o.Level = CompressionLevel.Fastest);
 
 // TECHNOLOGY: Output caching - reduces DB load on read-heavy endpoints
@@ -88,18 +102,22 @@ builder.Services.AddOutputCache(o =>
     o.AddPolicy("NoCache", b => b.NoCache());
 });
 
-// Session-based auth (8-hour idle timeout)
-builder.Services.AddStackExchangeRedisCache(options => // TECHNOLOGY: Redis - Distributed session cache (StackExchange)
+// Session cache: Redis if available, otherwise in-memory
+var redisConnection = builder.Configuration.GetConnectionString("Redis");
+if (!string.IsNullOrEmpty(redisConnection))
 {
-    options.Configuration = builder.Configuration.GetConnectionString("Redis")
-        ?? "localhost:6379,connectRetry=3,abortConnect=false";
-});
+    builder.Services.AddStackExchangeRedisCache(options => options.Configuration = redisConnection);
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
 builder.Services.AddSession(options => // TECHNOLOGY: Session Auth - Custom (no Identity)
 {
     options.IdleTimeout        = TimeSpan.FromHours(8);
     options.Cookie.HttpOnly    = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SameSite    = SameSiteMode.Strict;
+    options.Cookie.SameSite    = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.Name        = ".GameStore.Session";
 });
@@ -129,6 +147,52 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Scope.Add("email");
     });
 
+// TECHNOLOGY: Rate Limiting - Brute-force / abuse protection for auth endpoints
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("AuthLogin", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    options.AddPolicy("AuthRegister", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(10),
+                QueueLimit = 0
+            }));
+
+    options.AddPolicy("AuthResend", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 3,
+                Window = TimeSpan.FromMinutes(15),
+                QueueLimit = 0
+            }));
+
+    options.AddPolicy("AuthVerify", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly",     p => p.RequireClaim("Role", "ADMIN"));
@@ -152,7 +216,7 @@ using (var scope = app.Services.CreateScope())
         db.Database.Migrate();
     }
 
-    // SeedService uses AnyAsync() internally — idempotent, safe on every start
+    // Seed only if DB is empty (checks internally via AnyAsync)
     var seeder = scope.ServiceProvider.GetRequiredService<SeedService>();
     await seeder.SeedAsync();
 }
@@ -181,7 +245,8 @@ app.UseStaticFiles(new StaticFileOptions // TECHNOLOGY: Static files - 1-year ca
         var path = ctx.Context.Request.Path;
         // Cache fingerprinted assets aggressively; HTML never cached
         if (!path.StartsWithSegments("/css") && !path.StartsWithSegments("/js") &&
-            !path.StartsWithSegments("/lib") && !path.StartsWithSegments("/images"))
+            !path.StartsWithSegments("/lib") && !path.StartsWithSegments("/images") &&
+            path != "/favicon.ico" && path != "/favicon.svg")
             return;
         ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=31536000, immutable");
     }
@@ -198,10 +263,39 @@ app.Use(async (ctx, next) =>
 app.UseRouting();
 app.UseCors(); // TECHNOLOGY: CORS - Same-origin with credentials
 
+app.UseRateLimiter(); // TECHNOLOGY: Rate Limiting - Auth abuse protection
 app.UseOutputCache(); // TECHNOLOGY: Output caching - 10 min default TTL
 app.UseSession(); // TECHNOLOGY: Session - Auth state
 app.UseAuthentication(); // TECHNOLOGY: Cookie Auth - ClaimsPrincipal
 app.UseAuthorization(); // TECHNOLOGY: Auth - Role-based filters + policies
+
+// TECHNOLOGY: Email verification gate - blocks unverified users from all pages except auth routes
+app.Use(async (ctx, next) =>
+{
+    var userId = ctx.Session.GetString("UserId");
+    var emailConfirmed = ctx.Session.GetString("EmailConfirmed");
+    var path = ctx.Request.Path.Value?.ToLowerInvariant() ?? "";
+
+    var allowed = new[]
+    {
+        "/auth/verifyemail", "/auth/verifyemailnotice",
+        "/auth/login", "/auth/register", "/auth/logout",
+        "/auth/forgotpassword", "/auth/resetpassword",
+        "/auth/checkusername", "/auth/externallogin", "/auth/externalcallback",
+        "/auth/completeregistration", "/home/error"
+    };
+
+    if (!string.IsNullOrEmpty(userId) && emailConfirmed == "False" &&
+        !allowed.Any(a => path.StartsWith(a)) &&
+        !path.StartsWith("/css") && !path.StartsWith("/js") &&
+        !path.StartsWith("/lib") && !path.StartsWith("/images"))
+    {
+        ctx.Response.Redirect("/Auth/VerifyEmailNotice");
+        return;
+    }
+
+    await next();
+});
 
 app.MapHealthChecks("/health"); // TECHNOLOGY: Health check - load balancer probe
 

@@ -22,6 +22,7 @@ namespace GameStore.BLL.Services
             return await _uow.Repository<Category>().Query()
                 .Include(c => c.GameCategories)
                 .OrderBy(c => c.Name)
+                .AsNoTracking()
                 .ToListAsync();
         }
 

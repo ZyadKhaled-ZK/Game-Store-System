@@ -14,11 +14,15 @@ namespace GameStore.BLL.Services
         public async Task<List<LibraryGame>> GetLibraryGamesAsync(string userId)
         {
             var library = await _uow.Repository<Library>().Query()
+                .Include(l => l.LibraryGames).ThenInclude(lg => lg.Game).ThenInclude(g => g.DeveloperNav)
                 .Include(l => l.LibraryGames).ThenInclude(lg => lg.Game).ThenInclude(g => g.GameCategories).ThenInclude(gc => gc.Category)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(l => l.UserId == userId);
 
-            return library?.LibraryGames.OrderByDescending(lg => lg.AddedAt).ToList() ?? new();
+            var games = library?.LibraryGames.OrderByDescending(lg => lg.AddedAt).ToList() ?? new();
+            foreach (var lg in games)
+                lg.Game.Developer ??= lg.Game.DeveloperNav?.Name;
+            return games;
         }
 
         public async Task<bool> HasGame(string userId, string gameId)
@@ -45,6 +49,17 @@ namespace GameStore.BLL.Services
                 AddedAt = DateTime.UtcNow
             });
             await _uow.SaveChangesAsync();
+        }
+
+        public async Task RemoveGameFromLibraryAsync(string userId, string gameId)
+        {
+            var lg = await _uow.Repository<LibraryGame>().Query()
+                .FirstOrDefaultAsync(x => x.Library!.UserId == userId && x.GameId == gameId);
+            if (lg != null)
+            {
+                _uow.Repository<LibraryGame>().Delete(lg);
+                await _uow.SaveChangesAsync();
+            }
         }
     }
 }

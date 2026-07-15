@@ -19,6 +19,7 @@ namespace GameStore.DAL.DataBase
         public DbSet<Review>        Reviews        { get; set; }
         public DbSet<WishlistItem>  WishlistItems  { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<EmailVerificationToken> EmailVerificationTokens { get; set; }
         public DbSet<Developer> Developers { get; set; }
         public DbSet<DeveloperApplication> DeveloperApplications { get; set; }
         public DbSet<Friendship> Friendships { get; set; }
@@ -42,6 +43,7 @@ namespace GameStore.DAL.DataBase
                 e.Property(u => u.Email).HasMaxLength(200).IsRequired();
                 e.Property(u => u.PasswordHash).IsRequired();
                 e.Property(u => u.Role).HasConversion<int>();
+                e.Property(u => u.EmailConfirmed).HasDefaultValue(false);
             });
 
             // ── Game ──────────────────────────────────────────────────────────
@@ -59,6 +61,12 @@ namespace GameStore.DAL.DataBase
                      v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
                  )
                  .HasColumnType("nvarchar(max)");
+                e.Property(g => g.ScreenshotUrls).Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (c1, c2) => (c1 ?? new List<string>()).SequenceEqual(c2 ?? new List<string>()),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v == null ? 0 : v.GetHashCode())),
+                        c => c.ToList()
+                    ));
 
                 e.HasOne(g => g.DeveloperNav)
                  .WithMany(d => d.Games)
@@ -176,6 +184,19 @@ namespace GameStore.DAL.DataBase
                  .WithMany(g => g.LibraryGames)
                  .HasForeignKey(lg => lg.GameId)
                  .OnDelete(DeleteBehavior.Restrict); // keep game in libraries even if somehow detached
+            });
+
+            // ── EmailVerificationToken ─────────────────────────────────
+            modelBuilder.Entity<EmailVerificationToken>(e =>
+            {
+                e.HasKey(t => t.Id);
+                e.HasIndex(t => t.Token).IsUnique();
+                e.HasIndex(t => new { t.UserId, t.IsUsed });
+
+                e.HasOne(t => t.User)
+                 .WithMany()
+                 .HasForeignKey(t => t.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
             });
 
             // ── PasswordResetToken ────────────────────────────────────────

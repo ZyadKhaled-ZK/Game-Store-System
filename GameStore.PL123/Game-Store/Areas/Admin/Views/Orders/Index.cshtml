@@ -29,6 +29,24 @@
   .order-row { transition: background 0.2s; }
   .order-row td { transition: color 0.2s; }
   .order-row:hover td { color: white; }
+  @@media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: stretch !important; }
+    .filter-bar { flex-direction: column; }
+    .filter-bar select, .filter-bar .btn { width: 100%; }
+    .gs-search-input { width: 100%; }
+    .summary-row { grid-template-columns: 1fr; }
+    .summary-card { padding: 20px 16px; }
+    .summary-val { font-size: 1.5rem; }
+    .section-title { font-size: 1.8rem !important; }
+    .order-row td { font-size: 12px; padding: 8px 10px; }
+  }
+  @@media (max-width: 576px) {
+    .section-title { font-size: 1.4rem !important; }
+    .summary-card { padding: 16px; }
+    .summary-val { font-size: 1.3rem; }
+    .page-header .btn { width: 100%; text-align: center; }
+    .items-list li { white-space: normal; font-size: 11px; }
+  }
 </style>
 
 <div class="page-header">

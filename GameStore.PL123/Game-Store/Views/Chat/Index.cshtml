@@ -56,7 +56,26 @@
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); }
-::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+  @@media (max-width: 992px) {
+    .chat-container { height: calc(100vh - 140px); }
+  }
+  @@media (max-width: 768px) {
+    .chat-sidebar { width: 100%; }
+    .chat-main { display: none; }
+    .chat-main.show { display: flex; }
+    .chat-container { height: calc(100vh - 130px); }
+  }
+  @@media (max-width: 576px) {
+    .chat-container { height: calc(100vh - 120px); }
+    .chat-sidebar { width: 100%; }
+    .chat-main { display: none; }
+    .chat-main.show { display: flex; }
+    .sidebar-header h2 { font-size: 12px; }
+    .message-bubble { max-width: 85%; }
+    .chat-input-area { padding: 12px 14px; }
+    .chat-input-form input { font-size: 11px; padding: 8px 12px; }
+  }
 </style>
 }
 

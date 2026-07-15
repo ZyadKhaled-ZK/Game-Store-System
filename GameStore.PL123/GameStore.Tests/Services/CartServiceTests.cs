@@ -1,5 +1,6 @@
 using FluentAssertions;
-
+using Moq;
+ 
 namespace GameStore.Tests.Services;
 
 public class CartServiceTests
@@ -29,7 +30,7 @@ public class CartServiceTests
         using var ctx = CreateContext("Cart_Add");
         await SeedBasicData(ctx);
         var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
+        var service = new CartService(uow, Mock.Of<IGameAccessService>());
 
         var (success, error) = await service.AddToCartAsync("u1", "g1");
 
@@ -45,7 +46,7 @@ public class CartServiceTests
         using var ctx = CreateContext("Cart_AddNoCart");
         await SeedBasicData(ctx);
         var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
+        var service = new CartService(uow, Mock.Of<IGameAccessService>());
 
         await service.AddToCartAsync("u1", "g1");
 
@@ -59,7 +60,7 @@ public class CartServiceTests
         using var ctx = CreateContext("Cart_AddDup");
         await SeedBasicData(ctx);
         var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
+        var service = new CartService(uow, Mock.Of<IGameAccessService>());
 
         await service.AddToCartAsync("u1", "g1");
         var (success, error) = await service.AddToCartAsync("u1", "g1");
@@ -75,7 +76,7 @@ public class CartServiceTests
         ctx.Users.Add(new User { Id = "u1", Username = "Alice", Email = "a@t.com", PasswordHash = "h" });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
+        var service = new CartService(uow, Mock.Of<IGameAccessService>());
 
         var (success, error) = await service.AddToCartAsync("u1", "nonexistent");
 
@@ -89,7 +90,7 @@ public class CartServiceTests
         using var ctx = CreateContext("Cart_GetItems");
         await SeedBasicData(ctx);
         var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
+        var service = new CartService(uow, Mock.Of<IGameAccessService>());
 
         await service.AddToCartAsync("u1", "g1");
         await service.AddToCartAsync("u1", "g2");
@@ -106,7 +107,7 @@ public class CartServiceTests
         using var ctx = CreateContext("Cart_GetItemsEmpty");
         await SeedBasicData(ctx);
         var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
+        var service = new CartService(uow, Mock.Of<IGameAccessService>());
 
         var items = await service.GetCartItemsAsync("u1");
 
@@ -119,7 +120,7 @@ public class CartServiceTests
         using var ctx = CreateContext("Cart_Remove");
         await SeedBasicData(ctx);
         var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
+        var service = new CartService(uow, Mock.Of<IGameAccessService>());
 
         await service.AddToCartAsync("u1", "g1");
         var itemId = ctx.CartItems.First().Id;
@@ -135,7 +136,7 @@ public class CartServiceTests
     {
         using var ctx = CreateContext("Cart_RemoveNotFound");
         var uow = new UnitOfWork(ctx);
-        var service = new CartService(uow);
+        var service = new CartService(uow, Mock.Of<IGameAccessService>());
 
         var removed = await service.RemoveFromCartAsync("nonexistent", "u1");
 

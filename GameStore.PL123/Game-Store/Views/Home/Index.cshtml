@@ -45,11 +45,11 @@
     .hero-rating { font-family: var(--font-mono); font-size: 0.85rem; color: var(--gold); letter-spacing: 1px; }
     .hero-desc { color: rgba(255,255,255,0.6); font-size: 0.95rem; max-width: 650px; font-family: var(--font-ui); line-height: 1.5; }
     .hero-actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
-    .hero-btn { padding: 10px 20px; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; border: none; text-decoration: none; font-family: var(--font-mono); }
-    .hero-btn-primary { background: var(--red); color: #fff; }
-    .hero-btn-primary:hover { background: #ff4757; }
-    .hero-btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
-    .hero-btn-secondary:hover { background: rgba(255,255,255,0.15); border-color: var(--red); }
+    .hero-btn { padding: 10px 20px; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: none; text-decoration: none; font-family: var(--font-mono); border-radius: 6px; }
+    .hero-btn-primary { background: linear-gradient(135deg, var(--red), var(--red-dim)); color: #fff; box-shadow: 0 4px 15px rgba(230,57,70,0.3); }
+    .hero-btn-primary:hover { background: linear-gradient(135deg, #ff4757, var(--red)); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(230,57,70,0.5); }
+    .hero-btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(4px); }
+    .hero-btn-secondary:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
     .hero-carousel { position: relative; }
     .hero-track { position: relative; min-height: 450px; }
     .hero-item { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 1; }
@@ -66,28 +66,29 @@
     .browse-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 25px; flex-wrap: wrap; border-bottom: 1px solid var(--border-red); padding-bottom: 15px; }
     .browse-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: white; letter-spacing: 2px; }
     .browse-controls { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; font-family: var(--font-mono); }
-    .gs-search { background: var(--bg3); border: 1px solid var(--border-red); color: white; padding: 10px 14px 10px 38px; font-size: 0.9rem; width: 260px; outline: none; transition: all 0.2s; }
-    .gs-search:hover { border-color: var(--red-dim); }
-    .gs-search:focus { border-color: var(--red); box-shadow: var(--glow-red); }
+    .gs-search { background: rgba(255,255,255,0.02); border: 1px solid var(--border-red); color: white; padding: 10px 14px 10px 38px; font-size: 0.9rem; width: 280px; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 6px; }
+    .gs-search:hover { border-color: rgba(230,57,70,0.5); background: rgba(255,255,255,0.05); }
+    .gs-search:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(230,57,70,0.25); background: var(--bg); width: 320px; }
     .search-wrap { position: relative; }
-    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--red); font-size: 0.9rem; pointer-events: none; }
-    .gs-sort { background: var(--bg3); border: 1px solid var(--border-red); color: white; padding: 10px 15px; font-size: 0.9rem; cursor: pointer; outline: none; transition: all 0.2s; }
-    .gs-sort:hover { border-color: var(--red-dim); }
-    .gs-sort:focus { border-color: var(--red); box-shadow: var(--glow-red); }
+    .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--red); font-size: 0.9rem; pointer-events: none; transition: color 0.3s; }
+    .gs-search:focus + .search-icon, .gs-search:focus ~ .search-icon { color: white; }
+    .gs-sort { background: rgba(255,255,255,0.02); border: 1px solid var(--border-red); color: white; padding: 10px 15px; font-size: 0.9rem; cursor: pointer; outline: none; transition: all 0.3s; border-radius: 6px; }
+    .gs-sort:hover { border-color: rgba(230,57,70,0.5); background: rgba(255,255,255,0.05); }
+    .gs-sort:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(230,57,70,0.25); }
     .gs-sort option { background: var(--bg2); color: white; }
     .cat-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 30px; font-family: var(--font-mono); }
     .cat-pill { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); color: var(--text-dim); padding: 8px 18px; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; transition: 0.2s; clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%); }
     .cat-pill:hover { border-color: var(--red); color: var(--red); background: rgba(230,57,70,0.05); }
     .cat-pill.active { background: var(--red); border-color: var(--red); color: white; font-weight: 700; box-shadow: var(--glow-red); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
     .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding-bottom: 60px; }
-    .game-card { background: var(--bg3); border: 1px solid var(--border-red); cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
-    .game-card-badge-new { position: absolute; top: 8px; left: 8px; z-index: 3; background: linear-gradient(135deg, var(--red), #ff6b35); color: #fff; font-family: var(--font-mono); font-size: 9px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 2px; box-shadow: 0 2px 8px rgba(230,57,70,0.3); pointer-events: none; }
-    .game-card::before { content: ''; position: absolute; top:0; left:0; width: 3px; height: 0%; background: var(--red); transition: 0.3s; z-index: 2; }
-    .game-card:hover { transform: translateY(-5px); box-shadow: var(--glow-red); border-color: var(--red); }
+    .game-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; border-radius: 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .game-card-badge-new { position: absolute; top: 12px; left: 12px; z-index: 3; background: linear-gradient(135deg, var(--red), #ff6b35); color: #fff; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; padding: 4px 12px; border-radius: 4px; box-shadow: 0 4px 12px rgba(230,57,70,0.4); pointer-events: none; }
+    .game-card::before { content: ''; position: absolute; top:0; left:0; width: 3px; height: 0%; background: linear-gradient(to bottom, var(--red), var(--gold)); transition: 0.4s; z-index: 2; }
+    .game-card:hover { transform: translateY(-8px); box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 15px rgba(230,57,70,0.2); border-color: rgba(230,57,70,0.4); }
     .game-card:hover::before { height: 100%; }
-    .game-card-img { width: 100%; height: 160px; object-fit: cover; filter: grayscale(20%); transition: 0.3s; border-bottom: 1px solid rgba(230,57,70,0.2); }
-    .game-card:hover .game-card-img { filter: grayscale(0%); }
-    .game-card-placeholder { width: 100%; height: 160px; background: var(--bg2); border-bottom: 1px solid var(--border-red); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--red); opacity: 0.5; }
+    .game-card-img { width: 100%; height: 180px; object-fit: cover; filter: grayscale(30%) brightness(0.8); transition: filter 0.5s ease, transform 0.5s ease; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .game-card:hover .game-card-img { filter: grayscale(0%) brightness(1.05); transform: scale(1.05); }
+    .game-card-placeholder { width: 100%; height: 180px; background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: rgba(230,57,70,0.5); }
     .game-card-body { padding: 15px; }
     .game-card-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .game-card-dev { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 10px; }
@@ -147,6 +148,52 @@
     .modal-review-textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 6px; color: var(--text); padding: 10px 14px; font-family: var(--font-ui); font-size: 13px; resize: vertical; min-height: 60px; outline: none; transition: border-color 0.2s; }
     .modal-review-textarea:focus { border-color: rgba(230,57,70,0.25); }
     .modal-review-msg { font-family: var(--font-mono); font-size: 11px; margin-top: 8px; }
+    @@media (max-width: 992px) {
+      .hero-section { padding: 0 16px; }
+      .browse-section { padding: 0 16px; }
+      .hero-title { font-size: 2rem; }
+      .hero-desc { font-size: 0.85rem; max-width: 100%; }
+      .gs-modal { max-width: 90vw; }
+      .modal-body { padding: 20px 20px 16px; }
+      .modal-title { font-size: 1.3rem; }
+    }
+    @@media (max-width: 768px) {
+      .hero-img, .hero-placeholder { height: 300px; }
+      .hero-overlay { padding: 20px; }
+      .hero-title { font-size: 1.6rem; }
+      .welcome-title { font-size: 2.5rem; letter-spacing: 4px; }
+      .welcome-logo { width: 80px; height: 80px; }
+      .hero-arrow { width: 36px; height: 36px; font-size: 1rem; }
+      .gs-search { width: 100%; }
+      .browse-controls { width: 100%; }
+      .browse-controls .search-wrap { flex: 1; }
+      .browse-controls select { width: 100%; }
+      .browse-top { flex-direction: column; align-items: flex-start; }
+      .gs-modal { max-width: 96vw; }
+      .modal-hero-img, .modal-hero-placeholder { height: 180px; }
+      .modal-price-box { flex-direction: column; align-items: flex-start; }
+      .modal-download-box { justify-content: flex-start; width: 100%; }
+      #modalContent details > div { grid-template-columns: 1fr !important; }
+    }
+    @@media (max-width: 576px) {
+      .hero-img, .hero-placeholder { height: 220px; }
+      .hero-title { font-size: 1.2rem; }
+      .hero-arrow { width: 30px; height: 30px; font-size: 0.8rem; }
+      .hero-arrow-left { left: 6px; }
+      .hero-arrow-right { right: 6px; }
+      .hero-tag { font-size: 0.6rem; padding: 2px 8px; }
+      .hero-price { font-size: 1.1rem; }
+      .welcome-title { font-size: 1.8rem; letter-spacing: 2px; }
+      .welcome-sub { font-size: 0.7rem; letter-spacing: 4px; }
+      .welcome-logo { width: 60px; height: 60px; }
+      .welcome-version { display: none; }
+      .welcome-boot .bar { width: 120px; }
+      .gs-modal { max-width: 100vw; border-radius: 0; max-height: 100vh; }
+      .modal-body { padding: 16px; }
+      .modal-title { font-size: 1.1rem; }
+      .modal-desc { font-size: 0.85rem; }
+      .modal-screenshots img { height: 60px; }
+    }
 </style>
 
 <div class="welcome-gltch" id="welcomeGlitch"></div>
@@ -182,13 +229,16 @@
             {
                 var g = Model.HeroGames[hi];
                 var gIsNew = g.CreatedAt >= DateTime.UtcNow.AddDays(-30);
+                var gIsPreRelease = Model.PreReleaseGameIds.Contains(g.Id);
+                var gCanPreview = Model.PreviewableGameIds.Contains(g.Id);
                 var gJson = System.Text.Json.JsonSerializer.Serialize(new { id = g.Id, title = g.Title, developer = g.Developer ?? "UNKNOWN", price = g.Price, description = g.Description, trailerUrl = g.TrailerUrl, screenshots = g.ScreenshotUrls, coverImageUrl = g.CoverImageUrl, releaseDate = g.ReleaseDate.ToString("yyyy-MM-dd"), categories = g.GameCategories.Select(gc => gc.Category.Name).ToList(), hasFile = g.GameFileUrl != null, fileName = g.GameFileName, fileSizeBytes = g.GameFileSizeBytes });
                 var gReviews = Model.ReviewsByGame.TryGetValue(g.Id, out var revs) ? revs : new();
                 var gAvg = gReviews.Any() ? gReviews.Average(r => r.Rating) : 0;
                 var gPriceText = g.Price == 0 ? "FREE" : "$" + g.Price.ToString("F2");
                 <div class="hero-item @(hi == 0 ? "active" : "")" data-hero-index="@hi">
-                    <div class="hero-card" onclick="openModal(@Html.Raw(gJson))">
+                    <div class="hero-card" onclick='openModal(@Html.Raw(gJson))'>
                         @if (gIsNew) { <div class="hero-badge-new">🔥 NEW</div> }
+                        @if (gIsPreRelease) { <div class="hero-badge-new" style="background:#8a1c24;color:white;">COMING SOON</div> }
                         @if (!string.IsNullOrEmpty(g.CoverImageUrl)) { <img class="hero-img" src="@g.CoverImageUrl" alt="@g.Title" /> }
                         else if (g.ScreenshotUrls.Any()) { <img class="hero-img" src="@g.ScreenshotUrls[0]" alt="@g.Title" /> }
                         else { <div class="hero-placeholder"><i class="bi bi-image"></i></div> }
@@ -196,16 +246,22 @@
                             <div class="hero-title">@g.Title.ToUpper()</div>
                             <div class="hero-meta">
                                 @foreach (var gc in g.GameCategories.Take(3)) { <span class="hero-tag">@gc.Category.Name</span> }
-                                <span class="hero-price @(g.Price == 0 ? "price-free" : "")">@gPriceText</span>
+                                @if (gIsPreRelease) { <span class="hero-price" style="color:var(--gold);font-size:10px;">COMING @g.ReleaseDate.ToString("MMM d, yyyy")</span> }
+                                else { <span class="hero-price @(g.Price == 0 ? "price-free" : "")">@gPriceText</span> }
                                 @if (gReviews.Any()) { <span class="hero-rating"><i class="bi bi-star-fill" style="margin-right:4px;"></i>@gAvg.ToString("0.0") (@gReviews.Count)</span> }
-                                <span class="hero-rating" style="color:var(--text-dim);"><i class="bi bi-calendar3"></i> @g.ReleaseDate.ToString("yyyy")</span>
+                                <span class="hero-rating" style="color:var(--text-dim);"><i class="bi bi-calendar3"></i> @g.ReleaseDate.ToString("MMM d, yyyy")</span>
                             </div>
                             @if (!string.IsNullOrEmpty(g.Description)) { <div class="hero-desc">@(g.Description.Length > 180 ? g.Description[..177] + "..." : g.Description)</div> }
                             <div class="hero-actions">
-                                @if (isLoggedInHero && Model.OwnedGameIds.Contains(g.Id)) { <span class="hero-btn hero-btn-primary" style="background:rgba(74,222,128,0.08);border-color:rgba(74,222,128,0.2);color:#4ade80;cursor:default;">✓ OWNED</span> }
+                                @if (gIsPreRelease)
+                                {
+                                    if (isLoggedInHero) { <button class="hero-btn hero-btn-secondary" onclick="event.stopPropagation();toggleWishlist('@g.Id', this)"><i class="bi bi-heart"></i> WISHLIST</button> }
+                                    else { <a href="/Auth/Login" class="hero-btn hero-btn-secondary" onclick="event.stopPropagation()"><i class="bi bi-heart"></i> WISHLIST</a> }
+                                }
+                                else if (isLoggedInHero && Model.OwnedGameIds.Contains(g.Id)) { <span class="hero-btn hero-btn-primary" style="background:rgba(74,222,128,0.08);border-color:rgba(74,222,128,0.2);color:#4ade80;cursor:default;">✓ OWNED</span> }
                                 else if (isLoggedInHero) { <button class="hero-btn hero-btn-primary" onclick="event.stopPropagation();addToCart('@g.Id', this)"><i class="bi bi-cart-plus"></i> ADD TO CART</button> <button class="hero-btn hero-btn-secondary" onclick="event.stopPropagation();toggleWishlist('@g.Id', this)"><i class="bi bi-heart"></i></button> }
                                 else { <a href="/Auth/Login" class="hero-btn hero-btn-primary" onclick="event.stopPropagation()"><i class="bi bi-box-arrow-in-right"></i> LOGIN TO BUY</a> }
-                                <button class="hero-btn hero-btn-secondary" onclick="event.stopPropagation();openModal(@Html.Raw(gJson))"><i class="bi bi-info-circle"></i> DETAILS</button>
+                                <button class="hero-btn hero-btn-secondary" onclick='event.stopPropagation();openModal(@Html.Raw(gJson))'><i class="bi bi-info-circle"></i> DETAILS</button>
                             </div>
                         </div>
                     </div>
@@ -245,67 +301,10 @@
         }
     </div>
 
-    <div class="games-grid" id="gamesGrid">
-        @if (!Model.Games.Any())
-        {
-            <div class="empty-state">
-                <h5 style="color:var(--red); font-family: var(--font-display);">CRITICAL: DATABASE EMPTY</h5>
-                <p style="font-family: var(--font-mono); font-size: 0.9rem;">No entries found. <a href="/Auth/Login" style="color:var(--gold);">ADD GAMES →</a></p>
-            </div>
-        }
-        else
-        {
-            var activeSalesGrid = ViewData["ActiveSales"] as Dictionary<string, decimal> ?? new();
-            foreach (var game in Model.Games)
-            {
-                var gameIsNew = game.CreatedAt >= DateTime.UtcNow.AddDays(-30);
-                var cats = string.Join(" ", game.GameCategories.Select(gc => gc.Category.Name?.ToLower() ?? ""));
-                var salePrice = activeSalesGrid.TryGetValue(game.Id, out var sp) ? sp : (decimal?)null;
-                var effectivePrice = salePrice ?? game.Price;
-                var gameJson = System.Text.Json.JsonSerializer.Serialize(new { id = game.Id, title = game.Title, developer = game.Developer ?? "UNKNOWN", price = game.Price, salePrice, description = game.Description, trailerUrl = game.TrailerUrl, screenshots = game.ScreenshotUrls, coverImageUrl = game.CoverImageUrl, releaseDate = game.ReleaseDate.ToString("yyyy-MM-dd"), categories = game.GameCategories.Select(gc => gc.Category.Name).ToList(), hasFile = game.GameFileUrl != null, fileName = game.GameFileName, fileSizeBytes = game.GameFileSizeBytes });
-                <div class="game-card" data-title="@game.Title.ToLower()" data-cats="@cats" data-price="@effectivePrice" data-date="@game.ReleaseDate.Ticks" data-game-id="@game.Id" onclick='openModal(@Html.Raw(gameJson))'>
-                    @if (gameIsNew) { <div class="game-card-badge-new">🔥 NEW</div> }
-                    @if (salePrice.HasValue) { <div class="game-card-badge-new" style="background:var(--red);color:white;">SALE</div> }
-                    @if (!string.IsNullOrEmpty(game.CoverImageUrl)) { <img class="game-card-img" src="@game.CoverImageUrl" alt="@game.Title" loading="lazy"/> }
-                    else if (game.ScreenshotUrls.Any()) { <img class="game-card-img" src="@game.ScreenshotUrls[0]" alt="@game.Title" loading="lazy"/> }
-                    else { <div class="game-card-placeholder">⊗</div> }
-                    <div class="game-card-body">
-                        <div class="game-card-title">@game.Title.ToUpper()@if (Model.OwnedGameIds.Contains(game.Id)) {<span style="font-family:var(--font-mono);font-size:9px;color:#4ade80;margin-left:6px;">[OWNED]</span>}</div>
-                        <div class="game-card-dev">@((game.Developer ?? "Anon").ToUpper())</div>
-                        <div class="game-card-tags">@foreach (var gc in game.GameCategories.Take(3)) { <span class="game-tag">@gc.Category.Name</span> }</div>
-                        <div class="game-card-footer">
-                            @if (salePrice.HasValue)
-                            {
-                                <span style="color:var(--text-dim);font-size:10px;text-decoration:line-through;margin-right:6px;">$@game.Price.ToString("0.00")</span>
-                                <span class="price-paid" style="color:var(--red);">$@salePrice.Value.ToString("0.00")</span>
-                            }
-                            else if (game.Price == 0) { <span class="price-free">FREE</span> } else { <span class="price-paid">$@game.Price.ToString("0.00")</span> }
-                            @if (game.GameFileUrl != null && Model.OwnedGameIds.Contains(game.Id)) { <a href="@Url.Action("Download", "Home", new { id = game.Id })" class="has-file-badge" style="text-decoration:none;cursor:pointer;">▼ DOWNLOAD</a> }
-                        </div>
-                    </div>
-                </div>
-            }
-        }
+    <div id="gameGridContainer">
+        <partial name="_GameGridPartial" model="Model"/>
     </div>
 </div>
-
-@if (Model.TotalPages > 1)
-{
-  <div style="display:flex; justify-content:center; gap:8px; margin-top:32px; padding-bottom:40px;">
-    @if (Model.CurrentPage > 1)
-    {
-      <a href="?page=@(Model.CurrentPage - 1)" class="btn btn-secondary" style="padding:8px 16px; font-size:12px;">&laquo; PREV</a>
-    }
-    @for (int p = Math.Max(1, Model.CurrentPage - 2); p <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); p++)
-    {
-      <a href="?page=@p" class="btn @(p == Model.CurrentPage ? "btn-primary" : "btn-secondary")" style="padding:8px 14px; font-size:12px;">@p</a>
-    }
-    @if (Model.CurrentPage < Model.TotalPages)
-    {
-      <a href="?page=@(Model.CurrentPage + 1)" class="btn btn-secondary" style="padding:8px 16px; font-size:12px;">NEXT &raquo;</a>
-    }
-  </div>
-}
 
 <div class="gs-modal-overlay" id="gameModal" onclick="closeModalOutside(event)">
     <div class="gs-modal">
@@ -322,6 +321,8 @@
     const reviewsData = @Html.Raw(Model.ReviewsJson) || {};
     const wishlistIds = [];
     const ownedGameIds = @Html.Raw(Json.Serialize(Model.OwnedGameIds.ToList())) || [];
+    const preReleaseIds = @Html.Raw(Json.Serialize(Model.PreReleaseGameIds.ToList())) || [];
+    const previewableIds = @Html.Raw(Json.Serialize(Model.PreviewableGameIds.ToList())) || [];
     const isLoggedIn = @Html.Raw(string.IsNullOrEmpty(Context.Session.GetString("UserId")) ? "false" : "true");
     const heroGames = @Html.Raw(Model.HeroGamesJson) || [];
 
@@ -358,7 +359,7 @@
     function openModal(game) {
         var e = escapeHtml;
         let html = '';
-        const heroSrc = game.coverImageUrl || (game.screenshots && game.screenshots.length > 0 ? game.screenshots[0] : null);
+        const heroSrc = game.coverImageUrl;
         if (heroSrc) html += `<img class="modal-hero-img" src="${heroSrc}" alt="${e(game.title)}"/>`;
         else html += `<div class="modal-hero-placeholder">NO IMAGE</div>`;
         html += `<div class="modal-body">`;
@@ -366,19 +367,31 @@
         html += `<div class="modal-meta"><span><i class="bi bi-buildings"></i> ${e(game.developer)}</span><span><i class="bi bi-calendar3"></i> ${e(game.releaseDate)}</span></div>`;
         if (game.categories && game.categories.length) html += `<div class="modal-categories">` + game.categories.map(c => `<span class="modal-cat-tag">${e(c)}</span>`).join('') + `</div>`;
         if (game.description) html += `<p class="modal-desc">${e(game.description)}</p>`;
-        const shots = game.screenshots || [];
-        if (shots.length > 0) html += `<div class="modal-screenshots">` + shots.map(s => `<img src="${s}" onclick="this.requestFullscreen && this.requestFullscreen()"/>`).join('') + `</div>`;
         if (game.trailerUrl) html += `<div class="modal-trailer-wrap"><iframe class="modal-trailer" src="${getEmbedUrl(game.trailerUrl)}" allowfullscreen loading="lazy"></iframe></div>`;
+        html += `<div id="modalReqs_${e(game.id)}" style="margin-bottom:16px;"></div>`;
+        html += `<div id="modalVersions_${e(game.id)}" style="margin-bottom:12px;"></div>`;
         html += `<div class="modal-price-box">`;
-        if (game.salePrice && game.salePrice < game.price) {
+        if (game.isPreRelease) {
+            html += `<div class="modal-price-val" style="color:var(--gold);font-size:14px;">COMING SOON</div>`;
+            html += `<div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:4px;">releases ${e(game.releaseDate)}</div>`;
+        } else if (game.salePrice && game.salePrice < game.price) {
             html += `<span style="color:var(--text-dim);font-size:12px;text-decoration:line-through;margin-right:8px;">$${game.price.toFixed(2)}</span>`;
             html += `<div class="modal-price-val" style="color:var(--red);">$${game.salePrice.toFixed(2)}</div>`;
         } else if (game.price === 0) html += `<div class="modal-price-val" style="color:var(--gold);">FREE</div>`;
         else html += `<div class="modal-price-val">$${game.price.toFixed(2)}</div>`;
         if (ownedGameIds.includes(game.id)) html += `<span style="font-family:var(--font-mono);font-size:11px;color:#4ade80;margin-left:12px;">[ OWNED ]</span>`;
-        if (game.hasFile && ownedGameIds.includes(game.id)) html += `<div class="modal-download-box"><span class="modal-download-icon">💾</span><div class="modal-download-info"><div class="modal-download-name">${e(game.fileName) || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Library/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
+        if (ownedGameIds.includes(game.id)) html += `<div class="modal-download-box" id="modalDlBox_${e(game.id)}"><span class="modal-download-icon"><i class="fas fa-save"></i></span><div class="modal-download-info"><div class="modal-download-name">${e(game.fileName) || 'GAME FILE'}</div><div class="modal-download-size">${fmtSize(game.fileSizeBytes)} OK</div></div><a href="/Library/Download/${game.id}" class="btn btn-primary" style="padding:8px 16px;font-size:12px;text-decoration:none;">⬇ DOWNLOAD</a></div>`;
         html += `<div class="modal-actions">`;
-        if (isLoggedIn) {
+        if (game.isPreRelease) {
+            if (isLoggedIn) {
+                if (previewableIds.includes(game.id)) {
+                    html += `<a href="/Library/PreviewDownload/${game.id}" class="btn btn-primary" style="background:rgba(138,28,36,0.15);border-color:rgba(138,28,36,0.3);color:var(--red);">⬇ PREVIEW DOWNLOAD</a>`;
+                }
+                html += `<button onclick="toggleWishlist('${game.id}', this)" class="btn btn-secondary modal-wishlist-btn" title="Add to wishlist">&#9825;</button>`;
+            } else {
+                html += `<a href="/Auth/Login" class="btn btn-secondary">LOGIN TO WISHLIST</a>`;
+            }
+        } else if (isLoggedIn) {
             if (ownedGameIds.includes(game.id)) { html += `<span class="btn btn-primary" style="background:rgba(74,222,128,0.08);border-color:rgba(74,222,128,0.2);color:#4ade80;cursor:default;opacity:0.8;">✓ IN LIBRARY</span>`; }
             else { html += `<button onclick="addToCart('${game.id}', this)" class="btn btn-primary">+ ADD TO CART</button>`; }
             html += `<button onclick="toggleWishlist('${game.id}', this)" class="btn btn-secondary modal-wishlist-btn" title="Add to wishlist">&#9825;</button>`;
@@ -398,7 +411,85 @@
         html += `</div></div>`;
         document.getElementById('modalContent').innerHTML = html;
         document.getElementById('gameModal').classList.add('open');
+        loadModalReqs(game.id);
+        loadModalVersions(game.id);
         document.body.style.overflow = 'hidden';
+    }
+
+    function loadModalReqs(gameId) {
+        var container = document.getElementById('modalReqs_' + gameId);
+        if (!container) return;
+        fetch('/Home/GetRequirements/' + gameId)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data || (!data.minimum && !data.recommended)) { container.innerHTML = ''; return; }
+            var min = data.minimum, rec = data.recommended;
+            if (!min && !rec) { container.innerHTML = ''; return; }
+            var reqHtml = '<details style="margin:0;border:1px solid rgba(138,28,36,0.2);border-radius:2px;"><summary style="cursor:pointer;padding:8px 12px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:1px;">SYSTEM REQUIREMENTS</summary><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 12px;font-family:var(--font-mono);font-size:11px;">';
+            if (min) {
+              reqHtml += '<div><div style="color:var(--red);margin-bottom:4px;font-size:10px;letter-spacing:1px;">MINIMUM</div>';
+              reqHtml += (min.os ? '<div style="margin-bottom:2px;">' + escapeHtml(min.os) + '</div>' : '');
+              reqHtml += (min.processor ? '<div style="margin-bottom:2px;">' + escapeHtml(min.processor) + '</div>' : '');
+              reqHtml += (min.memory ? '<div style="margin-bottom:2px;">' + escapeHtml(min.memory) + '</div>' : '');
+              reqHtml += (min.graphics ? '<div style="margin-bottom:2px;">' + escapeHtml(min.graphics) + '</div>' : '');
+              reqHtml += (min.directX ? '<div style="margin-bottom:2px;">' + escapeHtml(min.directX) + '</div>' : '');
+              reqHtml += (min.storage ? '<div style="margin-bottom:2px;">' + escapeHtml(min.storage) + '</div>' : '');
+              reqHtml += '</div>';
+            }
+            if (rec) {
+              reqHtml += '<div><div style="color:var(--gold);margin-bottom:4px;font-size:10px;letter-spacing:1px;">RECOMMENDED</div>';
+              reqHtml += (rec.os ? '<div style="margin-bottom:2px;">' + escapeHtml(rec.os) + '</div>' : '');
+              reqHtml += (rec.processor ? '<div style="margin-bottom:2px;">' + escapeHtml(rec.processor) + '</div>' : '');
+              reqHtml += (rec.memory ? '<div style="margin-bottom:2px;">' + escapeHtml(rec.memory) + '</div>' : '');
+              reqHtml += (rec.graphics ? '<div style="margin-bottom:2px;">' + escapeHtml(rec.graphics) + '</div>' : '');
+              reqHtml += (rec.directX ? '<div style="margin-bottom:2px;">' + escapeHtml(rec.directX) + '</div>' : '');
+              reqHtml += (rec.storage ? '<div style="margin-bottom:2px;">' + escapeHtml(rec.storage) + '</div>' : '');
+              reqHtml += '</div>';
+            }
+            reqHtml += '</div></details>';
+            container.innerHTML = reqHtml;
+          })
+          .catch(function() { container.innerHTML = ''; });
+    }
+
+    function loadModalVersions(gameId) {
+        var container = document.getElementById('modalVersions_' + gameId);
+        var dlBox = document.getElementById('modalDlBox_' + gameId);
+        if (!container) return;
+        fetch('/Home/GetVersions/' + gameId)
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data || data.length === 0) { container.innerHTML = ''; return; }
+            var currentVer = data.find(function(v) { return v.isCurrent; }) || data[0];
+            var verHtml = '<div style="font-family:var(--font-mono);font-size:11px;color:var(--gold);margin-bottom:4px;">v' + escapeHtml(currentVer.versionLabel) + (currentVer.isCurrent ? ' <span style="color:#4ade80;border:1px solid rgba(74,222,128,0.3);padding:1px 5px;font-size:9px;">CURRENT</span>' : '') + '</div>';
+            if (data.length > 1) {
+                verHtml += '<select id="verSelect_' + gameId + '" style="background:var(--bg3);border:1px solid var(--border-red);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:4px 8px;width:100%;outline:none;margin-bottom:6px;" onchange="updateModalDl(\'' + gameId + '\', this)">';
+                data.sort(function(a, b) { return new Date(b.uploadedAt) - new Date(a.uploadedAt); }).forEach(function(v) {
+                    verHtml += '<option value="' + v.id + '"' + (v.isCurrent ? ' selected' : '') + '>v' + escapeHtml(v.versionLabel) + (v.isCurrent ? ' (CURRENT)' : '') + ' — ' + escapeHtml(v.fileName) + '</option>';
+                });
+                verHtml += '</select>';
+            }
+            container.innerHTML = verHtml;
+            // Update download box with version info
+            if (dlBox) {
+                var nameEl = dlBox.querySelector('.modal-download-name');
+                var sizeEl = dlBox.querySelector('.modal-download-size');
+                var linkEl = dlBox.querySelector('a');
+                if (nameEl) nameEl.textContent = currentVer.fileName || 'GAME FILE';
+                if (sizeEl) sizeEl.textContent = fmtSize(currentVer.fileSizeBytes) + ' OK';
+                if (linkEl) linkEl.href = '/Library/Download/' + gameId + '?versionId=' + encodeURIComponent(currentVer.id);
+            }
+          })
+          .catch(function() { container.innerHTML = ''; });
+    }
+
+    function updateModalDl(gameId, select) {
+        var versionId = select.value;
+        var dlBox = document.getElementById('modalDlBox_' + gameId);
+        if (dlBox) {
+            var linkEl = dlBox.querySelector('a');
+            if (linkEl) linkEl.href = '/Library/Download/' + gameId + '?versionId=' + encodeURIComponent(versionId);
+        }
     }
 
     let selectedRating = 0;
@@ -465,30 +556,68 @@
     let activeCat = '';
     function selectCat(el) { var cat = el.dataset.cat || ''; document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active')); el.classList.add('active'); activeCat = cat; applyFilters(); }
     function applyFilters() {
-        const q = document.getElementById('searchInput').value.toLowerCase().trim();
-        const sort = document.getElementById('sortSelect').value;
-        const cards = Array.from(document.querySelectorAll('.game-card'));
-        cards.forEach(c => {
-            const matchTitle = c.dataset.title.includes(q);
-            const matchCat = !activeCat || c.dataset.cats.includes(activeCat);
-            const matchFree = sort !== 'free' || parseFloat(c.dataset.price) === 0;
-            c.style.display = (matchTitle && matchCat && matchFree) ? '' : 'none';
+        const q = document.getElementById('searchInput').value.trim();
+        pageCache = {};
+        loadPage(1, q);
+    }
+    function applyClientFilters() {
+        var sort = document.getElementById('sortSelect').value;
+        var cards = Array.from(document.querySelectorAll('.game-card'));
+        cards.forEach(function(c) {
+            var matchCat = !activeCat || (c.dataset.cats || '').includes(activeCat);
+            var matchFree = sort !== 'free' || parseFloat(c.dataset.price) === 0;
+            c.style.display = (matchCat && matchFree) ? '' : 'none';
         });
-        const visible = cards.filter(c => c.style.display !== 'none');
-        visible.sort((a, b) => {
+        var visible = cards.filter(function(c) { return c.style.display !== 'none'; });
+        visible.sort(function(a, b) {
             if (sort === 'name') return a.dataset.title.localeCompare(b.dataset.title);
             if (sort === 'price-asc') return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
             if (sort === 'price-desc') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
             return parseInt(b.dataset.date) - parseInt(a.dataset.date);
         });
-        const grid = document.getElementById('gamesGrid');
-        visible.forEach(c => grid.appendChild(c));
+        var grid = document.getElementById('gamesGrid');
+        visible.forEach(function(c) { grid.appendChild(c); });
     }
 
     document.querySelectorAll('.game-card, .cat-pill').forEach(el => {
         el.classList.add('ripple');
         el.addEventListener('mousedown', function(e) { const rect = this.getBoundingClientRect(); this.style.setProperty('--mx', (e.clientX - rect.left) + 'px'); this.style.setProperty('--my', (e.clientY - rect.top) + 'px'); });
     });
+
+    // ── AJAX Pagination ──────────────────────────────────────────────
+    var pageCache = {};
+    document.getElementById('gameGridContainer').addEventListener('click', function(e) {
+        var link = e.target.closest('.pagination-link');
+        if (!link) return;
+        e.preventDefault();
+        var page = link.dataset.page;
+        var search = link.dataset.search || '';
+        if (!page) return;
+        loadPage(page, search);
+    });
+
+    function loadPage(page, search) {
+        search = search || document.getElementById('searchInput').value.trim();
+        var cacheKey = page + '|' + search;
+        function afterLoad() {
+            history.replaceState(null, '', '?page=' + page + (search ? '&search=' + encodeURIComponent(search) : ''));
+            applyClientFilters();
+        }
+        if (pageCache[cacheKey]) {
+            document.getElementById('gameGridContainer').innerHTML = pageCache[cacheKey];
+            afterLoad();
+            return;
+        }
+        var url = '/Home/GetGameGrid?page=' + page;
+        if (search) url += '&search=' + encodeURIComponent(search);
+        fetch(url)
+            .then(function(r) { return r.text(); })
+            .then(function(html) {
+                pageCache[cacheKey] = html;
+                document.getElementById('gameGridContainer').innerHTML = html;
+                afterLoad();
+            });
+    }
 
     var hash = window.location.hash;
     if (hash && hash.startsWith('#game-')) {

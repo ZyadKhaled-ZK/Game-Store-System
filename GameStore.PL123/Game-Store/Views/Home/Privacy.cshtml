@@ -75,6 +75,15 @@
     border-color: var(--red);
     color: white;
   }
+  @@media (max-width: 768px) {
+    .privacy-box { padding: 28px; }
+    .privacy-box h1 { font-size: 1.6rem; }
+  }
+  @@media (max-width: 576px) {
+    .privacy-box { padding: 20px; margin: 0 12px; }
+    .privacy-box h1 { font-size: 1.3rem; }
+    .privacy-box p { font-size: 0.9rem; padding-left: 12px; }
+  }
 </style>
 
 <div class="privacy-box">

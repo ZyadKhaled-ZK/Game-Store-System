@@ -4,11 +4,13 @@ namespace GameStore.BLL.Services
     {
         private readonly IUnitOfWork _uow;
         private readonly ISaleService _saleService;
+        private readonly IGameAccessService _gameAccess;
 
-        public OrderService(IUnitOfWork uow, ISaleService saleService)
+        public OrderService(IUnitOfWork uow, ISaleService saleService, IGameAccessService gameAccess)
         {
             _uow = uow;
             _saleService = saleService;
+            _gameAccess = gameAccess;
         }
 
         public async Task<List<Order>> GetAllWithDetailsAsync()
@@ -70,6 +72,15 @@ namespace GameStore.BLL.Services
                     return (false, "Your cart is empty.", null);
                 }
 
+                foreach (var ci in cart.CartItems)
+                {
+                    if (ci.Game != null && _gameAccess.IsPreRelease(ci.Game))
+                    {
+                        await _uow.RollbackAsync();
+                        return (false, $"\"{ci.Game.Title}\" is not released yet.", null);
+                    }
+                }
+
                 var gameIds = cart.CartItems.Select(ci => ci.GameId).ToList();
                 var activeSales = await _saleService.GetActiveSalesByGameIdsAsync(gameIds);
 
@@ -99,7 +110,8 @@ namespace GameStore.BLL.Services
                     {
                         OrderId = order.Id,
                         GameId = cartItem.GameId,
-                        PriceAtPurchase = price
+                        PriceAtPurchase = price,
+                        CommissionPercent = 15m
                     });
                 }
 
@@ -152,6 +164,15 @@ namespace GameStore.BLL.Services
                     return (false, "Your cart is empty.", null);
                 }
 
+                foreach (var ci in cart.CartItems)
+                {
+                    if (ci.Game != null && _gameAccess.IsPreRelease(ci.Game))
+                    {
+                        await _uow.RollbackAsync();
+                        return (false, $"\"{ci.Game.Title}\" is not released yet.", null);
+                    }
+                }
+
                 var order = new Order
                 {
                     UserId = userId,
@@ -167,7 +188,8 @@ namespace GameStore.BLL.Services
                     {
                         OrderId = order.Id,
                         GameId = cartItem.GameId,
-                        PriceAtPurchase = 0
+                        PriceAtPurchase = 0,
+                        CommissionPercent = 15m
                     });
                 }
 
@@ -203,6 +225,17 @@ namespace GameStore.BLL.Services
             {
                 await _uow.RollbackAsync();
                 throw;
+            }
+        }
+
+        public async Task SetPaymentStatusAsync(string orderId, PaymentStatus status)
+        {
+            var order = await _uow.Repository<Order>().GetByIdAsync(orderId);
+            if (order != null)
+            {
+                order.PaymentStatus = status;
+                _uow.Repository<Order>().Update(order);
+                await _uow.SaveChangesAsync();
             }
         }
 

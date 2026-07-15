@@ -1,0 +1,16 @@
+[
+  {
+    "id": "b3b68924-62c6-47be-bc58-6283d7666fe4",
+    "orderId": "2705eb9d-1637-4c7c-bf23-1434a1016a34",
+    "userId": "1474890f-d547-4b11-b1d9-23f042d277ed",
+    "gameId": "8af6ac71-c9c5-4842-a26b-2e4031b42433",
+    "gameTitle": "Fear ",
+    "amount": 11.00,
+    "reason": "gg",
+    "status": 2,
+    "requestedAt": "2026-07-02T13:42:31.0996577Z",
+    "resolvedAt": "2026-07-02T13:59:43.7434772Z",
+    "adminNote": "",
+    "stripeRefundId": "store_credit"
+  }
+]

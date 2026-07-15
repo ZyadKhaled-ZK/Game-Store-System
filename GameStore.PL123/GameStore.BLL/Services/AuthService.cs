@@ -1,11 +1,55 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 
 namespace GameStore.BLL.Services
 {
     public class AuthService : IAuthService
     {
+        public static (bool IsValid, string Error) ValidatePassword(string password, string? email = null)
+        {
+            if (string.IsNullOrEmpty(password))
+                return (false, "Password is required.");
+
+            if (!string.IsNullOrEmpty(email))
+            {
+                var emailLocal = email.Split('@')[0];
+                if (string.Equals(password, email, StringComparison.OrdinalIgnoreCase))
+                    return (false, "Password cannot be the same as your email.");
+
+                if (string.Equals(password, emailLocal, StringComparison.OrdinalIgnoreCase))
+                    return (false, "Password cannot be the same as your email.");
+            }
+
+            if (password.Length < 8)
+                return (false, "Password must be at least 8 characters long.");
+
+            if (!Regex.IsMatch(password, @"\d"))
+                return (false, "Password must contain at least one number.");
+
+            if (!Regex.IsMatch(password, @"[^\w\s]"))
+                return (false, "Password must contain at least one special character.");
+
+            return (true, string.Empty);
+        }
+
+        public static (bool IsValid, string Error) ValidateUsername(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                return (false, "Username is required.");
+
+            if (username.Length < 4)
+                return (false, "Username must be at least 4 characters long.");
+
+            if (username.Length > 20)
+                return (false, "Username must not exceed 20 characters.");
+
+            if (!Regex.IsMatch(username, @"^[a-zA-Z0-9]+$"))
+                return (false, "Username can only contain letters and numbers.");
+
+            return (true, string.Empty);
+        }
         private readonly IUnitOfWork _uow;
         private readonly string _salt;
 
@@ -51,6 +95,14 @@ namespace GameStore.BLL.Services
 
         public async Task<(bool Success, string Error)> RegisterAsync(string username, string email, string password, Role role = Role.CUSTOMER)
         {
+            var usernameValidation = ValidateUsername(username);
+            if (!usernameValidation.IsValid)
+                return (false, usernameValidation.Error);
+
+            var passwordValidation = ValidatePassword(password, email);
+            if (!passwordValidation.IsValid)
+                return (false, passwordValidation.Error);
+
             if (await _uow.Repository<User>().AnyAsync(u => u.Email == email))
                 return (false, "Email already registered.");
 
@@ -71,6 +123,10 @@ namespace GameStore.BLL.Services
         {
             var user = await _uow.Repository<User>().GetByIdAsync(userId);
             if (user == null) return (false, "User not found.");
+
+            var passwordValidation = ValidatePassword(newPassword, user.Email);
+            if (!passwordValidation.IsValid)
+                return (false, passwordValidation.Error);
 
             var storedHash = user.PasswordHash;
             if (storedHash.StartsWith("$2"))
@@ -121,6 +177,10 @@ namespace GameStore.BLL.Services
             if (user == null)
                 return (false, "User not found.");
 
+            var passwordValidation = ValidatePassword(newPassword, user.Email);
+            if (!passwordValidation.IsValid)
+                return (false, passwordValidation.Error);
+
             user.PasswordHash = HashPassword(newPassword);
             resetToken.IsUsed = true;
             await _uow.SaveChangesAsync();
@@ -163,6 +223,10 @@ namespace GameStore.BLL.Services
 
         public async Task<(bool Success, string Error)> UpdateProfileAsync(string userId, string username, string? bio)
         {
+            var usernameValidation = ValidateUsername(username);
+            if (!usernameValidation.IsValid)
+                return (false, usernameValidation.Error);
+
             var user = await _uow.Repository<User>().GetByIdAsync(userId);
             if (user == null) return (false, "User not found.");
 
@@ -180,6 +244,16 @@ namespace GameStore.BLL.Services
             return await _uow.Repository<User>().AnyAsync(u => u.Username == username);
         }
 
+        public async Task<(bool Success, string Error)> ConfirmEmailAsync(string userId)
+        {
+            var user = await _uow.Repository<User>().GetByIdAsync(userId);
+            if (user == null) return (false, "User not found.");
+
+            user.EmailConfirmed = true;
+            await _uow.SaveChangesAsync();
+            return (true, string.Empty);
+        }
+
         public async Task<(bool Success, string Error)> UpdateEmailAsync(string userId, string newEmail)
         {
             if (await _uow.Repository<User>().AnyAsync(u => u.Email == newEmail && u.Id != userId))
@@ -191,6 +265,50 @@ namespace GameStore.BLL.Services
             user.Email = newEmail;
             await _uow.SaveChangesAsync();
             return (true, string.Empty);
+        }
+
+        public async Task<User?> FindUserByEmailAsync(string email)
+        {
+            return await _uow.Repository<User>().FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<string> CreateVerificationTokenAsync(string userId)
+        {
+            var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            var entity = new EmailVerificationToken
+            {
+                UserId = userId,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddDays(7)
+            };
+            await _uow.Repository<EmailVerificationToken>().AddAsync(entity);
+            await _uow.SaveChangesAsync();
+            return token;
+        }
+
+        public async Task<(bool Success, string? UserId)> ConsumeVerificationTokenAsync(string token)
+        {
+            var entity = await _uow.Repository<EmailVerificationToken>()
+                .FirstOrDefaultAsync(t => t.Token == token && !t.IsUsed && t.ExpiresAt > DateTime.UtcNow);
+
+            if (entity == null)
+                return (false, null);
+
+            entity.IsUsed = true;
+            await _uow.SaveChangesAsync();
+            return (true, entity.UserId);
+        }
+
+        public async Task InvalidateUserTokensAsync(string userId)
+        {
+            var tokens = await _uow.Repository<EmailVerificationToken>().Query()
+                .Where(t => t.UserId == userId && !t.IsUsed)
+                .ToListAsync();
+
+            foreach (var t in tokens)
+                t.IsUsed = true;
+
+            await _uow.SaveChangesAsync();
         }
     }
 }

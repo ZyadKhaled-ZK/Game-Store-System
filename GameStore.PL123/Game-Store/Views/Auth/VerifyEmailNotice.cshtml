@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "Verify Your Email";
+    var sent = TempData["EmailSent"] is true;
+}
+
+<style>
+  .auth-page { max-width: 420px; margin: 60px auto; }
+  .auth-box { background: var(--bg2); border: 1px solid var(--border-red); padding: 40px; text-align: center; }
+  .auth-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 900; color: white; margin-bottom: 16px; letter-spacing: 2px; }
+  .auth-sub { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim); margin-bottom: 24px; line-height: 1.6; }
+  .auth-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+  @@media (max-width: 576px) {
+    .auth-page { margin: 30px auto; padding: 0 12px; }
+    .auth-box { padding: 24px; }
+    .auth-title { font-size: 1.3rem; }
+    .auth-icon { font-size: 36px; }
+  }
+</style>
+
+<div class="auth-page">
+  <div class="auth-box">
+    <span class="auth-icon">&#9993;</span>
+    <div class="auth-title">VERIFY YOUR EMAIL</div>
+    <div class="auth-sub">
+      @if (sent)
+      {
+        <text>We've sent a confirmation link to your email address.<br>Click the link to activate your account.</text>
+      }
+      else
+      {
+        <text>If your email isn't already registered,<br>a confirmation link has been sent.</text>
+      }
+    </div>
+
+    <a href="/Auth/Login" class="btn btn-primary" style="justify-content:center;">GO TO LOGIN</a>
+  </div>
+</div>

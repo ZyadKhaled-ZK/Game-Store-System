@@ -31,7 +31,7 @@ public class OrderServiceTests
         ctx.Orders.Add(new Order { Id = "o1", UserId = "u1", TotalPrice = 10m });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new OrderService(uow, Mock.Of<ISaleService>());
+        var service = new OrderService(uow, Mock.Of<ISaleService>(), Mock.Of<IGameAccessService>());
 
         var order = await service.GetOrderByIdAsync("o1");
 
@@ -50,7 +50,7 @@ public class OrderServiceTests
         );
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new OrderService(uow, Mock.Of<ISaleService>());
+        var service = new OrderService(uow, Mock.Of<ISaleService>(), Mock.Of<IGameAccessService>());
 
         var orders = await service.GetOrdersByUserAsync("u1");
 
@@ -68,7 +68,7 @@ public class OrderServiceTests
         );
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new OrderService(uow, Mock.Of<ISaleService>());
+        var service = new OrderService(uow, Mock.Of<ISaleService>(), Mock.Of<IGameAccessService>());
 
         var orders = await service.GetAllWithDetailsAsync();
 
@@ -86,7 +86,7 @@ public class OrderServiceTests
         );
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new OrderService(uow, Mock.Of<ISaleService>());
+        var service = new OrderService(uow, Mock.Of<ISaleService>(), Mock.Of<IGameAccessService>());
 
         var orders = await service.GetRecentWithDetailsAsync(1);
 
@@ -101,7 +101,7 @@ public class OrderServiceTests
         ctx.Orders.Add(new Order { Id = "o1", UserId = "u1", TotalPrice = 10m, StripeSessionId = "sess_123" });
         await ctx.SaveChangesAsync();
         var uow = new UnitOfWork(ctx);
-        var service = new OrderService(uow, Mock.Of<ISaleService>());
+        var service = new OrderService(uow, Mock.Of<ISaleService>(), Mock.Of<IGameAccessService>());
 
         var order = await service.GetByStripeSessionIdAsync("sess_123");
 
@@ -114,7 +114,7 @@ public class OrderServiceTests
     {
         using var ctx = CreateContext("Order_ByStripeNF");
         var uow = new UnitOfWork(ctx);
-        var service = new OrderService(uow, Mock.Of<ISaleService>());
+        var service = new OrderService(uow, Mock.Of<ISaleService>(), Mock.Of<IGameAccessService>());
 
         var order = await service.GetByStripeSessionIdAsync("nonexistent");
 

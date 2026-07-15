@@ -7,10 +7,14 @@
     @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
     <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
     @await RenderSectionAsync("MetaTags", required: false)
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" integrity="sha384-XGjxtQfXaH2tnPFa9x+ruJTuLE3Aa6LhHSWRr1XeTyhezb4abCG4ccI5AkVDxqC+" crossorigin="anonymous" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js" integrity="sha384-/taWmisziXYpcfnYsumSUmNaiMvG/fF/OJOUCLnqCIYTrpOZy7WbFF6FfIxwOrfL" crossorigin="anonymous"></script>
     <style>
       :root {
         --gold: #f5c542;
@@ -72,7 +76,7 @@
       .nav-logo-text { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: #e0e0e0; letter-spacing: 1px; }
       .nav-logo-text span { color: var(--accent); }
 
-      .nav-links { display: flex; gap: 10px; list-style: none; }
+      .nav-links { display: flex; align-items: center; gap: 10px; list-style: none; }
       .nav-links a {
         font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: 1px;
         text-transform: uppercase; color: #a0a0a0; text-decoration: none;
@@ -278,6 +282,33 @@
         transition: background 0.2s;
       }
       ::-webkit-scrollbar-thumb:hover { background: var(--red); }
+      .nav-toggle { display: none !important; }
+      @@media (max-width: 992px) {
+        main { padding: 100px 24px 40px; }
+        nav { padding: 0 20px; }
+      }
+      @@media (max-width: 768px) {
+        .nav-links { flex-wrap: wrap; }
+        .nav-links a { font-size: 12px; padding: 10px 14px; }
+        .nav-links li:last-child { margin-left: 0 !important; }
+        main { padding: 90px 16px 32px; }
+        nav { padding: 0 12px; }
+        #adminNotifDropdown { width: calc(100vw - 24px) !important; right: 10px !important; }
+        .form-row { grid-template-columns: 1fr; }
+        .modal-box { padding: 24px; clip-path: none !important; }
+        footer { padding: 16px !important; }
+      }
+      @@media (max-width: 576px) {
+        main { padding: 80px 12px 24px; }
+        nav { padding: 0 8px; }
+        .nav-logo-text { font-size: 13px; }
+        .nav-logo img { height: 24px; }
+        .toast-container { right: 12px !important; bottom: 12px !important; }
+        .toast { min-width: unset !important; max-width: calc(100vw - 24px) !important; padding: 12px 16px; }
+        .section-title { font-size: 1.6rem !important; }
+        .panel-header { flex-direction: column; align-items: flex-start !important; }
+      }
+
       ::-webkit-scrollbar-corner { background: var(--bg); }
 
       ::selection { background: var(--red); color: white; }
@@ -300,12 +331,13 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-      <nav>
-       <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="nav-logo">
-         <img src="/images/logo.svg" alt="GameStore" height="28" style="filter:drop-shadow(0 0 6px rgba(230,57,70,0.5));" />
-         <span class="nav-logo-text">ADMIN <span>OVERRIDE</span></span>
-       </a>
-       <ul class="nav-links">
+     <nav>
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="nav-logo">
+          <img src="/images/logo.svg" alt="GameStore" height="28" style="filter:drop-shadow(0 0 6px rgba(230,57,70,0.5));" />
+          <span class="nav-logo-text">ADMIN <span>OVERRIDE</span></span>
+        </a>
+        <button class="nav-toggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+        <ul class="nav-links">
          <li><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
          <li><a asp-area="Admin" asp-controller="Users" asp-action="Index">Users</a></li>
          <li><a asp-area="Admin" asp-controller="Games" asp-action="Index">Games</a></li>
@@ -315,6 +347,7 @@
          <li><a asp-area="Admin" asp-controller="Developers" asp-action="Index">Developers</a></li>
          <li><a asp-area="Admin" asp-controller="DeveloperApplications" asp-action="Index">Applications</a></li>
            <li><a asp-area="Admin" asp-controller="Sales" asp-action="Index">Sales</a></li>
+           <li><a asp-area="Admin" asp-controller="Refunds" asp-action="Index">Refunds</a></li>
            <li><a asp-area="Admin" asp-controller="SupportTickets" asp-action="Index">Support</a></li>
            <li><a asp-area="" asp-controller="Home" asp-action="Index"><i class="bi bi-arrow-return-left"></i> Store</a></li>
          <li style="display:flex;align-items:center;">
@@ -349,7 +382,10 @@
       document.querySelectorAll('form').forEach(function(f) {
         f.addEventListener('submit', function() {
           var btn = this.querySelector('.btn[type="submit"], button[type="submit"]');
-          if (btn) btn.classList.add('loading');
+          if (btn) {
+            btn.classList.add('loading');
+            setTimeout(function() { btn.classList.remove('loading'); }, 2000);
+          }
         });
       });
 

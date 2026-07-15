@@ -1,8 +1,19 @@
-@model List<Sale>
+@model PagedResult<Sale>
+
+<style>
+  @@media (max-width: 768px) {
+    .page-header.flex-between { flex-direction: column; align-items: stretch !important; gap: 12px; }
+    .page-header.flex-between .btn { width: 100%; text-align: center; }
+  }
+  @@media (max-width: 576px) {
+    .page-header.flex-between h1 { font-size: 1.2rem; }
+    .empty-state { padding: 40px 20px; }
+  }
+</style>
 
 <div id="alertMessage" data-msg="@ViewData["Message"]" data-error="@ViewData["IsError"]"></div>
 
-<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
+<div class="page-header flex-between" style="align-items:flex-end;">
     <div>
         <h1>Sales & Offers</h1>
         <p>Create and manage discount sales for your games.</p>
@@ -10,11 +21,11 @@
     <a asp-action="Create" class="btn btn-primary">+ NEW SALE</a>
 </div>
 
-@if (!Model.Any())
+@if (!Model.Items.Any())
 {
-    <div class="card" style="text-align:center;padding:60px;">
-        <h3 style="font-size:16px;color:var(--text-dim);">NO SALES YET</h3>
-        <p style="color:var(--text-dim);margin:10px 0 20px;">Create a sale offer for one of your games.</p>
+    <div class="empty-state">
+        <h3>NO SALES YET</h3>
+        <p>Create a sale offer for one of your games.</p>
         <a asp-action="Create" class="btn btn-primary">CREATE SALE</a>
     </div>
 }
@@ -33,13 +44,13 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var sale in Model)
+                @foreach (var sale in Model.Items)
                 {
                     <tr>
-                        <td style="font-weight:700;color:white;">@(sale.Game?.Title ?? "Unknown")</td>
-                        <td style="color:var(--text-dim);text-decoration:line-through;">$@(sale.Game?.Price.ToString("N2") ?? "0.00")</td>
-                        <td style="color:var(--gold);font-weight:700;">$@sale.NewPrice.ToString("N2")</td>
-                        <td style="font-size:12px;">
+                        <td class="fw-700" style="color:white;">@(sale.Game?.Title ?? "Unknown")</td>
+                        <td class="price-original">$@(sale.Game?.Price.ToString("N2") ?? "0.00")</td>
+                        <td class="price-sale">$@sale.NewPrice.ToString("N2")</td>
+                        <td class="fs-12">
                             @sale.StartDate.ToString("MMM dd") - @sale.EndDate.ToString("MMM dd, yyyy")
                         </td>
                         <td>
@@ -65,16 +76,17 @@ else
                                     _ => "var(--text-dim)"
                                 };
                             }
-                            <span style="color:@statusColor;font-family:var(--font-mono);font-size:11px;font-weight:600;">@statusLabel</span>
+                            <span class="status-badge" style="color:@statusColor;">@statusLabel</span>
                             @if (sale.Status == SaleStatus.Rejected && !string.IsNullOrEmpty(sale.RejectReason))
                             {
-                                <br/><span style="font-size:10px;color:var(--text-dim);">@sale.RejectReason</span>
+                                <br/><span class="fs-10 text-dim">@sale.RejectReason</span>
                             }
                         </td>
-                        <td style="font-size:11px;color:var(--text-dim);">@sale.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        <td class="fs-11 text-dim">@sale.CreatedAt.ToString("MMM dd, yyyy")</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+    <partial name="_Pagination" model="Model" />
 }

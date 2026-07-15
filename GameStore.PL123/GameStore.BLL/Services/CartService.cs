@@ -5,10 +5,12 @@ namespace GameStore.BLL.Services
     public class CartService : ICartService
     {
         private readonly IUnitOfWork _uow;
+        private readonly IGameAccessService _gameAccess;
 
-        public CartService(IUnitOfWork uow)
+        public CartService(IUnitOfWork uow, IGameAccessService gameAccess)
         {
             _uow = uow;
+            _gameAccess = gameAccess;
         }
 
         public async Task<List<CartItem>> GetCartItemsAsync(string userId)
@@ -24,6 +26,8 @@ namespace GameStore.BLL.Services
         {
             var game = await _uow.Repository<Game>().GetByIdAsync(gameId);
             if (game == null) return (false, "Game not found.");
+            if (_gameAccess.IsPreRelease(game))
+                return (false, "This game isn't released yet.");
 
             var alreadyOwned = await _uow.Repository<LibraryGame>()
                 .AnyAsync(lg => lg.GameId == gameId

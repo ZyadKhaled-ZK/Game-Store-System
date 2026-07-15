@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "GameStore.Tests": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:55886;http://localhost:55887"
+    }
+  }
+}

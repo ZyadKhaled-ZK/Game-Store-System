@@ -17,6 +17,19 @@
   .post-item:last-child { border-bottom: none; }
   .post-content { font-family: var(--font-mono); font-size: 13px; color: var(--text); line-height: 1.5; }
   .post-meta { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 6px; }
+  @@media (max-width: 768px) {
+    .pp-container { max-width: 100%; padding: 0 8px; }
+    .pp-card { padding: 24px; }
+    .pp-card .dev-studio-card { padding: 24px !important; }
+    .pp-avatar, .pp-avatar-initial { width: 90px; height: 90px; font-size: 34px; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .pp-card { padding: 16px; }
+    .pp-avatar, .pp-avatar-initial { width: 72px; height: 72px; font-size: 28px; }
+    .section-title { font-size: 1.4rem !important; }
+    .pp-card .dev-studio-card .flex-wrap { flex-direction: column; align-items: center; }
+  }
 </style>
 
 <div class="pp-container mt-4 pt-4">

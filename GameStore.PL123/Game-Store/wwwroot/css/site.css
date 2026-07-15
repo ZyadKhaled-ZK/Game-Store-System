@@ -1,14 +1,30 @@
-/* ── Cyber Theme Global Utilities ── */
+/* ── Design System Variables ── */
+:root {
+    --bg: #0f172a;
+    --bg2: #1e293b;
+    --red: #e63946;
+    --red-dim: #991b1b;
+    --gold: #fbbf24;
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
+    --border-red: rgba(230, 57, 70, 0.3);
+    --font-main: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --glow-red: 0 0 15px rgba(230, 57, 70, 0.4);
+}
 
 html {
-    font-size: 14px;
+    font-family: var(--font-main);
+    font-size: 16px;
     scroll-behavior: smooth;
+    background-color: var(--bg);
+    color: var(--text);
 }
 
-@media (min-width: 768px) {
-    html { font-size: 16px; }
+dl {
+    margin-top: 0;
+    margin-bottom: 0;
 }
-
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -49,11 +65,13 @@ html {
 }
 
 /* ── Improved Form Interactions ── */
+.form-control, .form-input, textarea, input[type="text"], input[type="email"], input[type="password"], input[type="url"], input[type="number"] {
+    color: var(--text) !important;
+}
 .form-control {
     border-radius: 10px;
     border: 1px solid #334155;
     background-color: #1e293b;
-    color: #e2e8f0;
     transition: all 0.3s ease;
 }
 .form-control:hover {
@@ -67,16 +85,43 @@ html {
 
 /* ── Glassy Cards ── */
 .card {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.03);
     border-radius: 16px;
     padding: 20px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    transition: all 0.35s ease;
 }
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(230,57,70,0.15);
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(230,57,70,0.3);
+    box-shadow: 0 12px 40px rgba(230,57,70,0.25);
+}
+
+/* ── Primary Button Enhancement ── */
+.btn-primary {
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, var(--red) 0%, var(--red-dim) 100%);
+    box-shadow: 0 4px 15px rgba(230,57,70,0.3);
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(230,57,70,0.5);
+    background: linear-gradient(135deg, #ff4757 0%, var(--red) 100%);
+}
+
+/* ── Responsive Images ── */
+img { max-width: 100%; height: auto; }
+
+/* ── Global Responsive Breakpoints ── */
+@media (max-width: 992px) {
+    html { font-size: 15px; }
+}
+@media (max-width: 576px) {
+    html { font-size: 14px; }
 }
 
 /* ── Links ── */

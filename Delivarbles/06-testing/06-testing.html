@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Testing - GameStore Platform</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; color: #000; background: #fff; line-height: 1.6; max-width: 1200px; margin: 0 auto; padding: 50px 60px; }
+.container { max-width: 1100px; margin: 0 auto; }
+h1 { font-size: 32px; margin-bottom: 10px; font-weight: 700; }
+h2 { font-size: 22px; margin-top: 60px; margin-bottom: 22px; padding-bottom: 10px; border-bottom: 2px solid #000; font-weight: 600; }
+h3 { font-size: 16px; margin-top: 36px; margin-bottom: 16px; font-weight: 600; color: #000; }
+p { margin-bottom: 18px; line-height: 1.8; color: #000; }
+a { color: #000; text-decoration: underline; }
+a:hover { color: #666; }
+
+table { width: 100%; border-collapse: collapse; margin-bottom: 28px; font-size: 14px; }
+th { background: #000; color: #fff; padding: 12px 16px; text-align: left; font-weight: 600; }
+td { padding: 12px 16px; border-bottom: 1px solid #eee; vertical-align: top; }
+tr:nth-child(even) td { background: #f5f5f5; }
+tr:hover td { background: #eee; }
+
+code { font-family: "Consolas", "Courier New", monospace; background: #f5f5f5; padding: 2px 6px; border: 1px solid #eee; border-radius: 3px; font-size: 13px; }
+pre { background: #f5f5f5; border: 1px solid #eee; border-radius: 4px; padding: 16px; overflow-x: auto; margin-bottom: 24px; }
+pre code { background: none; border: none; padding: 0; }
+
+.graphviz { text-align: center; background: #fff; margin: 30px 0; padding: 25px; border: 1px solid #ddd; border-radius: 4px; }
+.graphviz svg { max-width: 100%; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { border: 1px solid #eee; border-radius: 4px; padding: 20px; text-align: center; background: #f5f5f5; }
+.stat-value { font-size: 28px; font-weight: 700; color: #000; }
+.stat-label { font-size: 13px; color: #666; margin-top: 4px; }
+
+ul { margin-bottom: 16px; padding-left: 24px; }
+li { margin-bottom: 4px; color: #000; }
+.section-desc { font-size: 14px; color: #666; margin-bottom: 20px; }
+@media print { body { padding: 0; } .graphviz { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Testing - GameStore Platform</h1>
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-value">185</div><div class="stat-label">Total Tests</div></div>
+  <div class="stat-card"><div class="stat-value">17</div><div class="stat-label">Test Files</div></div>
+  <div class="stat-card"><div class="stat-value">17</div><div class="stat-label">Services Tested</div></div>
+  <div class="stat-card"><div class="stat-value">1</div><div class="stat-label">Test Layer</div></div>
+</div>
+
+<h2>1. Testing Strategy</h2>
+<p>The GameStore platform employs a single-layer service-level testing strategy with <strong>185 total tests</strong> across <strong>17 test files</strong>, covering all <strong>17 BLL services</strong>. Every test targets the business logic layer in isolation using EF Core InMemory database and Moq for cross-service dependencies. There are no controller, integration, or E2E tests.</p>
+
+<div class="graphviz">
+digraph {
+  rankdir=TB;
+  graph [bgcolor="white", fontname="Arial", ranksep=0.3];
+  node [fontname="Arial", shape="box", style="filled", fillcolor="#f5f5f5", width=2.8, height=0.7];
+
+  service [label="Service Tests\n185 tests (100%)"];
+
+  service -> service [style="invis"];
+}
+</div>
+
+<h2>2. Test Stack</h2>
+<table>
+<thead>
+<tr><th>Tool</th><th>Version</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td>xUnit.net</td><td>2.9.3</td><td>Test framework for writing and executing unit tests</td></tr>
+<tr><td>Moq</td><td>4.20.72</td><td>Mocking framework for isolating service dependencies</td></tr>
+<tr><td>FluentAssertions</td><td>6.12.2</td><td>Fluent assertion library for readable test validation</td></tr>
+<tr><td>Microsoft.NET.Test.Sdk</td><td>17.12.0</td><td>SDK for running .NET tests from CLI and CI pipelines</td></tr>
+<tr><td>coverlet.collector</td><td>6.0.4</td><td>Code coverage data collector for test runs</td></tr>
+<tr><td>xunit.runner.visualstudio</td><td>3.0.2</td><td>Visual Studio test runner integration for xUnit</td></tr>
+</tbody>
+</table>
+
+<h2>3. Test Files</h2>
+<table>
+<thead>
+<tr><th>File Name</th><th>Test Count</th><th>Key Test Scenarios</th></tr>
+</thead>
+<tbody>
+<tr><td><code>AuthServiceTests.cs</code></td><td>18</td><td>User registration, login with valid/invalid credentials, password change, email change, password reset token generation, reset with valid/expired token</td></tr>
+<tr><td><code>UserServiceTests.cs</code></td><td>13</td><td>Get all users, get by ID, change role, delete user, self-guard checks, total count, search by username, get by role/month, update profile</td></tr>
+<tr><td><code>GameServiceTests.cs</code></td><td>20</td><td>Get all with categories, pagination with clamping, get by ID, create with category assignment, update fields and categories, delete, total count, free games count, games by category</td></tr>
+<tr><td><code>CategoryServiceTests.cs</code></td><td>10</td><td>Get all, get with game counts, create, duplicate name rejection, update, delete with/without games</td></tr>
+<tr><td><code>ReviewServiceTests.cs</code></td><td>12</td><td>Create review with ownership check, duplicate prevention, rating validation, get by game/user, delete, get all with details</td></tr>
+<tr><td><code>CartServiceTests.cs</code></td><td>12</td><td>Add game to cart, auto-create cart, duplicate prevention, game not found, get items, empty cart, remove item</td></tr>
+<tr><td><code>OrderServiceTests.cs</code></td><td>14</td><td>Get by ID, get by user, get all/recent with details, get by Stripe session ID, total orders/revenue, average order value, revenue by month/day, top selling games, revenue by category</td></tr>
+<tr><td><code>WishlistServiceTests.cs</code></td><td>8</td><td>Add to wishlist, duplicate prevention, game not found, remove, get wishlist, check if in wishlist</td></tr>
+<tr><td><code>LibraryServiceTests.cs</code></td><td>9</td><td>Get library games, empty library, check ownership, add game, auto-create library, duplicate prevention</td></tr>
+<tr><td><code>SearchServiceTests.cs</code></td><td>10</td><td>Search by keyword, filter by category, price range, sort options, paginated results, empty query handling</td></tr>
+<tr><td><code>PayoutServiceTests.cs</code></td><td>8</td><td>Calculate payout, process batch, rounding precision, failed retry, report generation, threshold enforcement</td></tr>
+<tr><td><code>SupportTicketServiceTests.cs</code></td><td>10</td><td>Create ticket, anonymous ticket, get with replies, paginated user tickets, get all, add reply, update status, ownership check</td></tr>
+<tr><td><code>CouponServiceTests.cs</code></td><td>9</td><td>Create coupon, validate code, apply discount, expiry check, usage limit, deactivate, get all coupons</td></tr>
+<tr><td><code>MessageServiceTests.cs</code></td><td>10</td><td>Send message, get conversation, empty conversation, unread count, mark as read, get contact list</td></tr>
+<tr><td><code>NotificationServiceTests.cs</code></td><td>9</td><td>Send notification, batch notification, template rendering, delivery failure, rate limiting, get user notifications</td></tr>
+<tr><td><code>ReportServiceTests.cs</code></td><td>6</td><td>Generate sales report, user stats report, game popularity report, revenue aggregation, date range filtering, export</td></tr>
+<tr><td><code>DashboardServiceTests.cs</code></td><td>7</td><td>Get dashboard stats, revenue summary, user growth chart, top games, recent orders, category distribution</td></tr>
+</tbody>
+</table>
+
+<h2>4. Sample Test Code</h2>
+<p>All tests follow the Arrange-Act-Assert pattern using EF Core InMemory database for data isolation and FluentAssertions for readable assertions. Below is a representative example from <code>GameServiceTests.cs</code>:</p>
+
+<pre><code>using FluentAssertions;
+
+namespace GameStore.Tests.Services;
+
+public class GameServiceTests
+{
+    private static GameStoreDbContext CreateContext(string dbName)
+    {
+        var options = new DbContextOptionsBuilder&lt;GameStoreDbContext&gt;()
+            .UseInMemoryDatabase(dbName)
+            .Options;
+        return new GameStoreDbContext(options);
+    }
+
+    [Fact]
+    public async Task GetAllWithCategoriesAsync_Returns_All_Games()
+    {
+        using var ctx = CreateContext("Game_GetAll");
+        ctx.Games.AddRange(
+            new Game { Id = "g1", Title = "Game A", ReleaseDate = DateTime.UtcNow, Price = 10m },
+            new Game { Id = "g2", Title = "Game B", ReleaseDate = DateTime.UtcNow, Price = 20m }
+        );
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new GameService(uow);
+
+        var games = await service.GetAllWithCategoriesAsync();
+
+        games.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetPagedAsync_Returns_Paginated_Games()
+    {
+        using var ctx = CreateContext("Game_Paged");
+        for (var i = 1; i &lt;= 10; i++)
+            ctx.Games.Add(new Game { Id = $"g{i}", Title = $"Game {i}",
+                ReleaseDate = DateTime.UtcNow, Price = i });
+        await ctx.SaveChangesAsync();
+        var uow = new UnitOfWork(ctx);
+        var service = new GameService(uow);
+
+        var result = await service.GetPagedAsync(1, 3);
+
+        result.Items.Should().HaveCount(3);
+        result.TotalCount.Should().Be(10);
+        result.TotalPages.Should().Be(4);
+    }
+}</code></pre>
+
+<h2>5. Mocking Strategy</h2>
+<p>Tests use <strong>EF Core InMemory database</strong> as the primary isolation mechanism, creating a fresh in-memory context per test with a unique database name to prevent state leakage. <strong>Moq</strong> is used to mock cross-service dependencies such as <code>IGameAccessService</code>, <code>ISaleService</code>, and <code>ILibraryService</code> when a service under test delegates to another service. <strong>IUnitOfWork</strong> is always the real <code>UnitOfWork</code> wrapping the in-memory context, ensuring transaction coordination is tested end-to-end. Dependencies are injected via constructor, following the real application's DI pattern.</p>
+
+<table>
+<thead>
+<tr><th>Component</th><th>Approach</th><th>Used In</th></tr>
+</thead>
+<tbody>
+<tr><td>Database</td><td>EF Core InMemory with unique DB name per test</td><td>All test files</td></tr>
+<tr><td>IUnitOfWork</td><td>Real UnitOfWork wrapping InMemory DbContext</td><td>All test files</td></tr>
+<tr><td>Cross-service deps</td><td>Moq mocks for IGameAccessService, ISaleService, etc.</td><td>CartServiceTests, OrderServiceTests</td></tr>
+<tr><td>IConfiguration</td><td>Moq mock for auth configuration values</td><td>AuthServiceTests</td></tr>
+</tbody>
+</table>
+
+<h2>6. Test Execution Commands</h2>
+<pre><code>dotnet test GameStore.Tests
+dotnet test GameStore.Tests --filter "FullyQualifiedName~GameService"
+dotnet test GameStore.Tests --verbosity normal
+dotnet test GameStore.Tests --collect:"XPlat Code Coverage"
+dotnet test GameStore.Tests --logger "trx;LogFileName=results.trx"</code></pre>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: Bug Reports                                       -->
+<!-- ============================================================ -->
+<h2>7. Bug Reports</h2>
+<p>The following bugs were identified during static code analysis of the actual codebase. Each entry includes the real file location, severity, and recommended fix.</p>
+
+<table>
+  <thead>
+    <tr><th>ID</th><th>Severity</th><th>Description</th><th>Location</th><th>Recommended Fix</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>BUG-01</td><td><strong>HIGH</strong></td><td>Static <code>JsonSerializerOptions</code> instance reused across threads in <code>JsonFileStore.WriteAsync</code>. The options object is not documented as thread-safe for serialization, risking data corruption under concurrent write load.</td><td><code>Services/JsonFileStore.cs:10</code></td><td>Create a new <code>JsonSerializerOptions</code> instance per <code>WriteAsync</code> call, or use <code>Lock</code> around serialization.</td></tr>
+    <tr><td>BUG-02</td><td><strong>HIGH</strong></td><td>Hard-coded password salt fallback <code>"GameStoreSalt2026"</code> used when <code>PasswordSalt</code> config is missing. Attackers who know this default can perform dictionary attacks against legacy SHA256 password hashes.</td><td><code>BLL/Services/AuthService.cs:15</code></td><td>Remove the fallback value; throw <code>InvalidOperationException</code> if <code>PasswordSalt</code> is not configured.</td></tr>
+    <tr><td>BUG-03</td><td><strong>MEDIUM</strong></td><td><code>ConnectionTracker.AddOrUpdate</code> has a race condition on the first connection for a user: both factory delegates can execute concurrently, causing one connection ID to overwrite the other.</td><td><code>Hubs/ConnectionTracker.cs:10</code></td><td>Use <code>GetOrAdd</code> + lock on the returned <code>HashSet</code>, or use a <code>ConcurrentDictionary</code> with per-user semaphore.</td></tr>
+    <tr><td>BUG-04</td><td><strong>MEDIUM</strong></td><td><code>CreditService</code> read-modify-write pattern is not atomic. The <code>JsonFileStore</code> semaphore is released between <code>GetLedgerAsync</code> and <code>WriteLedgerAsync</code>, allowing concurrent writes to overwrite each other.</td><td><code>Services/CreditService.cs:46-57</code></td><td>Wrap the read-modify-write sequence in a per-user <code>SemaphoreSlim</code>.</td></tr>
+    <tr><td>BUG-05</td><td><strong>MEDIUM</strong></td><td>Stripe webhook <code>catch</code> block returns <code>BadRequest("Invalid signature.")</code> with no logging. Attackers probing the endpoint leave no trace.</td><td><code>Controllers/StripeWebhookController.cs:37-40</code></td><td>Add <code>ILogger.LogWarning</code> before returning the error response.</td></tr>
+    <tr><td>BUG-06</td><td><strong>MEDIUM</strong></td><td>Raw exception message (<code>ex.Message</code>) stored in admin notes and returned to callers, potentially leaking SQL errors, file paths, or stack traces to non-admin users.</td><td><code>Services/RefundService.cs:115</code></td><td>Log the full exception; return a sanitized generic message to callers.</td></tr>
+    <tr><td>BUG-07</td><td><strong>LOW</strong></td><td><code>Enum.Parse&lt;Role&gt;(roleStr)</code> called without validation. If session <code>Role</code> is null or corrupted, a runtime <code>ArgumentException</code> is thrown.</td><td><code>Controllers/LibraryController.cs:46,77</code></td><td>Use <code>Enum.TryParse&lt;Role&gt;</code> with a default fallback.</td></tr>
+    <tr><td>BUG-08</td><td><strong>LOW</strong></td><td>Version upload POST endpoints in Admin area lack <code>[ValidateAntiForgeryToken]</code>, making them vulnerable to CSRF attacks.</td><td><code>Areas/Admin/Controllers/GamesController.cs:228-251</code></td><td>Add <code>[ValidateAntiForgeryToken]</code> attribute to all POST actions.</td></tr>
+  </tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.9.0/lib/viz-standalone.js"></script>
+<script>
+async function renderGraphviz() {
+  const viz = await Viz.instance();
+  document.querySelectorAll('.graphviz').forEach(function(el) {
+    try {
+      var dot = el.textContent.trim();
+      var svg = viz.renderString(dot, {format:'svg', engine:'dot'});
+      el.innerHTML = svg;
+    } catch(e) { console.error('error', e); }
+  });
+}
+renderGraphviz();
+</script>
+
+</body>
+</html>

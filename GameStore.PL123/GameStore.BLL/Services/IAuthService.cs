@@ -7,10 +7,15 @@ namespace GameStore.BLL.Services
         Task<(bool Success, string Error)> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
         Task<(bool Success, string Error, string? Token)> GenerateResetTokenAsync(string email);
         Task<(bool Success, string Error)> ResetPasswordAsync(string token, string newPassword);
+        Task<(bool Success, string Error)> ConfirmEmailAsync(string userId);
         Task<(bool Success, string Error)> UpdateEmailAsync(string userId, string newEmail);
         Task<(bool Success, string Error)> UpdateProfileAsync(string userId, string username, string? bio);
         Task<(User? User, bool IsNew)> GetOrCreateExternalUserAsync(string email, string username, string? avatarUrl);
         Task<bool> IsExternalAccountAsync(string email);
         Task<bool> UsernameExistsAsync(string username);
+        Task<User?> FindUserByEmailAsync(string email);
+        Task<string> CreateVerificationTokenAsync(string userId);
+        Task<(bool Success, string? UserId)> ConsumeVerificationTokenAsync(string token);
+        Task InvalidateUserTokensAsync(string userId);
     }
 }

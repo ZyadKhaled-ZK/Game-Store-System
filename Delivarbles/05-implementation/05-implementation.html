@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implementation - GameStore Platform</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; background: #fff; color: #000; line-height: 1.6; max-width: 1200px; margin: 0 auto; padding: 50px 60px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 32px; margin-bottom: 10px; border-bottom: 3px solid #000; padding-bottom: 10px; }
+  h2 { font-size: 1.4em; margin-top: 60px; margin-bottom: 22px; border-bottom: 1px solid #999; padding-bottom: 10px; }
+  h3 { font-size: 1.15em; margin-top: 36px; margin-bottom: 16px; }
+  h4 { font-size: 1em; margin: 20px 0 6px; font-weight: 700; }
+  p { margin-bottom: 18px; line-height: 1.8; color: #000; }
+  .section-desc { font-size: 14px; color: #666; margin-bottom: 20px; }
+  .graphviz { text-align: center; background: #fff; margin: 30px 0; padding: 25px; border: 1px solid #ddd; border-radius: 4px; min-height: 60px; }
+  .graphviz svg { display: block; margin: 0 auto; max-width: 100%; }
+  pre { background: #f5f5f5; border: 1px solid #eee; border-radius: 4px; padding: 14px; overflow-x: auto; font-size: 13px; margin: 10px 0; }
+  code { font-family: Consolas, 'Courier New', monospace; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 28px; }
+  th, td { border: 1px solid #999; padding: 12px 16px; text-align: left; font-size: 0.9em; }
+  th { background: #f5f5f5; font-weight: 700; }
+  tr:nth-child(even) { background: #fafafa; }
+  .sub { margin-left: 20px; }
+  .badge { display: inline-block; background: #000; color: #fff; padding: 2px 10px; border-radius: 3px; font-size: 0.75em; margin-right: 4px; font-weight: 700; }
+  ul, ol { margin: 10px 0 18px 24px; line-height: 1.8; }
+  li { margin-bottom: 4px; }
+  @media print { body { padding: 0; } .graphviz { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Implementation - GameStore Platform</h1>
+
+<!-- ===== 1. Source Code Architecture ===== -->
+<h2>1. Source Code Architecture</h2>
+<p>The GameStore platform follows a three-layer architecture separating presentation, business logic, and data access concerns. The solution contains four projects: <strong>GameStore.PL</strong> (ASP.NET Core MVC web application), <strong>GameStore.BLL</strong> (business logic services), <strong>GameStore.DAL</strong> (data access with EF Core + Repository pattern), and <strong>GameStore.Tests</strong> (xUnit unit tests). The diagram below illustrates the full project structure including all 33 controllers across three areas, the BLL service layer, and the DAL components.</p>
+
+<div class="architecture">
+  <div class="arch-columns">
+    <!-- Presentation Layer -->
+    <div class="arch-card">
+      <div class="arch-card-head">
+        <div class="arch-card-title">&#9654; Presentation Layer</div>
+        <div class="arch-card-meta">GameStore.PL · ASP.NET Core 8 · MVC · 62 Views</div>
+      </div>
+      <div class="arch-card-body">
+        <div class="arch-section">
+          <div class="arch-section-label">MAIN AREA</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">Home</span><span class="arch-badge">Auth</span><span class="arch-badge">Profile</span>
+            <span class="arch-badge">Game</span><span class="arch-badge">Category</span><span class="arch-badge">Cart</span>
+            <span class="arch-badge">Order</span><span class="arch-badge">Review</span><span class="arch-badge">Wishlist</span>
+            <span class="arch-badge">Library</span><span class="arch-badge">Message</span><span class="arch-badge">Notification</span>
+            <span class="arch-badge">Search</span><span class="arch-badge">Report</span><span class="arch-badge">Payout</span>
+            <span class="arch-badge">Coupon</span><span class="arch-badge">Support</span>
+          </div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">ADMIN AREA</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">Game</span><span class="arch-badge">User</span><span class="arch-badge">Category</span>
+            <span class="arch-badge">Order</span><span class="arch-badge">Review</span><span class="arch-badge">Support</span>
+            <span class="arch-badge">Payout</span><span class="arch-badge">Coupon</span><span class="arch-badge">Dashboard</span>
+            <span class="arch-badge">Report</span><span class="arch-badge">System</span>
+          </div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">DEVELOPER AREA</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">DevGame</span><span class="arch-badge">DevAnalytics</span>
+            <span class="arch-badge">DevPayout</span><span class="arch-badge">DevSupport</span>
+            <span class="arch-badge">DevProfile</span>
+          </div>
+        </div>
+        <div class="arch-footer">SignalR: /hub/notifications, /hub/chat &middot; Output Cache 10min</div>
+      </div>
+    </div>
+
+    <!-- Arrow connector -->
+    <div class="arch-connector"><div class="arch-connector-arrow">&#8594;</div></div>
+
+    <!-- BLL Layer -->
+    <div class="arch-card">
+      <div class="arch-card-head">
+        <div class="arch-card-title">&#9654; Business Logic Layer</div>
+        <div class="arch-card-meta">GameStore.BLL · 17 Interfaces · AutoMapper 12</div>
+      </div>
+      <div class="arch-card-body">
+        <div class="arch-section">
+          <div class="arch-section-label">AUTH &amp; USERS</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">IAuthService</span><span class="arch-badge">IUserService</span>
+          </div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">CATALOG</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">IGameService</span><span class="arch-badge">ICategoryService</span>
+            <span class="arch-badge">ISearchService</span>
+          </div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">COMMERCE</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">ICartService</span><span class="arch-badge">IOrderService</span>
+            <span class="arch-badge">ICouponService</span>
+          </div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">SOCIAL</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">IReviewService</span><span class="arch-badge">IWishlistService</span>
+            <span class="arch-badge">ILibraryService</span><span class="arch-badge">IMessageService</span>
+          </div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">SUPPORT &amp; SYSTEM</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">ISupportTicketService</span>
+            <span class="arch-badge">INotificationService</span>
+            <span class="arch-badge">IReportService</span>
+          </div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">FINANCE</div>
+          <div class="arch-badge-group">
+            <span class="arch-badge">IPayoutService</span><span class="arch-badge">IDashboardService</span>
+          </div>
+        </div>
+        <div class="arch-footer">Cookie Auth (.GameStore.Auth) + Google OAuth &middot; Rate Limiting</div>
+      </div>
+    </div>
+
+    <!-- Arrow connector -->
+    <div class="arch-connector"><div class="arch-connector-arrow">&#8594;</div></div>
+
+    <!-- DAL Layer -->
+    <div class="arch-card">
+      <div class="arch-card-head">
+        <div class="arch-card-title">&#9654; Data Access Layer</div>
+        <div class="arch-card-meta">GameStore.DAL · EF Core 9.0.8 · Fluent API</div>
+      </div>
+      <div class="arch-card-body">
+        <div class="arch-section">
+          <div class="arch-section-label">DB CONTEXT</div>
+          <div class="arch-badge-group"><span class="arch-badge">GameStoreDbContext</span><span class="arch-badge">23 DbSets</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">REPOSITORY</div>
+          <div class="arch-badge-group"><span class="arch-badge">IRepository&lt;T&gt;</span><span class="arch-badge">EfRepository&lt;T&gt;</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">UNIT OF WORK</div>
+          <div class="arch-badge-group"><span class="arch-badge">IUnitOfWork</span><span class="arch-badge">UnitOfWork</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">MIGRATIONS</div>
+          <div class="arch-badge-group"><span class="arch-badge">20 Migrations</span><span class="arch-badge">2025-08-07 &rarr; 2025-10-30</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">ENTITIES</div>
+          <div class="arch-badge-group"><span class="arch-badge">23 Entities</span><span class="arch-badge">4 Enums</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow connector -->
+    <div class="arch-connector"><div class="arch-connector-arrow">&#8594;</div></div>
+
+    <!-- Infrastructure -->
+    <div class="arch-card">
+      <div class="arch-card-head">
+        <div class="arch-card-title">&#9654; Infrastructure</div>
+        <div class="arch-card-meta">Docker Compose &middot; localhost:5000</div>
+      </div>
+      <div class="arch-card-body">
+        <div class="arch-section">
+          <div class="arch-section-label">DATABASE</div>
+          <div class="arch-badge-group"><span class="arch-badge">SQL Server 2022</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">CACHE</div>
+          <div class="arch-badge-group"><span class="arch-badge">Redis 7</span><span class="arch-badge">InMemory Fallback</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">PAYMENTS</div>
+          <div class="arch-badge-group"><span class="arch-badge">Stripe Checkout</span><span class="arch-badge">Webhooks</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">EMAIL</div>
+          <div class="arch-badge-group"><span class="arch-badge">SendGrid</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">REAL-TIME</div>
+          <div class="arch-badge-group"><span class="arch-badge">SignalR</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">COMPRESSION</div>
+          <div class="arch-badge-group"><span class="arch-badge">Brotli</span><span class="arch-badge">Gzip</span></div>
+        </div>
+        <div class="arch-section">
+          <div class="arch-section-label">HOSTING</div>
+          <div class="arch-badge-group"><span class="arch-badge">Kestrel</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.architecture { margin: 28px 0; font-family: 'Segoe UI', Arial, sans-serif; }
+.arch-columns { display: flex; gap: 8px; align-items: stretch; }
+
+.arch-card {
+  flex: 1; min-width: 0;
+  border: 2px solid #000;
+  border-radius: 8px;
+  background: #fff;
+  display: flex; flex-direction: column;
+}
+.arch-card-head {
+  background: #000;
+  padding: 10px 12px;
+  text-align: center;
+}
+.arch-card-title {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+.arch-card-meta {
+  color: #bbb;
+  font-size: 9px;
+  margin-top: 3px;
+  letter-spacing: 0.4px;
+}
+.arch-card-body {
+  padding: 10px;
+  flex: 1;
+  display: flex; flex-direction: column;
+}
+.arch-section {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+.arch-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.arch-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #555;
+  letter-spacing: 1.2px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+.arch-badge-group { display: flex; flex-wrap: wrap; gap: 3px; }
+.arch-badge {
+  display: inline-block;
+  font-size: 10px;
+  color: #000;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  padding: 3px 7px;
+  border-radius: 3px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.arch-footer {
+  margin-top: auto;
+  padding-top: 7px;
+  border-top: 1px dashed #ccc;
+  font-size: 8.5px;
+  color: #777;
+  font-style: italic;
+  text-align: center;
+}
+.arch-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+}
+.arch-connector-arrow {
+  font-size: 22px;
+  color: #999;
+  font-weight: 300;
+}
+@media print {
+  .arch-card { break-inside: avoid; }
+  .architecture { margin: 20px 0; }
+}
+</style>
+
+<!-- ===== 2. Key Implementation Details ===== -->
+<h2>2. Key Implementation Details</h2>
+
+<h3>2.1 Authentication Flow</h3>
+<p>The platform uses <strong>Cookie-based authentication</strong> (not JWT) with ASP.NET Core's built-in <code>CookieAuthenticationDefaults</code> scheme. Users authenticate via email/password or Google OAuth 2.0. Sessions are stored server-side with an 8-hour sliding expiration. The authentication pipeline includes a custom email verification middleware that blocks unverified users from accessing non-auth routes.</p>
+<pre><code>builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =&gt; {
+        options.LoginPath        = "/Auth/Login";
+        options.LogoutPath       = "/Auth/Logout";
+        options.AccessDeniedPath = "/Home/Index";
+        options.Cookie.Name      = ".GameStore.Auth";
+        options.Cookie.HttpOnly  = true;
+        options.Cookie.SameSite  = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.ExpireTimeSpan   = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+    })
+    .AddGoogle(options =&gt; {
+        options.ClientId     = builder.Configuration["Google:ClientId"] ?? "";
+        options.ClientSecret = builder.Configuration["Google:ClientSecret"] ?? "";
+        options.CallbackPath = "/auth/google-callback";
+        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.SaveTokens   = true;
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+    });</code></pre>
+<p>Password hashing uses BCrypt.Net-Next 4.0.3. Email verification tokens are stored in a dedicated <code>EmailVerificationTokens</code> table with expiry. A <code>TokenCleanupService</code> background service periodically purges expired tokens.</p>
+
+<h3>2.2 Shopping Cart Flow</h3>
+<p>The shopping cart is stored in the database via the <code>Carts</code> and <code>CartItems</code> tables, linked to the authenticated user. The <code>CartController</code> provides Add, Remove, and GetCount endpoints. Free games bypass Stripe and are processed via <code>CompleteFreeCheckoutAsync</code> which directly adds the game to the user's library. Paid games proceed through Stripe Checkout Sessions.</p>
+
+<h3>2.3 Stripe Payment Integration</h3>
+<p>Payments are processed through Stripe's Checkout API (Stripe.net 52.1.0). The <code>CartController.Index</code> creates a Stripe CheckoutSession with line items representing cart contents plus a success/cancel URL pair. The <code>StripeWebhookController</code> listens for <code>checkout.session.completed</code> events to finalize orders. A per-order commission percentage (stored in <code>CommissionPercent</code> on <code>OrderItems</code>) tracks the platform's revenue share for developer payouts.</p>
+<pre><code>var options = new SessionCreateOptions {
+    PaymentMethodTypes = new List&lt;string&gt; { "card" },
+    LineItems = cartItems.Select(item =&gt; new SessionLineItemOptions {
+        PriceData = new SessionLineItemPriceDataOptions {
+            Currency = "usd",
+            ProductData = new SessionLineItemPriceDataProductDataOptions {
+                Name = item.Game.Title
+            },
+            UnitAmount = (long)(effectivePrice * 100)
+        },
+        Quantity = 1
+    }).ToList(),
+    Mode = "payment",
+    SuccessUrl = $"{domain}/cart/success?session_id={{CHECKOUT_SESSION_ID}}",
+    CancelUrl = $"{domain}/cart"
+};
+var session = await new SessionService().CreateAsync(options);</code></pre>
+
+<h3>2.4 SignalR Real-Time Notifications</h3>
+<p>Real-time notifications are delivered via a SignalR hub at the <code>/hub/notifications</code> endpoint. The <code>NotificationHub</code> (in <code>GameStore.PL/Hubs/</code>) manages connections via a <code>ConnectionTracker</code> singleton that maps userId to active connection IDs. When a notification is created (e.g., new support ticket, sale approval), the <code>NotificationService</code> persists the record to the <code>UserNotifications</code> table and broadcasts it to the recipient's active connections if online. The <code>NotificationsController</code> provides REST endpoints for fetching unread counts and marking notifications as read.</p>
+
+<!-- ===== 3. Migration History ===== -->
+<h2>3. Migration History</h2>
+<p>The database schema evolved across 20 migrations throughout the development lifecycle (2026-05-03 to 2026-07-06). The table below chronicles each migration with its name, date, and purpose.</p>
+
+<table>
+<thead>
+<tr><th>#</th><th>Migration Name</th><th>Date</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>InitialCreate</td><td>2026-05-03</td><td>Base tables: Users, Games, Categories, GameCategories, Carts, CartItems, Orders, OrderItems, Libraries, LibraryGames, Reviews</td></tr>
+<tr><td>2</td><td>RemoveOrderStatus</td><td>2026-06-23</td><td>Removed Status column from Orders table (replaced by PaymentStatus later)</td></tr>
+<tr><td>3</td><td>AddWishlistItem</td><td>2026-06-23</td><td>WishlistItems table linking Users to Games with unique constraint on UserId+GameId</td></tr>
+<tr><td>4</td><td>AddPasswordResetToken</td><td>2026-06-23</td><td>PasswordResetTokens table with Token, ExpiresAt, IsUsed columns</td></tr>
+<tr><td>5</td><td>AddUserCreatedAt</td><td>2026-06-23</td><td>Added CreatedAt timestamp column to Users table</td></tr>
+<tr><td>6</td><td>AddDeveloperEntity</td><td>2026-06-27</td><td>Developers table with Name, Slug, Description, Website, LogoUrl, Country; added DeveloperId FK to Games</td></tr>
+<tr><td>7</td><td>RemoveJobApplications</td><td>2026-06-27</td><td>Dropped legacy JobApplications table</td></tr>
+<tr><td>8</td><td>AddDeveloperApplicationAndIsActive</td><td>2026-06-27</td><td>DeveloperApplications table for approval workflow; IsActive flag on Developers</td></tr>
+<tr><td>9</td><td>AddCvAndGithubToApplication</td><td>2026-06-27</td><td>Added CvFilePath and GithubUrl columns to DeveloperApplications</td></tr>
+<tr><td>10</td><td>AddFriendsAndChat</td><td>2026-06-27</td><td>Friendships table (Requester, Receiver, Status) + Messages table with read receipts</td></tr>
+<tr><td>11</td><td>AddPostEntity</td><td>2026-06-28</td><td>Posts table for user profile wall posts with 1000-char content limit</td></tr>
+<tr><td>12</td><td>AddGameTimestamps</td><td>2026-06-28</td><td>Added CreatedAt and UpdatedAt columns to Games table</td></tr>
+<tr><td>13</td><td>AddPaymentFields</td><td>2026-06-28</td><td>Added PaymentStatus, StripePaymentIntentId, StripeSessionId to Orders</td></tr>
+<tr><td>14</td><td>AddSaleEntity</td><td>2026-06-29</td><td>Sales table for discount campaigns (NewPrice, StartDate, EndDate, Status, approval workflow)</td></tr>
+<tr><td>15</td><td>AddUserNotifications</td><td>2026-06-29</td><td>UserNotifications table with Type, Category, ReferenceId for in-app notifications</td></tr>
+<tr><td>16</td><td>AddSupportTicketSystem</td><td>2026-06-29</td><td>SupportTickets + SupportTicketReplies tables replacing old Reports table</td></tr>
+<tr><td>17</td><td>AddIsExternalAccount</td><td>2026-07-01</td><td>Boolean flag on Users for Google OAuth / external account detection</td></tr>
+<tr><td>18</td><td>AddEmailConfirmed</td><td>2026-07-02</td><td>EmailConfirmed flag on Users; existing users set to confirmed via SQL</td></tr>
+<tr><td>19</td><td>AddEmailVerificationTokenTable</td><td>2026-07-02</td><td>EmailVerificationTokens table with Token, ExpiresAt, IsUsed; unique token index</td></tr>
+<tr><td>20</td><td>AddCommissionPercent</td><td>2026-07-06</td><td>CommissionPercent (decimal 5,2) on OrderItems for per-order platform commission tracking</td></tr>
+</tbody>
+</table>
+
+<div class="graphviz">
+digraph Migrations {
+  rankdir=LR;
+  graph [bgcolor="white", fontname="Arial", nodesep=0.4];
+  node [fontname="Arial", shape="box", style="filled", fillcolor="#f5f5f5", fontsize=9, width=1.8];
+  edge [arrowhead=open];
+
+  "1. InitialCreate" -> "2. RemoveOrderStatus";
+  "2. RemoveOrderStatus" -> "3. AddWishlistItem";
+  "3. AddWishlistItem" -> "4. AddPasswordResetToken";
+  "4. AddPasswordResetToken" -> "5. AddUserCreatedAt";
+  "5. AddUserCreatedAt" -> "6. AddDeveloperEntity";
+  "6. AddDeveloperEntity" -> "7. RemoveJobApplications";
+  "7. RemoveJobApplications" -> "8. AddDevAppAndIsActive";
+  "8. AddDevAppAndIsActive" -> "9. AddCvAndGithub";
+  "9. AddCvAndGithub" -> "10. AddFriendsAndChat";
+  "10. AddFriendsAndChat" -> "11. AddPostEntity";
+  "11. AddPostEntity" -> "12. AddGameTimestamps";
+  "12. AddGameTimestamps" -> "13. AddPaymentFields";
+  "13. AddPaymentFields" -> "14. AddSaleEntity";
+  "14. AddSaleEntity" -> "15. AddNotifications";
+  "15. AddNotifications" -> "16. AddSupportTicketSys";
+  "16. AddSupportTicketSys" -> "17. AddIsExternalAccount";
+  "17. AddIsExternalAccount" -> "18. AddEmailConfirmed";
+  "18. AddEmailConfirmed" -> "19. AddEmailVerification";
+  "19. AddEmailVerification" -> "20. AddCommissionPercent";
+}
+</div>
+
+<!-- ===== 4. Technology Stack ===== -->
+<h2>4. Technology Stack</h2>
+<table>
+<thead>
+<tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+</thead>
+<tbody>
+<tr><td>.NET</td><td>8.0</td><td>Runtime and base class libraries</td></tr>
+<tr><td>ASP.NET Core</td><td>8.0</td><td>MVC framework, middleware pipeline, and Kestrel web server</td></tr>
+<tr><td>Entity Framework Core</td><td>9.0.8</td><td>ORM with Fluent API configuration and migrations</td></tr>
+<tr><td>Microsoft.AspNetCore.Authentication.Google</td><td>8.0.10</td><td>Google OAuth 2.0 authentication provider</td></tr>
+<tr><td>AutoMapper</td><td>12.0.1</td><td>Entity-to-ViewModel mapping</td></tr>
+<tr><td>Stripe.net</td><td>52.1.0</td><td>Payment processing via Checkout Sessions and webhooks</td></tr>
+<tr><td>SendGrid</td><td>9.29.3</td><td>Transactional email delivery (verification, password reset)</td></tr>
+<tr><td>SignalR</td><td>Built-in</td><td>Real-time WebSocket notifications at /hub/notifications</td></tr>
+<tr><td>BCrypt.Net-Next</td><td>4.0.3</td><td>Password hashing and verification</td></tr>
+<tr><td>StackExchange.Redis</td><td>10.0.9</td><td>Distributed session caching (optional, falls back to in-memory)</td></tr>
+<tr><td>SQL Server</td><td>Docker</td><td>Primary relational database (via EF Core SQL Server provider)</td></tr>
+<tr><td>xUnit</td><td>2.9.3</td><td>Unit testing framework</td></tr>
+<tr><td>Moq</td><td>4.20.72</td><td>Mocking framework for test isolation</td></tr>
+<tr><td>FluentAssertions</td><td>6.12.2</td><td>Readable test assertions</td></tr>
+<tr><td>Microsoft.NET.Test.Sdk</td><td>17.14.1</td><td>Test runner infrastructure</td></tr>
+<tr><td>Bootstrap</td><td>5.1.0</td><td>Frontend CSS framework (responsive layout)</td></tr>
+<tr><td>jQuery</td><td>3.6.0</td><td>Client-side DOM manipulation and AJAX</td></tr>
+<tr><td>Font Awesome</td><td>6.x</td><td>Icon library for UI elements</td></tr>
+<tr><td>Response Compression</td><td>Built-in</td><td>Brotli + Gzip compression (60-80% bandwidth reduction)</td></tr>
+<tr><td>Rate Limiting (System.Threading.RateLimiting)</td><td>10.0.9</td><td>Brute-force protection on auth endpoints (login/register/resend)</td></tr>
+<tr><td>Output Caching</td><td>Built-in</td><td>10-minute default cache TTL for read-heavy pages</td></tr>
+</tbody>
+</table>
+
+<!-- ===== 5. Code Architecture Patterns ===== -->
+<h2>5. Code Architecture Patterns</h2>
+
+<h3>5.1 Repository Pattern</h3>
+<p>Data access is abstracted behind the generic <code>IRepository&lt;T&gt;</code> interface (in <code>GameStore.DAL/Repo/IRepository.cs</code>) implemented by <code>EfRepository&lt;T&gt;</code>. Each entity has standard CRUD operations via the generic repository, while the <code>GameStoreDbContext</code> exposes 21 <code>DbSet&lt;T&gt;</code> properties for direct LINQ queries when needed. Domain-specific services compose repository calls within their methods.</p>
+
+<h3>5.2 Unit of Work</h3>
+<p>The <code>IUnitOfWork</code> interface (in <code>GameStore.DAL/Repo/IUnitOfWork.cs</code>) wraps the <code>GameStoreDbContext</code> and provides a <code>Repository&lt;T&gt;()</code> method to access the generic repository for any entity. It exposes <code>SaveChangesAsync()</code> to commit all pending changes atomically. Services inject <code>IUnitOfWork</code> directly, ensuring that operations spanning multiple tables (e.g., creating an order, adding items to the library, and clearing the cart) commit as a single transaction or roll back entirely on failure.</p>
+
+<h3>5.3 Dependency Injection</h3>
+<p>The platform leverages ASP.NET Core's built-in DI container. Services are registered in <code>Program.cs</code> with Scoped lifetime (one instance per HTTP request). The registration follows a consistent pattern: each service interface maps to its implementation. Infrastructure services like <code>IJsonFileStore</code> use Singleton lifetime (stateless JSON file access). Background services like <code>TokenCleanupService</code> use <code>AddHostedService</code>. Constructor injection is used throughout all controllers and services.</p>
+
+<pre><code>// Program.cs - Service registration (actual DI registrations)
+builder.Services.AddScoped&lt;IAuthService, AuthService&gt;();
+builder.Services.AddScoped&lt;IGameService, GameService&gt;();
+builder.Services.AddScoped&lt;IUserService, UserService&gt;();
+builder.Services.AddScoped&lt;ICategoryService, CategoryService&gt;();
+builder.Services.AddScoped&lt;IOrderService, OrderService&gt;();
+builder.Services.AddScoped&lt;IOrderAnalyticsService, OrderAnalyticsService&gt;();
+builder.Services.AddScoped&lt;IReviewService, ReviewService&gt;();
+builder.Services.AddScoped&lt;ICartService, CartService&gt;();
+builder.Services.AddScoped&lt;ILibraryService, LibraryService&gt;();
+builder.Services.AddScoped&lt;IWishlistService, WishlistService&gt;();
+builder.Services.AddScoped&lt;IDeveloperService, DeveloperService&gt;();
+builder.Services.AddScoped&lt;IDeveloperApplicationService, DeveloperApplicationService&gt;();
+builder.Services.AddScoped&lt;ISaleService, SaleService&gt;();
+builder.Services.AddScoped&lt;ISupportTicketService, SupportTicketService&gt;();
+builder.Services.AddScoped&lt;IUnitOfWork, UnitOfWork&gt;();
+builder.Services.AddSingleton&lt;IJsonFileStore, JsonFileStore&gt;();
+builder.Services.AddScoped&lt;INotificationService, NotificationService&gt;();
+builder.Services.AddScoped&lt;IChatService, ChatService&gt;();
+builder.Services.AddScoped&lt;IFriendService, FriendService&gt;();
+builder.Services.AddScoped&lt;IPostService, PostService&gt;();
+builder.Services.AddHostedService&lt;TokenCleanupService&gt;();</code></pre>
+
+<!-- ===== 6. Service Layer Details ===== -->
+<h2>6. Service Layer Details</h2>
+<p>The BLL layer defines 19 service interfaces, each with a concrete implementation:</p>
+<table>
+<thead>
+<tr><th>Interface</th><th>Key Methods</th></tr>
+</thead>
+<tbody>
+<tr><td>IAuthService</td><td>LoginAsync, RegisterAsync, ChangePasswordAsync, ConfirmEmailAsync, GetOrCreateExternalUserAsync, CreateVerificationTokenAsync, ConsumeVerificationTokenAsync</td></tr>
+<tr><td>IUserService</td><td>GetAllAsync, GetByIdAsync, ChangeRoleAsync, DeleteAsync, GetTotalUsersAsync, GetUsersByRoleAsync, GetUserByUsernameAsync, SearchUsersAsync, UpdateProfileAsync</td></tr>
+<tr><td>IGameService</td><td>GetAllWithCategoriesAsync, GetPagedAsync, GetByIdAsync, CreateAsync, UpdateAsync, DeleteAsync, GetTotalGamesAsync, GetFreeGamesCountAsync, GetGamesByCategoryAsync</td></tr>
+<tr><td>ICategoryService</td><td>GetAllAsync, GetAllWithGameCountAsync, CreateAsync, UpdateAsync, DeleteAsync</td></tr>
+<tr><td>ICartService</td><td>GetCartItemsAsync, AddToCartAsync, RemoveFromCartAsync</td></tr>
+<tr><td>IOrderService</td><td>GetAllWithDetailsAsync, GetOrdersByUserAsync, GetOrderByIdAsync, CompleteCheckoutAsync, CompleteFreeCheckoutAsync, GetByStripeSessionIdAsync, SetPaymentStatusAsync</td></tr>
+<tr><td>IOrderAnalyticsService</td><td>GetTotalOrdersAsync, GetTotalRevenueAsync, GetAverageOrderValueAsync, GetRevenueByMonthAsync, GetOrdersByDayAsync, GetTopSellingGamesAsync, GetRevenueByCategoryAsync</td></tr>
+<tr><td>IReviewService</td><td>GetAllWithDetailsAsync, DeleteAsync, GetByGameAsync, GetByDeveloperAsync, GetByUserAsync, CreateAsync</td></tr>
+<tr><td>IWishlistService</td><td>GetWishlistAsync, IsInWishlistAsync, AddToWishlistAsync, RemoveFromWishlistAsync</td></tr>
+<tr><td>ILibraryService</td><td>GetLibraryGamesAsync, HasGame, AddGameToLibraryAsync, RemoveGameFromLibraryAsync</td></tr>
+<tr><td>IChatService</td><td>SendMessageAsync, GetConversationAsync, GetUnreadCountAsync, MarkAsReadAsync, GetConversationsAsync</td></tr>
+<tr><td>ISupportTicketService</td><td>CreateAsync, GetByIdAsync, GetUserTicketsAsync, GetAllAsync, AddReplyAsync, UpdateStatusAsync, IsOwnerAsync</td></tr>
+<tr><td>ISaleService</td><td>GetByIdAsync, GetPendingAsync, GetByDeveloperAsync, CreateAsync, ApproveAsync, RejectAsync</td></tr>
+<tr><td>IDeveloperService</td><td>GetByUserIdAsync, GetByIdAsync, GetAllAsync, GetGamesAsync, CreateOrUpdateProfileAsync, GetDashboardStatsAsync, GetGameStatsAsync, DeleteAsync, DemoteAsync, ReactivateAsync</td></tr>
+<tr><td>IDeveloperApplicationService</td><td>GetByIdAsync, GetByUserIdAsync, GetAllAsync, SubmitAsync, ApproveAsync, RejectAsync</td></tr>
+<tr><td>IFriendService</td><td>GetFriendsAsync, GetPendingRequestsAsync, GetFriendIdsAsync, SendRequestAsync, AcceptRequestAsync, RejectRequestAsync, RemoveFriendAsync</td></tr>
+<tr><td>IPostService</td><td>CreateAsync, GetUserPostsAsync, DeleteAsync, GetUserPostCountAsync, GetLastPostTimeAsync</td></tr>
+<tr><td>IGameFileService</td><td>File upload/delete game binary files, screenshots, cover images</td></tr>
+<tr><td>IGameAccessService</td><td>Verifies user ownership/download access rights for game files</td></tr>
+</tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: Version Control & Branching Strategy              -->
+<!-- ============================================================ -->
+<h2>7. Version Control &amp; Branching Strategy</h2>
+<p>The project is hosted on <strong>GitHub</strong> with a GitFlow-inspired branching model. The CI pipeline (defined in <code>.github/workflows/ci.yml</code>) triggers on pushes to <code>main</code> and <code>develop</code>, and on pull requests targeting <code>main</code>.</p>
+
+<table>
+  <thead>
+    <tr><th>Branch</th><th>Purpose</th><th>Protection</th><th>Deployment Target</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>main</code></td><td>Production-ready code. Only merged via PR from <code>develop</code> or <code>hotfix/*</code>.</td><td>Requires CI pass + code review</td><td>Production environment</td></tr>
+    <tr><td><code>develop</code></td><td>Integration branch for completed features. All <code>feature/*</code> branches merge here.</td><td>Requires CI pass</td><td>Staging environment</td></tr>
+    <tr><td><code>feature/*</code></td><td>Individual feature work (e.g., <code>feature/stripe-webhook</code>, <code>feature/signalr-chat</code>).</td><td>None</td><td>Developer local</td></tr>
+    <tr><td><code>hotfix/*</code></td><td>Urgent production fixes branched from <code>main</code>, merged back to both <code>main</code> and <code>develop</code>.</td><td>Requires CI pass</td><td>Production environment</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Commit Convention:</strong> <code>&lt;type&gt;(&lt;scope&gt;): &lt;description&gt;</code> — e.g., <code>feat(auth): add Google OAuth callback</code>, <code>fix(cart): resolve race condition in checkout</code>, <code>test(order): add CompleteCheckout unit tests</code>.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: CI/CD Pipeline                                    -->
+<!-- ============================================================ -->
+<h2>8. CI/CD Pipeline</h2>
+<p>The continuous integration pipeline runs on <strong>GitHub Actions</strong> (<code>ubuntu-latest</code>) with SQL Server 2022 and Redis 7-alpine as service containers. The pipeline executes on every push to <code>main</code>/<code>develop</code> and on every PR to <code>main</code>.</p>
+
+<table>
+  <thead>
+    <tr><th>Stage</th><th>Command</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>1. Checkout</strong></td><td><code>actions/checkout@v4</code></td><td>Clone repository with full Git history</td></tr>
+    <tr><td><strong>2. Setup .NET</strong></td><td><code>actions/setup-dotnet@v4</code> (8.0.x)</td><td>Install .NET 8 SDK</td></tr>
+    <tr><td><strong>3. Restore</strong></td><td><code>dotnet restore</code></td><td>Restore NuGet packages for the solution</td></tr>
+    <tr><td><strong>4. Build</strong></td><td><code>dotnet build -c Release --no-restore</code></td><td>Compile all four projects in Release mode</td></tr>
+    <tr><td><strong>5. Test</strong></td><td><code>dotnet test -c Release --no-restore --verbosity normal</code></td><td>Run 185 xUnit tests against SQL Server + Redis service containers</td></tr>
+    <tr><td><strong>6. Publish</strong></td><td><code>dotnet publish -c Release -o publish</code></td><td>Produce deployable artifacts</td></tr>
+    <tr><td><strong>7. Upload Artifact</strong></td><td><code>actions/upload-artifact@v4</code></td><td>Store published output as <code>gamestore-app</code> artifact</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Service Containers:</strong> SQL Server 2022 (port 1433, health check with <code>sqlcmd</code>) and Redis 7-alpine (port 6379, health check with <code>redis-cli ping</code>) are provisioned as Docker service containers for the test stage, ensuring integration tests exercise the real database and cache.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: README & Deployment Guide                         -->
+<!-- ============================================================ -->
+<h2>9. README &amp; Deployment Guide</h2>
+<p>The project includes a comprehensive <strong>1098-line README</strong> at <code>GameStore.PL123/README.md</code> covering the following sections:</p>
+
+<h3>Quick Start (Local Development)</h3>
+<pre><code># 1. Clone the repository
+git clone https://github.com/your-org/gamestore.git
+cd gamestore/GameStore.PL123
+
+# 2. Configure secrets (Stripe, SendGrid, Google OAuth)
+dotnet user-secrets init
+dotnet user-secrets set "Stripe:SecretKey" "sk_test_..."
+dotnet user-secrets set "Stripe:PublishableKey" "pk_test_..."
+dotnet user-secrets set "SendGrid:ApiKey" "SG...."
+dotnet user-secrets set "Google:ClientId" "..."
+dotnet user-secrets set "Google:ClientSecret" "..."
+
+# 3. Update connection string in appsettings.json (default: LocalDB)
+
+# 4. Run the application
+dotnet run --project Game-Store
+# Opens at https://localhost:5001
+
+# 5. Run tests
+dotnet test GameStore.Tests
+</code></pre>
+
+<h3>Docker Deployment</h3>
+<pre><code># From repository root
+docker compose up -d
+# App: http://localhost:5000
+# SQL Server: localhost:1433
+# Redis: localhost:6379
+</code></pre>
+
+<h3>System Requirements</h3>
+<table>
+  <thead>
+    <tr><th>Environment</th><th>Requirement</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Development</td><td>.NET 8 SDK, SQL Server LocalDB or Express, Visual Studio 2022 or VS Code</td></tr>
+    <tr><td>Docker</td><td>Docker Desktop 4.x+, 4 GB RAM allocated, 10 GB disk</td></tr>
+    <tr><td>Production</td><td>Windows Server / Linux container, .NET 8 Runtime, SQL Server 2022+, Redis 7+, reverse proxy (nginx/IIS)</td></tr>
+    <tr><td>Browser</td><td>Chrome 120+, Edge 120+, Firefox 120+ (for SignalR WebSocket transport)</td></tr>
+  </tbody>
+</table>
+
+<h3>Configuration</h3>
+<p>All sensitive configuration is managed via <strong>.NET User Secrets</strong> in development and <strong>environment variables</strong> in production. The <code>appsettings.json</code> file contains only non-sensitive defaults. Key configuration sections:</p>
+<ul>
+  <li><code>ConnectionStrings:GameStoreConnection</code> — SQL Server connection string</li>
+  <li><code>ConnectionStrings:Redis</code> — Redis connection string (empty = in-memory cache fallback)</li>
+  <li><code>Stripe:SecretKey</code> / <code>Stripe:PublishableKey</code> / <code>Stripe:WebhookSecret</code> — Stripe API credentials</li>
+  <li><code>SendGrid:ApiKey</code> / <code>SendGrid:FromEmail</code> / <code>SendGrid:FromName</code> — Email provider</li>
+  <li><code>Google:ClientId</code> / <code>Google:ClientSecret</code> — OAuth 2.0 credentials</li>
+  <li><code>PasswordSalt</code> — Salt for legacy SHA256 password hashing</li>
+</ul>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.9.0/lib/viz-standalone.js"></script>
+<script>
+async function renderGraphviz() {
+  const viz = await Viz.instance();
+  document.querySelectorAll('.graphviz').forEach(function(el) {
+    try {
+      var dot = el.textContent.trim();
+      var svg = viz.renderString(dot, {format:'svg', engine:'dot'});
+      el.innerHTML = svg;
+    } catch(e) { console.error('error', e); }
+  });
+}
+renderGraphviz();
+</script>
+
+</body>
+</html>

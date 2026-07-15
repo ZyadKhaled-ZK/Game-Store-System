@@ -6,9 +6,10 @@ namespace GameStore.BLL.Services
         Task<Developer?> GetByIdAsync(string id);
         Task<List<Developer>> GetAllAsync();
         Task<List<Game>> GetGamesAsync(string developerId);
+        Task<PagedResult<Game>> GetGamesAsync(string developerId, int page, int pageSize = 10);
         Task<(bool Success, string Error)> CreateOrUpdateProfileAsync(string userId, string name, string? slug, string? description, string? website, string? logoUrl, string? country);
-    Task<(int GameCount, int TotalDownloads, int TotalReviews, int TotalRevenue, double AvgRating)> GetDashboardStatsAsync(string developerId);
-    Task<List<(Game Game, int Downloads, double AvgRating, int ReviewCount)>> GetGameStatsAsync(string developerId);
+    Task<(int GameCount, int TotalDownloads, int TotalReviews, int TotalRevenue, int NetRevenue, double AvgRating)> GetDashboardStatsAsync(string developerId);
+    Task<List<(Game Game, int Downloads, double AvgRating, int ReviewCount, decimal TotalRevenue)>> GetGameStatsAsync(string developerId);
     Task<bool> IsDeveloperUserAsync(string userId);
     Task<(bool Success, string Error)> DeleteAsync(string developerId);
     Task<(bool Success, string Error)> DemoteAsync(string developerId, string? currentUserId = null);

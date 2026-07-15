@@ -8,6 +8,22 @@
     @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
     <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
     @await RenderSectionAsync("MetaTags", required: false)
+    <meta name="description" content="Game Store - Browse, buy, and play indie games.">
+    <meta property="og:url" content="https://game-store.runasp.net/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Game Store - Game_Store">
+    <meta property="og:description" content="Game Store - Browse, buy, and play indie games.">
+    <meta property="og:image" content="https://img.lightshot.app/NbGdBstGQImnsigg7JbtpQ.jpeg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="twitter:domain" content="game-store.runasp.net">
+    <meta property="twitter:url" content="https://game-store.runasp.net/">
+    <meta name="twitter:title" content="Game Store - Game_Store">
+    <meta name="twitter:description" content="Game Store - Browse, buy, and play indie games.">
+    <meta name="twitter:image" content="https://img.lightshot.app/NbGdBstGQImnsigg7JbtpQ.jpeg">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -16,8 +32,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Game_Store.styles.css" asp-append-version="true" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js" integrity="sha384-/taWmisziXYpcfnYsumSUmNaiMvG/fF/OJOUCLnqCIYTrpOZy7WbFF6FfIxwOrfL" crossorigin="anonymous"></script>
+
     <style>
         :root {
             --gold: #f5c542;
@@ -45,6 +60,8 @@
             margin: 0;
             padding: 0;
         }
+
+        dl, ol, ul { margin-top: 0; margin-bottom: 0; }
 
         html {
             scroll-behavior: smooth;
@@ -122,130 +139,72 @@
         @Html.Raw("@keyframes logoBreath { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }")
         @Html.Raw("@keyframes bellSwing { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(8deg); } 75% { transform: rotate(-8deg); } }")
 
-        nav {
-            position: fixed !important;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 40px;
-            height: 64px;
-            background: #111111 !important;
-            backdrop-filter: blur(24px);
-            box-shadow: 0 1px 0 rgba(255,255,255,0.06);
-            animation: navFadeIn 0.4s ease;
-        }
+      nav {
+        position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 40px; height: 72px; background: rgba(17, 17, 17, 0.85);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 1px 0 rgba(255,255,255,0.06), 0 4px 30px rgba(0,0,0,0.5);
+        animation: navFadeIn 0.5s ease;
+      }
 
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: #e0e0e0 !important;
-            padding: 6px 10px;
-            transition: opacity 0.2s;
-            border: none;
-            background: none;
-            clip-path: none;
-        }
-        .navbar-brand:hover {
-            opacity: 0.8;
-        }
-        .navbar-brand img {
-            animation: logoBreath 4s ease-in-out infinite;
-        }
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.1;
-        }
-        .brand-text .brand-game {
-            font-family: var(--font-display);
-            font-size: 10px;
-            font-weight: 400;
-            color: #888;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        .brand-text .brand-store {
-            font-family: var(--font-display);
-            font-size: 18px;
-            font-weight: 700;
-            color: #e0e0e0;
-            letter-spacing: 1.5px;
-        }
-        .brand-text .brand-store span {
-            color: var(--accent);
-        }
-        .navbar-brand:hover .brand-store {
-            opacity: 0.8;
-        }
+      .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform 0.3s ease; }
+      .nav-logo:hover { transform: scale(1.02); }
+      .nav-logo img { animation: logoBreath 4s ease-in-out infinite; }
+      .nav-logo-text { font-family: var(--font-display); font-size: 18px; font-weight: 900; color: #e0e0e0; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+      .nav-logo-text span { color: var(--red); text-shadow: 0 0 15px rgba(230,57,70,0.6); }
 
-        .navbar-nav {
-            display: flex;
-            gap: 15px;
-            list-style: none;
-            flex-direction: row;
-        }
+      .nav-links { display: flex; align-items: center; gap: 10px; list-style: none; }
+      .nav-links li { display: flex; align-items: center; }
+      .nav-links a {
+        font-family: var(--font-mono); font-size: 13px; font-weight: 500; letter-spacing: 1px;
+        text-transform: uppercase; color: #a0a0a0; text-decoration: none;
+        padding: 8px 14px; transition: all 0.2s; border-radius: 6px; border: none;
+        position: relative;
+      }
+      .nav-links a::after {
+        content: ''; position: absolute; bottom: 2px; left: 50%;
+        width: 0; height: 2px; background: var(--accent);
+        transition: all 0.3s ease; transform: translateX(-50%); opacity: 0;
+      }
+      .nav-links a:hover {
+        color: #ffffff; background: rgba(255,255,255,0.06);
+        transform: translateY(-1px);
+      }
+      .nav-links a:hover::after {
+        width: 60%; opacity: 1;
+      }
+      .nav-links a.active {
+        color: var(--accent);
+      }
+      .nav-links a.active::after {
+        width: 60%; opacity: 1; background: var(--accent);
+      }
 
-        .nav-link {
-            font-family: var(--font-mono);
-            font-size: 13px;
-            font-weight: 500;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: #a0a0a0 !important;
-            text-decoration: none;
-            padding: 8px 16px !important;
-            transition: all 0.2s;
-            border-radius: 6px;
-            border: none;
-            position: relative;
-        }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: var(--accent);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-            opacity: 0;
-        }
-        .nav-link:hover {
-            color: #ffffff !important;
-            background: rgba(255,255,255,0.06);
-            transform: translateY(-1px);
-        }
-        .nav-link:hover::after {
-            width: 60%;
-            opacity: 1;
-        }
-        .nav-link.active {
-            color: var(--accent) !important;
-        }
-        .nav-link.active::after {
-            width: 60%;
-            opacity: 1;
-            background: var(--accent);
-        }
+      .nav-toggle { display: none !important; }
+
+
+
+
 
         .btn {
-            display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 22px;
             font-family: var(--font-ui); font-size: 13px; font-weight: 600; letter-spacing: 1.5px;
             text-transform: uppercase; text-decoration: none; border: none; cursor: pointer;
-            position: relative; transition: all 0.2s; border-radius: 6px;
+            position: relative; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 8px;
             clip-path: none;
+            overflow: hidden;
         }
-        .btn-primary { background: var(--red); color: white; }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(230,57,70,0.3); }
-        .btn-secondary { background: rgba(255,255,255,0.04); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; }
-        .btn-secondary:hover { border-color: rgba(255,255,255,0.2); color: var(--text) !important; background: rgba(255,255,255,0.06); transform: translateY(-1px); }
+        .btn::before {
+            content: ''; position: absolute; top:0; left:-100%; width:100%; height:100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.5s ease; z-index: 1; pointer-events: none;
+        }
+        .btn:hover::before { left: 100%; }
+        .btn-primary { background: linear-gradient(135deg, var(--red) 0%, var(--red-dim) 100%); color: white; box-shadow: 0 4px 15px rgba(230,57,70,0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(230,57,70,0.5); }
+        .btn-secondary { background: rgba(255,255,255,0.04); color: var(--text-dim) !important; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px); }
+        .btn-secondary:hover { border-color: rgba(255,255,255,0.3); color: #fff !important; background: rgba(255,255,255,0.08); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         #notificationBell.hasNew i { animation: bellSwing 0.4s ease; }
 
         main {
@@ -258,131 +217,96 @@
             width: 100%;
         }
 
-
+        @@media (max-width: 992px) {
+            main { padding: 100px 24px 40px; }
+            nav { padding: 0 20px; }
+        }
+        @@media (max-width: 768px) {
+            .nav-links { flex-wrap: wrap; }
+            .nav-links a { font-size: 12px; padding: 10px 14px; }
+            main { padding: 90px 16px 32px; }
+            nav { padding: 0 12px; }
+            #notificationDropdown { width: calc(100vw - 24px) !important; right: -50px !important; }
+        }
+        @@media (max-width: 576px) {
+            main { padding: 80px 12px 24px; }
+            nav { padding: 0 8px; }
+            .nav-logo-text { font-size: 13px; }
+            .nav-logo img { height: 24px; }
+        }
 
     </style>
     @await RenderSectionAsync("Styles", required: false)
 </head>
 
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img src="/images/logo.svg" alt="GameStore" height="38" style="filter:drop-shadow(0 0 8px rgba(230,57,70,0.6));" />
-                    <div class="brand-text">
-                        <div class="brand-game">Game Store</div>
-                        <div class="brand-store"><span>G</span>AME <span>S</span>TORE</div>
-                    </div>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        @{
-                            var role = Context.Session.GetString("Role");
-                            var username = Context.Session.GetString("Username");
-                        }
-                        @if (role != "DEVELOPER")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="BecomeDeveloper" asp-action="Index">Developer Program</a>
-                            </li>
-                        }
-                        @if (role == "ADMIN")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Admin</a>
-                            </li>
-                        }
-                        @if (role == "DEVELOPER")
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="Developer" asp-controller="Dashboard" asp-action="Index">Developer Portal</a>
-                            </li>
-                        }
-                        @if (!string.IsNullOrEmpty(role))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Cart" asp-action="Index">
-                                    Cart <span id="cartCount" class="badge" style="background:var(--red);color:white;font-size:10px;display:none;margin-left:4px;border-radius:0;">0</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Wishlist" asp-action="Index">Wishlist</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Library" asp-action="Index">Library</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Friends" asp-action="Index"><i class="bi bi-people"></i> Social</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Orders" asp-action="Index">Orders</a>
-                            </li>
-                            <li class="nav-item position-relative" style="align-self:center;">
-                                <button class="btn-cyber btn-sm" id="notificationBell" style="position:relative;background:none;border:1px solid rgba(255,255,255,0.08);color:#a0a0a0;padding:6px 12px;cursor:pointer;font-size:16px;line-height:1;border-radius:6px;transition:all 0.2s;"
-                                   onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)';this.style.color='#a0a0a0'">
-                                    <i class="fas fa-bell"></i>
-                                    <span id="notificationBadge" class="badge" style="display:none;position:absolute;top:-6px;right:-6px;background:#888;color:#111;font-size:9px;padding:1px 6px;border-radius:0;min-width:18px;text-align:center;font-weight:700;">0</span>
-                                </button>
-                                <div id="notificationDropdown" class="notification-dropdown" style="display:none;position:absolute;top:100%;right:0;width:340px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);z-index:2000;margin-top:8px;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
-                                    <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);font-family:var(--font-display);font-size:12px;letter-spacing:2px;color:#e0e0e0;">NOTIFICATIONS</div>
-                                    <div id="notificationList" style="max-height:360px;overflow-y:auto;">
-                                        <div class="notification-empty" style="padding:24px 16px;text-align:center;font-family:var(--font-mono);font-size:11px;color:#888;">
-                                            <i class="fas fa-check-circle" style="font-size:1.5rem;opacity:0.3;margin-bottom:8px;display:block;"></i>
-                                            No new notifications
-                                        </div>
-                                    </div>
-                                    <div style="border-top:1px solid rgba(255,255,255,0.06);padding:8px 16px;display:flex;gap:8px;">
-                                        <a href="#" onclick="document.getElementById('notificationDropdown').style.display='none';return false;" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-bell"></i> Close</a>
-                                        <a href="#" onclick="markAllAsRead();return false;" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-check-double"></i> Read All</a>
-                                        <a href="@Url.Action("Requests","Friends")" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-user-friends"></i> Requests</a>
-                                        <a href="@Url.Action("Index","Friends")" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-comment"></i> Social</a>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="nav-item" style="font-family:var(--font-mono);font-size:12px;color:#a0a0a0;align-self:center;">
-                                <a asp-area="" asp-controller="Profile" asp-action="Edit" style="color:#a0a0a0;text-decoration:none;transition:all 0.2s;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;"
-                                   onmouseover="this.style.color='#ffffff';this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.color='#a0a0a0';this.style.background='transparent'"><span id="navAvatarContainer"><span id="navAvatarText" style="display:inline-block;width:28px;height:28px;border:1px solid rgba(255,255,255,0.08);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;color:#e0e0e0;background:rgba(255,255,255,0.04);">@(username?.Substring(0,1)??"?")</span></span>[ @username ]@if (role == "ADMIN") {<span style="font-size:9px;color:#888;border:1px solid rgba(255,255,255,0.08);padding:1px 6px;margin-left:4px;">ADMIN</span>}@if (role == "DEVELOPER") {<span style="font-size:9px;color:#00e5ff;border:1px solid rgba(0,229,255,0.2);padding:1px 6px;margin-left:4px;">DEV</span>}</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Support" asp-action="MyTickets">Support</a>
-                            </li>
-                            <li class="nav-item ms-2">
-                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-controller="Auth" asp-action="Logout">Logout</a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item ms-2">
-                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-controller="Auth" asp-action="Register">Register</a>
-                            </li>
-                            <li class="nav-item ms-2">
-                                <a class="btn btn-secondary nav-link pt-2 pb-2" asp-area="" asp-controller="Auth" asp-action="Login">Login</a>
-                            </li>
-                        }
-                    </ul>
+     <nav>
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="nav-logo">
+          <img src="/images/logo.svg" alt="GameStore" height="28" style="filter:drop-shadow(0 0 6px rgba(230,57,70,0.5));" />
+          <span class="nav-logo-text"><span>G</span>AME <span>S</span>TORE</span>
+        </a>
+        <button class="nav-toggle" aria-label="Toggle navigation"><span></span><span></span><span></span></button>
+        <ul class="nav-links">
+          <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+          @{ var role = Context.Session.GetString("Role"); var username = Context.Session.GetString("Username"); }
+          @if (role != "DEVELOPER") { <li><a asp-area="" asp-controller="BecomeDeveloper" asp-action="Index">Developer Program</a></li> }
+          @if (role == "ADMIN") { <li><a asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Admin</a></li> }
+          @if (role == "DEVELOPER") { <li><a asp-area="Developer" asp-controller="Dashboard" asp-action="Index">Developer Portal</a></li> }
+          @if (!string.IsNullOrEmpty(role))
+          {
+            <li><a asp-area="" asp-controller="Cart" asp-action="Index">Cart <span id="cartCount" class="badge" style="background:var(--red);color:white;font-size:10px;display:none;margin-left:4px;border-radius:0;">0</span></a></li>
+            <li><a asp-area="" asp-controller="Wishlist" asp-action="Index">Wishlist</a></li>
+            <li><a asp-area="" asp-controller="Library" asp-action="Index">Library</a></li>
+            <li><a asp-area="" asp-controller="Friends" asp-action="Index"><i class="bi bi-people"></i> Social</a></li>
+            <li><a asp-area="" asp-controller="Orders" asp-action="Index">Orders</a></li>
+            <li><a asp-area="" asp-controller="Refunds" asp-action="Index">Refunds</a></li>
+            <li style="display:flex;align-items:center;">
+              <button id="notificationBell" style="position:relative;background:none;border:1px solid rgba(255,255,255,0.08);color:#a0a0a0;padding:6px 12px;cursor:pointer;font-size:16px;line-height:1;border-radius:6px;transition:all 0.2s;"
+                 onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)';this.style.color='#a0a0a0'">
+                <i class="fas fa-bell"></i>
+                <span id="notificationBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:#888;color:#111;font-size:9px;padding:1px 6px;border-radius:0;min-width:18px;text-align:center;font-weight:700;">0</span>
+              </button>
+              <div id="notificationDropdown" style="display:none;position:absolute;top:100%;right:0;width:360px;background:rgba(26,26,26,0.95);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1);z-index:2000;margin-top:12px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.6);transform-origin:top right;animation:navFadeIn 0.2s ease;">
+                <div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.06);font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:2px;color:#fff;">NOTIFICATIONS</div>
+                <div id="notificationList" style="max-height:360px;overflow-y:auto;">
+                  <div class="notification-empty" style="padding:24px 16px;text-align:center;font-family:var(--font-mono);font-size:11px;color:#888;">
+                    <i class="fas fa-check-circle" style="font-size:1.5rem;opacity:0.3;margin-bottom:8px;display:block;"></i>
+                    No new notifications
+                  </div>
                 </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+                <div style="border-top:1px solid rgba(255,255,255,0.06);padding:8px 16px;display:flex;gap:8px;">
+                  <a href="#" onclick="document.getElementById('notificationDropdown').style.display='none';return false;" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-bell"></i> Close</a>
+                  <a href="#" onclick="markAllAsRead();return false;" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-check-double"></i> Read All</a>
+                  <a href="@Url.Action("Requests","Friends")" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-user-friends"></i> Requests</a>
+                  <a href="@Url.Action("Index","Friends")" style="flex:1;text-align:center;font-family:var(--font-mono);font-size:10px;color:#888;text-decoration:none;padding:6px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.2)';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(255,255,255,0.06)';this.style.color='#888'"><i class="fas fa-comment"></i> Social</a>
+                </div>
+              </div>
+            </li>
+            <li style="font-family:var(--font-mono);font-size:12px;color:#a0a0a0;">
+              <a asp-area="" asp-controller="Profile" asp-action="Edit" style="color:#a0a0a0;text-decoration:none;transition:all 0.2s;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;"
+                 onmouseover="this.style.color='#ffffff';this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.color='#a0a0a0';this.style.background='transparent'"><span id="navAvatarContainer"><span id="navAvatarText" style="display:inline-block;width:28px;height:28px;border:1px solid rgba(255,255,255,0.08);display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:12px;color:#e0e0e0;background:rgba(255,255,255,0.04);">@(username?.Substring(0,1)??"?")</span></span>[ @username ]@if (role == "ADMIN") {<span style="font-size:9px;color:#888;border:1px solid rgba(255,255,255,0.08);padding:1px 6px;margin-left:4px;">ADMIN</span>}@if (role == "DEVELOPER") {<span style="font-size:9px;color:#00e5ff;border:1px solid rgba(0,229,255,0.2);padding:1px 6px;margin-left:4px;">DEV</span>}</a>
+            </li>
+            <li><a asp-area="" asp-controller="Support" asp-action="MyTickets">Support</a></li>
+            <li><a class="btn btn-secondary" style="padding:6px 12px;" asp-area="" asp-controller="Auth" asp-action="Logout">Logout</a></li>
+          }
+          else
+          {
+            <li><a class="btn btn-secondary" style="padding:6px 12px;" asp-area="" asp-controller="Auth" asp-action="Register">Register</a></li>
+            <li><a class="btn btn-secondary" style="padding:6px 12px;" asp-area="" asp-controller="Auth" asp-action="Login">Login</a></li>
+          }
+        </ul>
+     </nav>
+    <partial name="_EmailConfirmationBanner" />
+    <main>
+        @RenderBody()
+    </main>
 
     <footer class="border-top footer text-muted mt-auto">
         <div class="container">
             &copy; 2026 - Game_Store - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a> - <a asp-area="" asp-controller="Support" asp-action="Index">Support Center</a>
         </div>
     </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js" integrity="sha384-/taWmisziXYpcfnYsumSUmNaiMvG/fF/OJOUCLnqCIYTrpOZy7WbFF6FfIxwOrfL" crossorigin="anonymous"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -615,6 +539,7 @@
     <style>
       .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
       .toast { background: var(--bg2); border: 1px solid var(--border-red); padding: 16px 20px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; min-width: 280px; max-width: 400px; }
+      @@media (max-width: 576px) { .toast-container { right: 12px !important; bottom: 12px !important; } .toast { min-width: unset !important; max-width: calc(100vw - 24px) !important; padding: 12px 16px; } }
       .toast.success { border-color: #4ade80; }
       .toast.error { border-color: var(--red); }
       .toast.warning { border-color: var(--gold); }
@@ -646,7 +571,10 @@
       document.querySelectorAll('form').forEach(function(f) {
         f.addEventListener('submit', function() {
           var btn = this.querySelector('.btn[type="submit"], button[type="submit"]');
-          if (btn) btn.classList.add('loading');
+          if (btn) {
+            btn.classList.add('loading');
+            setTimeout(function() { btn.classList.remove('loading'); }, 2000);
+          }
         });
       });
 

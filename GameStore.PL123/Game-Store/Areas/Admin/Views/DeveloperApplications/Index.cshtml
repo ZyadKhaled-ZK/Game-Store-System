@@ -4,6 +4,17 @@
     var isError = ViewData["IsError"] is true;
 }
 
+<style>
+  @@media (max-width: 768px) {
+    .page-header { flex-direction: column; gap: 12px; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .section-title { font-size: 1.4rem !important; }
+    .page-header .btn { width: 100%; text-align: center; }
+  }
+</style>
+
 @if (!string.IsNullOrEmpty(message))
 {
   <div class="alert @(isError ? "alert-danger" : "alert-success")" style="text-align:center;font-family:var(--font-mono);font-size:12px;letter-spacing:1px;margin-bottom:20px;">

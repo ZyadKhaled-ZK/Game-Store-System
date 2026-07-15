@@ -9,12 +9,15 @@ namespace GameStore.PL.Controllers;
 public class StripeWebhookController : ControllerBase
 {
     private readonly IOrderService _orderService;
+    private readonly ICreditService _creditService;
     private readonly StripeSettings _stripeSettings;
 
     public StripeWebhookController(IOrderService orderService,
+        ICreditService creditService,
         IOptions<StripeSettings> stripeOptions)
     {
         _orderService = orderService;
+        _creditService = creditService;
         _stripeSettings = stripeOptions.Value;
     }
 
@@ -59,6 +62,9 @@ public class StripeWebhookController : ControllerBase
             {
                 await _orderService.CompleteCheckoutAsync(
                     userId, session.Id, session.PaymentIntentId);
+
+                await _creditService.ConfirmReservationAsync(
+                    userId, session.Id, $"Stripe purchase session {session.Id}");
             }
         }
 

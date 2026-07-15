@@ -12,15 +12,21 @@ public class GamesController : Controller
     private readonly ICategoryService _categoryService;
     private readonly IDeveloperService _devService;
     private readonly IWebHostEnvironment _env;
+    private readonly ISystemRequirementService _systemReqService;
+    private readonly IGameVersionService _gameVersionService;
 
     public GamesController(IGameService gameService, IGameFileService gameFileService,
-        ICategoryService categoryService, IDeveloperService devService, IWebHostEnvironment env)
+        ICategoryService categoryService, IDeveloperService devService, IWebHostEnvironment env,
+        ISystemRequirementService systemReqService,
+        IGameVersionService gameVersionService)
     {
         _gameService = gameService;
         _gameFileService = gameFileService;
         _categoryService = categoryService;
         _devService = devService;
         _env = env;
+        _systemReqService = systemReqService;
+        _gameVersionService = gameVersionService;
     }
 
     private async Task<ManageGamesViewModel> LoadViewModel()
@@ -47,8 +53,7 @@ public class GamesController : Controller
             categoryIds = g.GameCategories.Select(gc => gc.CategoryId).ToList(),
             hasFile = g.GameFileUrl != null,
             fileName = g.GameFileName,
-            fileSizeBytes = g.GameFileSizeBytes,
-            screenshots = g.ScreenshotUrls
+            fileSizeBytes = g.GameFileSizeBytes
         }));
 
         return model;
@@ -73,7 +78,8 @@ public class GamesController : Controller
         [StringLength(500)] string? CoverImageUrl,
         [StringLength(500)] string? TrailerUrl,
         List<string>? CategoryIds,
-        IFormFile? GameFile)
+        IFormFile? GameFile,
+        IFormFile? CoverImageFile)
     {
         if (!ModelState.IsValid) return RedirectToAction("Index");
 
@@ -88,6 +94,9 @@ public class GamesController : Controller
             CoverImageUrl = CoverImageUrl,
             TrailerUrl = TrailerUrl,
         };
+
+        if (CoverImageFile != null)
+            game.CoverImageUrl = await SaveCoverImageFileAsync(game.Id, CoverImageFile);
 
         await _gameService.CreateAsync(game, CategoryIds ?? new());
 
@@ -115,9 +124,12 @@ public class GamesController : Controller
         [StringLength(500)] string? CoverImageUrl,
         [StringLength(500)] string? TrailerUrl,
         List<string>? CategoryIds,
-        IFormFile? GameFile, bool RemoveGameFile = false)
+        IFormFile? GameFile, bool RemoveGameFile = false,
+        IFormFile? CoverImageFile = null)
     {
         if (!ModelState.IsValid) return RedirectToAction("Index");
+
+        var oldGame = await _gameService.GetByIdAsync(GameId);
 
         var update = new Game
         {
@@ -127,11 +139,14 @@ public class GamesController : Controller
             ReleaseDate = ReleaseDate,
             Developer = Developer,
             DeveloperId = DeveloperId,
-            CoverImageUrl = CoverImageUrl,
+            CoverImageUrl = CoverImageFile != null ? await SaveCoverImageFileAsync(GameId, CoverImageFile) : CoverImageUrl,
             TrailerUrl = TrailerUrl,
         };
 
         await _gameService.UpdateAsync(GameId, update, CategoryIds ?? new());
+
+        if (CoverImageFile != null && oldGame?.CoverImageUrl != null)
+            DeleteCoverImageFile(oldGame.CoverImageUrl);
 
         if (RemoveGameFile)
         {
@@ -163,26 +178,87 @@ public class GamesController : Controller
         return RedirectToAction("Index");
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddScreenshot([Required] string GameId, [Required, StringLength(500)] string ScreenshotUrl)
+    public class SaveRequirementsRequest
     {
-        if (!ModelState.IsValid) return RedirectToAction("Index");
-        await _gameFileService.AddScreenshotAsync(GameId, ScreenshotUrl);
-        TempData["Message"] = "Screenshot added.";
-        TempData["IsError"] = false;
-        return RedirectToAction("Index");
+        public string GameId { get; set; } = string.Empty;
+        public SystemRequirementsModel Model { get; set; } = new();
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RemoveScreenshot([Required] string GameId, [Required, StringLength(500)] string ScreenshotUrl)
+    public async Task<IActionResult> SaveRequirements([FromBody] SaveRequirementsRequest request)
     {
-        if (!ModelState.IsValid) return RedirectToAction("Index");
-        await _gameFileService.RemoveScreenshotAsync(GameId, ScreenshotUrl);
-        TempData["Message"] = "Screenshot removed.";
-        TempData["IsError"] = false;
-        return RedirectToAction("Index");
+        if (!ModelState.IsValid) return Json(new { success = false, message = "Invalid data." });
+        await _systemReqService.SaveAsync(request.GameId, request.Model);
+        return Json(new { success = true });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetRequirements(string id)
+    {
+        var reqs = await _systemReqService.GetAsync(id);
+        return Json(reqs ?? new SystemRequirementsModel());
+    }
+
+    // ── Game Version Endpoints ───────────────────────────────────────────
+
+    [HttpGet]
+    public async Task<IActionResult> GetVersions(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return Json(new List<GameVersionModel>());
+        var versions = await _gameVersionService.GetAllAsync(id);
+        return Json(versions);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UploadVersion(string gameId, string versionLabel, string? changelog, IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return Json(new { success = false, message = "No file uploaded." });
+        if (string.IsNullOrWhiteSpace(versionLabel))
+            return Json(new { success = false, message = "Version label is required." });
+
+        var (success, message) = await _gameVersionService.CreateAsync(gameId, versionLabel, changelog ?? "", file);
+        return Json(new { success, message });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteVersion(string gameId, string versionId)
+    {
+        var (success, message) = await _gameVersionService.DeleteAsync(gameId, versionId);
+        return Json(new { success, message });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SetCurrentVersion(string gameId, string versionId)
+    {
+        var (success, message) = await _gameVersionService.SetCurrentAsync(gameId, versionId);
+        return Json(new { success, message });
+    }
+
+    private async Task<string> SaveCoverImageFileAsync(string gameId, IFormFile file)
+    {
+        var folder = Path.Combine(_env.WebRootPath, "uploads", "games", gameId, "cover");
+        Directory.CreateDirectory(folder);
+
+        var ext = Path.GetExtension(file.FileName);
+        var storedName = $"{Guid.NewGuid()}{ext}";
+        var filePath = Path.Combine(folder, storedName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return $"/uploads/games/{gameId}/cover/{storedName}";
+    }
+
+    private void DeleteCoverImageFile(string coverImageUrl)
+    {
+        if (string.IsNullOrEmpty(coverImageUrl) || !coverImageUrl.StartsWith("/uploads/"))
+            return;
+        var filePath = Path.Combine(_env.WebRootPath, coverImageUrl.TrimStart('/'));
+        if (System.IO.File.Exists(filePath))
+            System.IO.File.Delete(filePath);
     }
 
     private async Task<(string fileUrl, string fileName, long fileSize)> SaveGameFileAsync(string gameId, IFormFile file)

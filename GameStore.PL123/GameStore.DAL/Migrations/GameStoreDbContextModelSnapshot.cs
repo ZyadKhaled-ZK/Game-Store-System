@@ -181,6 +181,35 @@ namespace GameStore.DAL.Migrations
                     b.ToTable("DeveloperApplications");
                 });
 
+            modelBuilder.Entity("GameStore.DAL.Entities.EmailVerificationToken", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "IsUsed");
+
+                    b.ToTable("EmailVerificationTokens");
+                });
+
             modelBuilder.Entity("GameStore.DAL.Entities.Friendship", b =>
                 {
                     b.Property<string>("Id")
@@ -396,6 +425,9 @@ namespace GameStore.DAL.Migrations
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<string>("GameId")
                         .IsRequired()
@@ -643,6 +675,11 @@ namespace GameStore.DAL.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<bool>("EmailConfirmed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsExternalAccount")
                         .HasColumnType("bit");
 
@@ -789,6 +826,17 @@ namespace GameStore.DAL.Migrations
                 });
 
             modelBuilder.Entity("GameStore.DAL.Entities.DeveloperApplication", b =>
+                {
+                    b.HasOne("GameStore.DAL.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GameStore.DAL.Entities.EmailVerificationToken", b =>
                 {
                     b.HasOne("GameStore.DAL.Entities.User", "User")
                         .WithMany()

@@ -1,0 +1,76 @@
+@model HomeViewModel
+@{
+    var activeSalesGrid = ViewData["ActiveSales"] as Dictionary<string, decimal> ?? new();
+}
+<div class="games-grid" id="gamesGrid">
+    @if (!Model.Games.Any())
+    {
+        <div class="empty-state">
+            @if (!string.IsNullOrEmpty(Model.SearchQuery))
+            {
+                <h5 style="color:var(--gold); font-family: var(--font-display);">NO MATCHES FOR "@Model.SearchQuery.ToUpper()"</h5>
+                <p style="font-family: var(--font-mono); font-size: 0.9rem;">Try a different search term.</p>
+            }
+            else
+            {
+                <h5 style="color:var(--red); font-family: var(--font-display);">CRITICAL: DATABASE EMPTY</h5>
+                <p style="font-family: var(--font-mono); font-size: 0.9rem;">No entries found. <a href="/Auth/Login" style="color:var(--gold);">ADD GAMES →</a></p>
+            }
+        </div>
+    }
+    else
+    {
+        foreach (var game in Model.Games)
+        {
+            var gameIsNew = game.CreatedAt >= DateTime.UtcNow.AddDays(-30);
+            var cats = string.Join(" ", game.GameCategories.Select(gc => gc.Category.Name?.ToLower() ?? ""));
+            var salePrice = activeSalesGrid.TryGetValue(game.Id, out var sp) ? sp : (decimal?)null;
+            var effectivePrice = salePrice ?? game.Price;
+            var gameIsPreRelease = Model.PreReleaseGameIds.Contains(game.Id);
+            var gameJson = System.Text.Json.JsonSerializer.Serialize(new { id = game.Id, title = game.Title, developer = game.Developer ?? "UNKNOWN", price = game.Price, salePrice, description = game.Description, trailerUrl = game.TrailerUrl, coverImageUrl = game.CoverImageUrl, releaseDate = game.ReleaseDate.ToString("yyyy-MM-dd"), categories = game.GameCategories.Select(gc => gc.Category.Name).ToList(), hasFile = game.GameFileUrl != null, fileName = game.GameFileName, fileSizeBytes = game.GameFileSizeBytes, isPreRelease = gameIsPreRelease });
+            <div class="game-card" data-title="@game.Title.ToLower()" data-cats="@cats" data-price="@effectivePrice" data-date="@game.ReleaseDate.Ticks" data-game-id="@game.Id" onclick='openModal(@Html.Raw(gameJson))'>
+                @if (gameIsNew) { <div class="game-card-badge-new">🔥 NEW</div> }
+                @if (salePrice.HasValue) { <div class="game-card-badge-new" style="background:var(--red);color:white;">SALE</div> }
+                @if (gameIsPreRelease) { <div class="game-card-badge-new" style="background:#8a1c24;color:white;">COMING SOON</div> }
+                @if (!string.IsNullOrEmpty(game.CoverImageUrl)) { <img class="game-card-img" src="@game.CoverImageUrl" alt="@game.Title" loading="lazy"/> }
+                else { <div class="game-card-placeholder">⊗</div> }
+                <div class="game-card-body">
+                    <div class="game-card-title">@game.Title.ToUpper()@if (Model.OwnedGameIds.Contains(game.Id)) {<span style="font-family:var(--font-mono);font-size:9px;color:#4ade80;margin-left:6px;">[OWNED]</span>}</div>
+                    <div class="game-card-dev">@((game.Developer ?? "Anon").ToUpper())</div>
+                    <div class="game-card-tags">@foreach (var gc in game.GameCategories.Take(3)) { <span class="game-tag">@gc.Category.Name</span> }</div>
+                    <div class="game-card-footer">
+                        <div style="display:flex;flex-direction:column;">
+                            @if (gameIsPreRelease) { <span class="price-free" style="color:var(--gold);font-size:10px;">COMING @game.ReleaseDate.ToString("MMM d, yyyy")</span> }
+                            else if (salePrice.HasValue)
+                            {
+                                <span style="color:var(--text-dim);font-size:10px;text-decoration:line-through;margin-right:6px;">$@game.Price.ToString("0.00")</span>
+                                <span class="price-paid" style="color:var(--red);">$@salePrice.Value.ToString("0.00")</span>
+                            }
+                            else if (game.Price == 0) { <span class="price-free">FREE</span> } else { <span class="price-paid">$@game.Price.ToString("0.00")</span> }
+                            @if (!gameIsPreRelease) { <span style="font-size:9px;color:var(--text-dim);margin-top:2px;">@game.ReleaseDate.ToString("MMM d, yyyy")</span> }
+                        </div>
+                        @if (game.GameFileUrl != null && Model.OwnedGameIds.Contains(game.Id)) { <a href="@Url.Action("Download", "Library", new { id = game.Id })" class="has-file-badge" style="text-decoration:none;cursor:pointer;">▼ DOWNLOAD</a> }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@if (Model.TotalPages > 1)
+{
+  <div class="pagination-bar" style="display:flex; justify-content:center; gap:8px; margin-top:32px; padding-bottom:40px;">
+    @if (Model.CurrentPage > 1)
+    {
+      <a href="#" data-page="@(Model.CurrentPage - 1)" data-search="@Model.SearchQuery" class="btn btn-secondary pagination-link" style="padding:8px 16px; font-size:12px;">&laquo; PREV</a>
+    }
+    @for (int p = Math.Max(1, Model.CurrentPage - 2); p <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); p++)
+    {
+      <a href="#" data-page="@p" data-search="@Model.SearchQuery" class="btn pagination-link @(p == Model.CurrentPage ? "btn-primary" : "btn-secondary")" style="padding:8px 14px; font-size:12px;">@p</a>
+    }
+    @if (Model.CurrentPage < Model.TotalPages)
+    {
+      <a href="#" data-page="@(Model.CurrentPage + 1)" data-search="@Model.SearchQuery" class="btn btn-secondary pagination-link" style="padding:8px 16px; font-size:12px;">NEXT &raquo;</a>
+    }
+  </div>
+}

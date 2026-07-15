@@ -1,0 +1,122 @@
+@model List<RefundRequest>
+@{
+    ViewData["Title"] = "Refund Requests";
+}
+
+<style>
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 40px; }
+  .refund-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 12px; }
+  .refund-table th { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border-red); color: var(--text-dim); letter-spacing: 1px; font-size: 10px; text-transform: uppercase; }
+  .refund-table td { padding: 14px 16px; border-bottom: 1px solid rgba(230,57,70,0.08); vertical-align: middle; }
+  .refund-table tr:hover td { background: rgba(230,57,70,0.02); }
+  .status-badge { font-size: 10px; letter-spacing: 1px; padding: 4px 10px; border: 1px solid; display: inline-block; }
+  .status-pending { color: var(--gold); border-color: rgba(255,183,3,0.3); }
+  .status-finalize { color: var(--gold); border-color: rgba(255,183,3,0.3); }
+  .status-approved { color: #4ade80; border-color: rgba(74,222,128,0.3); }
+  .status-rejected { color: var(--red); border-color: rgba(230,57,70,0.3); }
+  .admin-note-input { background: var(--bg3); border: 1px solid var(--border-red); color: var(--text); padding: 6px 10px; font-family: var(--font-mono); font-size: 11px; width: 180px; outline: none; }
+  .admin-note-input:focus { border-color: var(--red); }
+  .action-btn { padding: 6px 12px; font-size: 11px; cursor: pointer; }
+  @@media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: stretch !important; }
+    .page-header .btn { width: 100%; text-align: center; }
+    .section-title { font-size: 1.8rem !important; }
+    .refund-table { font-size: 11px; }
+    .refund-table th, .refund-table td { padding: 8px 10px; }
+    .admin-note-input { width: 100%; }
+  }
+  @@media (max-width: 576px) {
+    .section-title { font-size: 1.4rem !important; }
+    .status-badge { font-size: 9px; padding: 3px 8px; }
+    .action-btn { padding: 4px 8px; font-size: 10px; }
+  }
+</style>
+
+<div class="page-header">
+  <div>
+    <div class="section-tag">Administration</div>
+    <h2 class="section-title glitch">REFUND REQUESTS</h2>
+  </div>
+  <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+@if (TempData.TryGetValue("Message", out var msg))
+{
+  var isErr = TempData["IsError"] is true;
+  <div style="padding:12px 16px; margin-bottom:16px; border:1px solid @(isErr ? "var(--red)" : "#4ade80"); background:rgba(0,0,0,0.2); font-family:var(--font-mono); font-size:12px; color:@(isErr ? "var(--red)" : "#4ade80");">
+    @msg
+  </div>
+}
+
+@if (!Model.Any())
+{
+  <div style="text-align:center;padding:80px;font-family:var(--font-mono);color:var(--text-dim);">
+    <div style="font-size:3rem; margin-bottom:16px; color:var(--red);">&empty;</div>
+    <h3 style="font-family:var(--font-display); color:white; margin-bottom:8px;">NO REFUND REQUESTS</h3>
+    <p>No refund requests have been submitted yet.</p>
+  </div>
+  return;
+}
+
+<table class="refund-table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>User</th>
+      <th>Credit</th>
+      <th>Game</th>
+      <th>Amount</th>
+      <th>Reason</th>
+      <th>Status</th>
+      <th>Note</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var req in Model.OrderByDescending(r => r.RequestedAt))
+    {
+      var statusClass = req.Status == RefundStatus.Approved ? "status-approved" : req.Status == RefundStatus.Rejected ? "status-rejected" : req.Status == RefundStatus.PendingFinalize ? "status-finalize" : "status-pending";
+      var statusLabel = req.Status == RefundStatus.Pending ? "PENDING" : req.Status == RefundStatus.PendingFinalize ? "FINALIZING" : req.Status == RefundStatus.Approved ? "APPROVED" : "REJECTED";
+      <tr>
+        <td style="white-space:nowrap;">@req.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
+        <td>@req.UserId.Substring(0, Math.Min(8, req.UserId.Length))</td>
+        <td style="color:var(--gold);font-family:var(--font-mono);font-size:11px;">$@((ViewBag.UserCredits?[req.UserId] ?? 0m).ToString("0.00"))</td>
+        <td style="font-family:var(--font-display);color:white;">@req.GameTitle</td>
+        <td style="color:var(--gold);">$@req.Amount.ToString("0.00")</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="@req.Reason">@req.Reason</td>
+        <td><span class="status-badge @statusClass">@statusLabel</span></td>
+        <td>
+          @if (req.Status == RefundStatus.Pending)
+          {
+            <input type="text" class="admin-note-input" id="note_@req.Id" placeholder="Admin note..." />
+          }
+          else
+          {
+            <span style="color:var(--text-dim);">@(req.AdminNote ?? "-")</span>
+          }
+        </td>
+        <td>
+          @if (req.Status == RefundStatus.Pending)
+          {
+            <form method="post" action="@Url.Action("Approve", "Refunds", new { area = "Admin" })" style="display:inline;">
+              @Html.AntiForgeryToken()
+              <input type="hidden" name="id" value="@req.Id" />
+              <input type="hidden" name="note" id="approveNote_@req.Id" />
+              <button type="submit" class="btn btn-primary action-btn" onclick="document.getElementById('approveNote_@req.Id').value = document.getElementById('note_@req.Id').value;">APPROVE</button>
+            </form>
+            <form method="post" action="@Url.Action("Reject", "Refunds", new { area = "Admin" })" style="display:inline;margin-left:4px;">
+              @Html.AntiForgeryToken()
+              <input type="hidden" name="id" value="@req.Id" />
+              <input type="hidden" name="note" id="rejectNote_@req.Id" />
+              <button type="submit" class="btn btn-secondary action-btn" onclick="document.getElementById('rejectNote_@req.Id').value = document.getElementById('note_@req.Id').value;">REJECT</button>
+            </form>
+          }
+          else
+          {
+            <span style="color:var(--text-dim);font-size:10px;">@(req.ResolvedAt?.ToString("yyyy-MM-dd") ?? "-")</span>
+          }
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

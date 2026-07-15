@@ -15,6 +15,7 @@ public class HomeViewModel
     public int TotalGames { get; set; }
     public int CurrentPage { get; set; } = 1;
     public int TotalPages { get; set; } = 1;
+    public string? SearchQuery { get; set; }
     public Game? FeaturedGame { get; set; }
     public List<Game> HeroGames { get; set; } = new();
     public string HeroGamesJson { get; set; } = "[]";
@@ -23,4 +24,6 @@ public class HomeViewModel
     public string WishlistJson { get; set; } = "[]";
     public Dictionary<string, List<ReviewDto>> ReviewsByGame { get; set; } = new();
     public HashSet<string> OwnedGameIds { get; set; } = new();
+    public HashSet<string> PreReleaseGameIds { get; set; } = new();
+    public HashSet<string> PreviewableGameIds { get; set; } = new();
 }

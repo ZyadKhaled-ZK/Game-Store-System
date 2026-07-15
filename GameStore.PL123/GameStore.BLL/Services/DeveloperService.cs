@@ -40,6 +40,33 @@ namespace GameStore.BLL.Services
                 .ToListAsync();
         }
 
+        public async Task<PagedResult<Game>> GetGamesAsync(string developerId, int page, int pageSize = 10)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _uow.Repository<Game>().Query()
+                .Where(g => g.DeveloperId == developerId)
+                .Include(g => g.GameCategories).ThenInclude(gc => gc.Category)
+                .OrderByDescending(g => g.CreatedAt)
+                .AsNoTracking();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Game>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+        }
+
         public async Task<(bool Success, string Error)> CreateOrUpdateProfileAsync(string userId, string name, string? slug, string? description, string? website, string? logoUrl, string? country)
         {
             var existing = await _uow.Repository<Developer>().Query()
@@ -93,7 +120,7 @@ namespace GameStore.BLL.Services
             return $"{slug}-{Guid.NewGuid():N}";
         }
 
-        public async Task<(int GameCount, int TotalDownloads, int TotalReviews, int TotalRevenue, double AvgRating)> GetDashboardStatsAsync(string developerId)
+        public async Task<(int GameCount, int TotalDownloads, int TotalReviews, int TotalRevenue, int NetRevenue, double AvgRating)> GetDashboardStatsAsync(string developerId)
         {
             var games = await _uow.Repository<Game>().Query()
                 .Where(g => g.DeveloperId == developerId)
@@ -108,19 +135,21 @@ namespace GameStore.BLL.Services
             var totalDownloads = games.Sum(g => g.LibraryGames.Count);
             var totalReviews = games.Sum(g => g.Reviews.Count);
             var totalRevenue = games.Sum(g => g.OrderItems.Sum(oi => oi.PriceAtPurchase));
+            var netRevenue = games.Sum(g => g.OrderItems.Sum(oi => oi.PriceAtPurchase * (100 - oi.CommissionPercent) / 100));
             var avgRating = games.SelectMany(g => g.Reviews)
                 .DefaultIfEmpty()
                 .Average(r => r?.Rating ?? 0);
 
-            return (gameCount, totalDownloads, totalReviews, (int)totalRevenue, Math.Round(avgRating, 1));
+            return (gameCount, totalDownloads, totalReviews, (int)totalRevenue, (int)netRevenue, Math.Round(avgRating, 1));
         }
 
-        public async Task<List<(Game Game, int Downloads, double AvgRating, int ReviewCount)>> GetGameStatsAsync(string developerId)
+        public async Task<List<(Game Game, int Downloads, double AvgRating, int ReviewCount, decimal TotalRevenue)>> GetGameStatsAsync(string developerId)
         {
             var games = await _uow.Repository<Game>().Query()
                 .Where(g => g.DeveloperId == developerId)
                 .Include(g => g.LibraryGames)
                 .Include(g => g.Reviews)
+                .Include(g => g.OrderItems)
                 .Include(g => g.GameCategories).ThenInclude(gc => gc.Category)
                 .OrderByDescending(g => g.CreatedAt)
                 .AsSplitQuery()
@@ -131,7 +160,8 @@ namespace GameStore.BLL.Services
                 g,
                 Downloads: g.LibraryGames.Count,
                 AvgRating: g.Reviews.Any() ? Math.Round(g.Reviews.Average(r => r.Rating), 1) : 0.0,
-                ReviewCount: g.Reviews.Count
+                ReviewCount: g.Reviews.Count,
+                TotalRevenue: g.OrderItems.Sum(oi => oi.PriceAtPurchase)
             )).ToList();
         }
 

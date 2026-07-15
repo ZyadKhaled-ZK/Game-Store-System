@@ -1,12 +1,27 @@
 // TECHNOLOGY: xUnit, Moq, FluentAssertions, EF InMemory - Unit test stack
 global using System;
 global using System.Collections.Generic;
+global using System.IO;
 global using System.Linq;
+global using System.Linq.Expressions;
+global using System.Security.Claims;
+global using System.Text.Json;
+global using System.Threading;
 global using System.Threading.Tasks;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.AspNetCore.Hosting;
+global using Microsoft.AspNetCore.Mvc.Filters;
+global using Microsoft.AspNetCore.SignalR;
 global using GameStore.DAL.DataBase;
 global using GameStore.DAL.Entities;
 global using GameStore.DAL.Enum;
 global using GameStore.DAL.Repo;
 global using GameStore.BLL.Services;
+global using GameStore.PL.Services;
+global using GameStore.PL.Hubs;
 global using Xunit;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.Extensions.Primitives;
+global using Microsoft.Extensions.Logging;
+global using Moq;

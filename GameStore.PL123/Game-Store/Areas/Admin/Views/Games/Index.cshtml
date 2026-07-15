@@ -71,13 +71,26 @@
   .checkbox-item { display: flex; align-items: center; gap: 8px; }
   .checkbox-item input[type="checkbox"] { accent-color: var(--red); width: 14px; height: 14px; cursor: pointer; }
   .checkbox-item label { font-family: var(--font-mono); font-size: 12px; color: var(--text); cursor: pointer; }
+  @@media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: stretch !important; }
+    .page-header .btn { width: 100%; text-align: center; }
+    .filter-bar { flex-direction: column; }
+    .filter-bar select, .filter-bar .btn { width: 100%; }
+    .gs-search-input { width: 100%; }
+    .form-row { grid-template-columns: 1fr; }
+    .modal-box { padding: 24px; }
+    .cover-thumb, .cover-placeholder { width: 40px; height: 28px; font-size: 14px; }
+  }
+  @@media (max-width: 576px) {
+    .modal-box { padding: 16px; }
+    .gs-search-input { font-size: 11px; padding: 8px 12px; }
+    .cat-tag { font-size: 8px; padding: 1px 6px; }
+  }
 </style>
 
 @{
     var createUrl = Url.Action("Create", "Games", new { area = "Admin" });
     var editUrl = Url.Action("Edit", "Games", new { area = "Admin" });
-    var addScreenshotUrl = Url.Action("AddScreenshot", "Games", new { area = "Admin" });
-    var removeScreenshotUrl = Url.Action("RemoveScreenshot", "Games", new { area = "Admin" });
 }
 
 <div class="page-header">
@@ -221,6 +234,7 @@
       <div class="form-group">
         <label class="form-label">Cover Image URL //</label>
         <input type="url" name="CoverImageUrl" id="fCoverImageUrl" class="form-input" placeholder="https://..." maxlength="500"/>
+        <input type="file" name="CoverImageFile" id="fCoverImageFile" class="form-input" style="padding:8px 14px; margin-top:8px;" accept="image/*"/>
       </div>
       <div class="form-group">
         <label class="form-label">Game File (ZIP/RAR/EXE) //</label>
@@ -239,6 +253,60 @@
         <label class="form-label">Trailer URL //</label>
         <input type="url" name="TrailerUrl" id="fTrailerUrl" class="form-input" placeholder="https://youtube.com/..." maxlength="500"/>
       </div>
+
+      <!-- SYSTEM REQUIREMENTS ACCORDION -->
+      <div style="border:1px solid var(--border-red); margin-bottom:18px;">
+        <button type="button" onclick="toggleReqs(this)" style="width:100%; background:var(--bg3); border:none; color:var(--text-dim); font-family:var(--font-mono); font-size:11px; letter-spacing:2px; padding:10px 16px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+          <span>SYSTEM REQUIREMENTS</span>
+          <span id="reqsToggle">▶</span>
+        </button>
+        <div id="reqsSection" style="display:none; padding:16px; border-top:1px solid var(--border-red);">
+          <div id="reqsStatus" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:8px;"></div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div>
+              <div class="form-label" style="color:var(--red);">MINIMUM</div>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="OS" data-req-type="min" data-req-field="os"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="Processor" data-req-type="min" data-req-field="processor"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="Memory" data-req-type="min" data-req-field="memory"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="Graphics" data-req-type="min" data-req-field="graphics"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="DirectX" data-req-type="min" data-req-field="directX"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="Storage" data-req-type="min" data-req-field="storage"/>
+            </div>
+            <div>
+              <div class="form-label" style="color:var(--gold);">RECOMMENDED</div>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="OS" data-req-type="rec" data-req-field="os"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="Processor" data-req-type="rec" data-req-field="processor"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="Memory" data-req-type="rec" data-req-field="memory"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="Graphics" data-req-type="rec" data-req-field="graphics"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="DirectX" data-req-type="rec" data-req-field="directX"/>
+              <input class="form-input req-field" style="margin-bottom:6px;font-size:12px;" placeholder="Storage" data-req-type="rec" data-req-field="storage"/>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary" style="margin-top:12px;padding:6px 16px;font-size:11px;" onclick="saveRequirements()">💾 SAVE REQUIREMENTS</button>
+        </div>
+      </div>
+
+      <!-- VERSION MANAGEMENT ACCORDION -->
+      <div style="border:1px solid var(--border-red); margin-bottom:18px;">
+        <button type="button" onclick="toggleVersions(this)" style="width:100%; background:var(--bg3); border:none; color:var(--text-dim); font-family:var(--font-mono); font-size:11px; letter-spacing:2px; padding:10px 16px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+          <span>VERSIONS</span>
+          <span id="versionsToggle">▶</span>
+        </button>
+        <div id="versionsSection" style="display:none; padding:16px; border-top:1px solid var(--border-red);">
+          <div id="versionsStatus" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:8px;"></div>
+          <div id="versionsList" style="margin-bottom:12px;"></div>
+          <div style="border-top:1px solid rgba(230,57,70,0.15);padding-top:12px;">
+            <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:8px;">UPLOAD NEW VERSION</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <input type="text" id="newVersionLabel" class="form-input" placeholder="e.g. 1.0.0" style="width:120px;font-size:12px;" />
+              <input type="file" id="newVersionFile" class="form-input" style="font-size:12px;padding:6px;flex:1;" />
+            </div>
+            <textarea id="newVersionChangelog" class="form-input" placeholder="Changelog (optional)" style="margin-top:8px;font-size:12px;resize:vertical;min-height:50px;"></textarea>
+            <button type="button" class="btn btn-secondary" style="margin-top:8px;padding:6px 16px;font-size:11px;" onclick="uploadVersion()">⬆ UPLOAD VERSION</button>
+          </div>
+        </div>
+      </div>
+
       <div class="form-group">
         <label class="form-label">Categories //</label>
         <div class="checkbox-grid">
@@ -252,15 +320,6 @@
         </div>
       </div>
 
-      <div class="form-group" id="screenshotsSection" style="display:none;">
-        <label class="form-label">Screenshots //</label>
-        <div id="screenshotsList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
-        <div style="display:flex; gap:8px;">
-          <input type="url" id="newScreenshotUrl" class="form-input" placeholder="https://..." style="flex:1;" maxlength="500"/>
-          <button type="button" class="btn btn-secondary" style="padding:8px 16px; font-size:11px;" onclick="addScreenshot()">+ ADD</button>
-        </div>
-        <input type="hidden" name="ScreenshotUrl" id="hiddenScreenshotUrl"/>
-      </div>
       <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:28px;">
         <button type="button" class="btn btn-secondary" onclick="closeModal()">ABORT</button>
         <button type="submit" id="submitBtn" class="btn btn-primary">INJECT RECORD</button>
@@ -278,6 +337,11 @@
     if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
     if (bytes < 1024*1024*1024) return (bytes/(1024*1024)).toFixed(1) + ' MB';
     return (bytes/(1024*1024*1024)).toFixed(2) + ' GB';
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
 
   function openModal() {
@@ -319,6 +383,7 @@
     document.getElementById('fCoverImageUrl').value = data.coverImageUrl;
     document.getElementById('fReleaseDate').value = data.releaseDate;
     document.getElementById('fGameFile').value = '';
+    document.getElementById('fCoverImageFile').value = '';
 
     if (data.hasFile) {
       document.getElementById('currentFileInfo').style.display = 'block';
@@ -334,43 +399,173 @@
       cb.checked = catIds.has(cb.value);
     });
 
-    const screenshots = data.screenshots || [];
-    const screenshotsSection = document.getElementById('screenshotsSection');
-    const screenshotsList = document.getElementById('screenshotsList');
-    screenshotsSection.style.display = screenshots.length > 0 || true ? 'block' : 'none';
-    screenshotsList.innerHTML = screenshots.map((url, i) =>
-      `<div style="position:relative; display:inline-block;">
-        <img src="${url}" style="height:60px; border:1px solid var(--border-red); object-fit:cover;"/>
-        <button type="button" style="position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:50%; background:var(--red); color:white; border:none; font-size:10px; line-height:1; cursor:pointer; padding:0;" onclick="removeScreenshot('${data.id}', '${url}')">&times;</button>
-      </div>`
-    ).join('');
+    loadRequirements(data.id);
+    loadVersions(data.id);
 
     document.getElementById('gameModal').classList.add('active');
   }
 
-  function addScreenshot() {
-    const url = document.getElementById('newScreenshotUrl').value.trim();
-    if (!url) return;
-    const gameId = document.getElementById('gameId').value;
-    if (!gameId) return;
-    const form = document.createElement('form');
-    form.method = 'post';
-    form.innerHTML = '@Html.AntiForgeryToken()<input name="GameId" value="' + gameId + '"/><input name="ScreenshotUrl" value="' + url + '"/>';
-    form.action = '@addScreenshotUrl';
-    form.style.display = 'none';
-    document.body.appendChild(form);
-    form.submit();
+  function toggleReqs(btn) {
+    var section = document.getElementById('reqsSection');
+    var toggle = document.getElementById('reqsToggle');
+    var isOpen = section.style.display !== 'none';
+    section.style.display = isOpen ? 'none' : 'block';
+    toggle.textContent = isOpen ? '▶' : '▼';
   }
 
-  function removeScreenshot(gameId, url) {
-    if (!confirm('Remove this screenshot?')) return;
-    const form = document.createElement('form');
-    form.method = 'post';
-    form.innerHTML = '@Html.AntiForgeryToken()<input name="GameId" value="' + gameId + '"/><input name="ScreenshotUrl" value="' + url + '"/>';
-    form.action = '@removeScreenshotUrl';
-    form.style.display = 'none';
-    document.body.appendChild(form);
-    form.submit();
+  function loadRequirements(gameId) {
+    document.querySelectorAll('.req-field').forEach(el => el.value = '');
+    document.getElementById('reqsStatus').textContent = 'LOADING...';
+    var url = '/Admin/Games/GetRequirements/' + gameId;
+    fetch(url)
+      .then(function(r) {
+        if (!r.ok) { throw new Error('HTTP ' + r.status + ' for ' + url); }
+        return r.json();
+      })
+      .then(function(data) {
+        if (!data) { document.getElementById('reqsStatus').textContent = '—'; return; }
+        document.querySelectorAll('.req-field').forEach(function(el) {
+          var type = el.dataset.reqType;
+          var field = el.dataset.reqField;
+          var section = type === 'min' ? data.minimum : data.recommended;
+          if (section) {
+            var val = section[field];
+            if (val) el.value = val;
+          }
+        });
+        document.getElementById('reqsStatus').textContent = 'REQUIREMENTS LOADED';
+      })
+      .catch(function(e) { document.getElementById('reqsStatus').textContent = 'ERROR LOADING — ' + e.message; });
+  }
+
+  function saveRequirements() {
+    var gameId = document.getElementById('gameId').value;
+    if (!gameId) return;
+    var model = { minimum: {}, recommended: {} };
+    document.querySelectorAll('.req-field').forEach(el => {
+      var type = el.dataset.reqType;
+      var field = el.dataset.reqField;
+      var section = type === 'min' ? model.minimum : model.recommended;
+      section[field] = el.value || null;
+    });
+    fetch('/Admin/Games/SaveRequirements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value },
+      body: JSON.stringify({ gameId: gameId, model: model })
+    })
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('reqsStatus').textContent = d.success ? 'SAVED' : 'ERROR: ' + d.message;
+    })
+    .catch(() => document.getElementById('reqsStatus').textContent = 'SAVE FAILED');
+  }
+
+  function toggleVersions(btn) {
+    var section = document.getElementById('versionsSection');
+    var toggle = document.getElementById('versionsToggle');
+    var isOpen = section.style.display !== 'none';
+    section.style.display = isOpen ? 'none' : 'block';
+    toggle.textContent = isOpen ? '▶' : '▼';
+  }
+
+  function loadVersions(gameId) {
+    document.getElementById('versionsList').innerHTML = '';
+    document.getElementById('versionsStatus').textContent = 'LOADING...';
+    var url = '/Admin/Games/GetVersions/' + gameId;
+    fetch(url)
+      .then(function(r) {
+        if (!r.ok) { throw new Error('HTTP ' + r.status + ' for ' + url); }
+        return r.json();
+      })
+      .then(function(data) {
+        if (!data || data.length === 0) {
+          document.getElementById('versionsStatus').textContent = 'NO VERSIONS';
+          return;
+        }
+        var html = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:6px;">' + data.length + ' version(s) on file</div>';
+        data.forEach(function(v) {
+          var isCurrent = v.isCurrent;
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;margin-bottom:4px;border:1px solid ' + (isCurrent ? 'rgba(74,222,128,0.2)' : 'rgba(230,57,70,0.08)') + ';background:' + (isCurrent ? 'rgba(74,222,128,0.03)' : '') + ';">';
+          html += '<div><div style="font-family:var(--font-display);color:' + (isCurrent ? '#4ade80' : 'white') + ';font-size:13px;">' + escapeHtml(v.versionLabel) + (isCurrent ? ' <span style="font-size:10px;color:#4ade80;border:1px solid rgba(74,222,128,0.3);padding:2px 6px;">CURRENT</span>' : '') + '</div>';
+          html += '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">' + fmtSize(v.fileSizeBytes) + ' &middot; ' + v.fileName + '</div>';
+          if (v.changelog) html += '<div style="font-size:10px;color:var(--text-dim);margin-top:2px;">' + escapeHtml(v.changelog) + '</div>';
+          html += '<div style="font-size:10px;color:var(--text-dim);margin-top:2px;">' + v.uploadedAt + '</div></div><div>';
+          if (!isCurrent) {
+            html += '<button class="btn btn-secondary" style="padding:4px 8px;font-size:10px;margin-right:4px;" onclick="setCurrentVersion(\'' + gameId + '\',\'' + v.id + '\')">SET CURRENT</button>';
+          }
+          html += '<button class="btn btn-secondary" style="padding:4px 8px;font-size:10px;" onclick="deleteVersion(\'' + gameId + '\',\'' + v.id + '\')">DELETE</button>';
+          html += '</div></div>';
+        });
+        document.getElementById('versionsList').innerHTML = html;
+        document.getElementById('versionsStatus').textContent = '';
+      })
+      .catch(function(e) { document.getElementById('versionsStatus').textContent = 'ERROR LOADING — ' + e.message; });
+  }
+
+  function uploadVersion() {
+    var gameId = document.getElementById('gameId').value;
+    var label = document.getElementById('newVersionLabel').value.trim();
+    var file = document.getElementById('newVersionFile').files[0];
+    var changelog = document.getElementById('newVersionChangelog').value.trim();
+    if (!gameId || !label || !file) { alert('Version label and file are required.'); return; }
+    var formData = new FormData();
+    formData.append('gameId', gameId);
+    formData.append('versionLabel', label);
+    formData.append('changelog', changelog);
+    formData.append('file', file);
+    document.getElementById('versionsStatus').textContent = 'UPLOADING...';
+    fetch('/Admin/Games/UploadVersion', {
+      method: 'POST',
+      headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value },
+      body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById('versionsStatus').textContent = d.success ? 'UPLOADED' : 'ERROR: ' + d.message;
+      if (d.success) {
+        document.getElementById('newVersionLabel').value = '';
+        document.getElementById('newVersionFile').value = '';
+        document.getElementById('newVersionChangelog').value = '';
+        loadVersions(gameId);
+      }
+    })
+    .catch(function() { document.getElementById('versionsStatus').textContent = 'UPLOAD FAILED'; });
+  }
+
+  function deleteVersion(gameId, versionId) {
+    if (!confirm('Delete this version?')) return;
+    document.getElementById('versionsStatus').textContent = 'DELETING...';
+    var formData = new FormData();
+    formData.append('gameId', gameId);
+    formData.append('versionId', versionId);
+    fetch('/Admin/Games/DeleteVersion', {
+      method: 'POST',
+      headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value },
+      body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById('versionsStatus').textContent = d.success ? 'DELETED' : 'ERROR: ' + d.message;
+      if (d.success) loadVersions(gameId);
+    })
+    .catch(function() { document.getElementById('versionsStatus').textContent = 'DELETE FAILED'; });
+  }
+
+  function setCurrentVersion(gameId, versionId) {
+    var formData = new FormData();
+    formData.append('gameId', gameId);
+    formData.append('versionId', versionId);
+    fetch('/Admin/Games/SetCurrentVersion', {
+      method: 'POST',
+      headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value },
+      body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById('versionsStatus').textContent = d.success ? 'UPDATED' : 'ERROR: ' + d.message;
+      if (d.success) loadVersions(gameId);
+    })
+    .catch(function() { document.getElementById('versionsStatus').textContent = 'UPDATE FAILED'; });
   }
 
   function closeModal() {

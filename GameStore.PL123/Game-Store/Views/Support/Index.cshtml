@@ -13,6 +13,11 @@
     .sp-field input:focus, .sp-field textarea:focus { border-color:var(--red); }
     .sp-field textarea { resize:vertical; min-height:120px; }
     .sp-field .field-error { font-family:var(--font-mono); font-size:10px; color:var(--red); margin-top:4px; }
+    @@media (max-width: 576px) {
+      .sp-container { margin: 20px auto; padding: 0 12px; }
+      .sp-card { padding: 20px; }
+      .sp-card h1 { font-size: 15px; }
+    }
 </style>
 
 <div class="sp-container">

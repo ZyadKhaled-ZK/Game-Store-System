@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Extensions.Caching.Distributed;
 using GameStore.PL.Models;
 using GameStore.PL.Models.Home;
 using GameStore.DAL.Enum;
@@ -17,12 +19,20 @@ public class HomeController : Controller
     private readonly ISaleService _saleService;
     private readonly IReviewService _reviewService;
     private readonly IMapper _mapper;
+    private readonly IGameAccessService _gameAccess;
+    private readonly ISystemRequirementService _systemReqService;
+    private readonly IGameVersionService _gameVersionService;
+    private readonly IDistributedCache _cache;
 
     public HomeController(ILogger<HomeController> logger,
         IGameService gameService, ICategoryService categoryService,
         ICartService cartService, IWishlistService wishlistService,
         ILibraryService libraryService, ISaleService saleService,
-        IReviewService reviewService, IMapper mapper)
+        IReviewService reviewService, IMapper mapper,
+        IGameAccessService gameAccess,
+        ISystemRequirementService systemReqService,
+        IGameVersionService gameVersionService,
+        IDistributedCache cache)
     {
         _logger = logger;
         _gameService = gameService;
@@ -33,24 +43,35 @@ public class HomeController : Controller
         _saleService = saleService;
         _reviewService = reviewService;
         _mapper = mapper;
+        _gameAccess = gameAccess;
+        _systemReqService = systemReqService;
+        _gameVersionService = gameVersionService;
+        _cache = cache;
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index(int? page)
+    public async Task<IActionResult> Index(int? page, string? search)
     {
-        var model = new HomeViewModel
-        {
-            CurrentPage = page ?? 1
-        };
+        var model = await BuildHomeModelAsync(page ?? 1, search);
+        return View(model);
+    }
 
-        var paged = await _gameService.GetPagedAsync(model.CurrentPage, 12);
+    [HttpGet]
+    public async Task<IActionResult> GetGameGrid(int page = 1, string? search = null)
+    {
+        var model = await BuildGridModelAsync(page, search);
+        return PartialView("_GameGridPartial", model);
+    }
+
+    private async Task<HomeViewModel> BuildHomeModelAsync(int page, string? search = null)
+    {
+        var model = new HomeViewModel { CurrentPage = page, SearchQuery = search };
+        var paged = await _gameService.GetPagedAsync(page, 4, search);
         model.Games = paged.Items;
         model.TotalPages = paged.TotalPages;
         model.TotalGames = paged.TotalCount;
 
-        var allGames = await _gameService.GetAllWithCategoriesAsync();
-        model.HeroGames = allGames.Take(5).ToList();
-        model.FeaturedGame = model.HeroGames.FirstOrDefault();
+        model.HeroGames = await _gameService.GetHeroGamesAsync(5);
         model.Categories = await _categoryService.GetAllAsync();
 
         var allGameIds = model.Games.Concat(model.HeroGames).Select(g => g.Id).Distinct().ToList();
@@ -68,10 +89,20 @@ public class HomeController : Controller
 
             var owned = await _libraryService.GetLibraryGamesAsync(userId);
             model.OwnedGameIds = owned.Select(lg => lg.GameId).ToHashSet();
+
+            var roleStr = HttpContext.Session.GetString("Role") ?? "CUSTOMER";
+            var role = Enum.Parse<Role>(roleStr);
+            model.PreviewableGameIds = await _gameAccess.GetPreviewableGameIdsAsync(userId, role);
         }
 
-        var allReviews = await _reviewService.GetAllWithDetailsAsync();
-        model.ReviewsByGame = allReviews
+        model.PreReleaseGameIds = model.Games
+            .Concat(model.HeroGames)
+            .Where(g => _gameAccess.IsPreRelease(g))
+            .Select(g => g.Id)
+            .ToHashSet();
+
+        var reviews = await _reviewService.GetByGameIdsAsync(allGameIds);
+        model.ReviewsByGame = reviews
             .GroupBy(r => r.GameId)
             .ToDictionary(g => g.Key, g => _mapper.Map<List<ReviewDto>>(g.ToList()));
 
@@ -96,17 +127,49 @@ public class HomeController : Controller
                 salePrice = salePrices.TryGetValue(g.Id, out var sp) ? sp : (decimal?)null,
                 description = g.Description,
                 trailerUrl = g.TrailerUrl,
-                screenshots = g.ScreenshotUrls,
                 coverImageUrl = g.CoverImageUrl,
                 releaseDate = g.ReleaseDate.ToString("yyyy-MM-dd"),
                 categories = g.GameCategories.Select(gc => gc.Category.Name).ToList(),
                 hasFile = g.GameFileUrl != null,
                 fileName = g.GameFileName,
-                fileSizeBytes = g.GameFileSizeBytes
+                fileSizeBytes = g.GameFileSizeBytes,
+                isPreRelease = model.PreReleaseGameIds.Contains(g.Id)
             }).ToList()
         );
 
-        return View(model);
+        return model;
+    }
+
+    private async Task<HomeViewModel> BuildGridModelAsync(int page, string? search = null)
+    {
+        var model = new HomeViewModel { CurrentPage = page, SearchQuery = search };
+
+        var paged = await _gameService.GetPagedAsync(page, 4, search);
+        model.Games = paged.Items;
+        model.TotalPages = paged.TotalPages;
+        model.TotalGames = paged.TotalCount;
+
+        var gameIds = model.Games.Select(g => g.Id).ToList();
+        var activeSales = await _saleService.GetActiveSalesByGameIdsAsync(gameIds);
+        ViewData["ActiveSales"] = activeSales.ToDictionary(s => s.GameId, s => s.NewPrice);
+
+        var userId = HttpContext.Session.GetString("UserId");
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var owned = await _libraryService.GetLibraryGamesAsync(userId);
+            model.OwnedGameIds = owned.Select(lg => lg.GameId).ToHashSet();
+
+            var roleStr = HttpContext.Session.GetString("Role") ?? "CUSTOMER";
+            var role = Enum.Parse<Role>(roleStr);
+            model.PreviewableGameIds = await _gameAccess.GetPreviewableGameIdsAsync(userId, role);
+        }
+
+        model.PreReleaseGameIds = model.Games
+            .Where(g => _gameAccess.IsPreRelease(g))
+            .Select(g => g.Id)
+            .ToHashSet();
+
+        return model;
     }
 
     [HttpGet]
@@ -120,5 +183,42 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetRequirements(string id)
+    {
+        var reqs = await _systemReqService.GetAsync(id);
+        return Json(reqs ?? new SystemRequirementsModel());
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetVersions(string id)
+    {
+        var versions = await _gameVersionService.GetAllAsync(id);
+        return Json(versions);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> TestRedis()
+    {
+        var cacheType = _cache.GetType().Name;
+        try
+        {
+            await _cache.SetStringAsync("redis_test", "OK", new DistributedCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30)
+            });
+            var result = await _cache.GetStringAsync("redis_test");
+
+            if (result == "OK")
+                return Content($"Redis: Connected ✅ (using {cacheType})");
+            else
+                return Content($"Redis: Write failed ❌ (using {cacheType})");
+        }
+        catch (Exception ex)
+        {
+            return Content($"Redis: Error ❌ — {ex.GetType().Name}: {ex.Message}");
+        }
     }
 }

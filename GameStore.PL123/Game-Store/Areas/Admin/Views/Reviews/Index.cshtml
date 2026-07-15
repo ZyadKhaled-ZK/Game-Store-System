@@ -26,6 +26,18 @@
   .review-row { transition: background 0.2s; }
   .review-row td { transition: color 0.2s; }
   .review-row:hover td { color: white; }
+  @@media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: stretch !important; }
+    .filter-bar { flex-direction: column; }
+    .filter-bar select, .filter-bar .btn { width: 100%; }
+    .gs-search-input { width: 100%; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .section-title { font-size: 1.4rem !important; }
+    .comment-cell { max-width: 150px; font-size: 12px; }
+    .star-display { font-size: 12px; }
+  }
 </style>
 
 <div class="page-header">
@@ -97,6 +109,24 @@
   </tbody>
 </table>
 </div>
+
+@if (Model.TotalPages > 1)
+{
+  <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:24px;font-family:var(--font-mono);font-size:12px;">
+    @if (Model.CurrentPage > 1)
+    {
+      <a href="?page=@(Model.CurrentPage - 1)" class="btn btn-secondary" style="padding:6px 14px;">← PREV</a>
+    }
+    <span style="color:var(--text-dim);">
+      PAGE @Model.CurrentPage / @Model.TotalPages
+      <span style="margin-left:8px;color:var(--gold);">[ @(Model.TotalPages * 50) MAX ]</span>
+    </span>
+    @if (Model.CurrentPage < Model.TotalPages)
+    {
+      <a href="?page=@(Model.CurrentPage + 1)" class="btn btn-secondary" style="padding:6px 14px;">NEXT →</a>
+    }
+  </div>
+}
 
 @if (!Model.Reviews.Any())
 {

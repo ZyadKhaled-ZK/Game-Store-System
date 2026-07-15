@@ -17,6 +17,47 @@ namespace GameStore.BLL.Services
                 .Include(r => r.User)
                 .Include(r => r.Game)
                 .OrderByDescending(r => r.CreatedAt)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<PagedResult<Review>> GetAllPagedAsync(int page = 1, int pageSize = 50)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 50;
+            if (pageSize > 200) pageSize = 200;
+
+            var query = _uow.Repository<Review>().Query()
+                .Include(r => r.User)
+                .Include(r => r.Game)
+                .OrderByDescending(r => r.CreatedAt)
+                .AsNoTracking();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Review>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+        }
+
+        public async Task<List<Review>> GetByGameIdsAsync(List<string> gameIds)
+        {
+            if (gameIds == null || gameIds.Count == 0)
+                return new();
+
+            return await _uow.Repository<Review>().Query()
+                .Include(r => r.User)
+                .Where(r => gameIds.Contains(r.GameId))
+                .OrderByDescending(r => r.CreatedAt)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
@@ -38,6 +79,34 @@ namespace GameStore.BLL.Services
                 .OrderByDescending(r => r.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();
+        }
+
+        public async Task<PagedResult<Review>> GetByDeveloperAsync(string developerId, int page, int pageSize = 10)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _uow.Repository<Review>().Query()
+                .Include(r => r.User)
+                .Include(r => r.Game)
+                .Where(r => r.Game != null && r.Game.DeveloperId == developerId)
+                .OrderByDescending(r => r.CreatedAt)
+                .AsNoTracking();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Review>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<List<Review>> GetByUserAsync(string userId)

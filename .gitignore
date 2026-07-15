@@ -8,5 +8,6 @@ obj/
 _ReSharper.*/
 
 # Exclude local configs that contain secrets
+appsettings.json
 appsettings.Development.json
 appsettings.*.local.json

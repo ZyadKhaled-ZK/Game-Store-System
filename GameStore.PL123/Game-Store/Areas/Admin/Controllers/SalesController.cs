@@ -51,10 +51,16 @@ public class SalesController : Controller
         if (success && sale.Developer != null)
         {
             var gameTitle = sale.Game?.Title ?? "Unknown";
-            await _notifService.SendToUserAsync(sale.Developer.UserId,
-                "Sale Approved",
-                $"Your sale for \"{gameTitle}\" has been approved. It will go live on {sale.StartDate:MMM dd, yyyy}.",
-                "success");
+            try
+            {
+                await _notifService.SendToUserAsync(sale.Developer.UserId,
+                    "Sale Approved",
+                    $"Your sale for \"{gameTitle}\" has been approved. It will go live on {sale.StartDate:MMM dd, yyyy}.",
+                    "success");
+            }
+            catch
+            {
+            }
         }
 
         return RedirectToAction("Index");
@@ -78,8 +84,14 @@ public class SalesController : Controller
             var msg = string.IsNullOrEmpty(reason)
                 ? $"Your sale for \"{gameTitle}\" has been rejected."
                 : $"Your sale for \"{gameTitle}\" has been rejected. Reason: {reason}";
-            await _notifService.SendToUserAsync(sale.Developer.UserId,
-                "Sale Rejected", msg, "error");
+            try
+            {
+                await _notifService.SendToUserAsync(sale.Developer.UserId,
+                    "Sale Rejected", msg, "error");
+            }
+            catch
+            {
+            }
         }
 
         return RedirectToAction("Index");

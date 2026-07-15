@@ -122,6 +122,27 @@
     letter-spacing: 2px;
   }
   .stars.empty { color: var(--text-dim); opacity: 0.3; }
+  @@media (max-width: 768px) {
+    .profile-header { padding: 24px; flex-direction: column; }
+    .profile-avatar { width: 56px; height: 56px; font-size: 22px; }
+    .profile-name { font-size: 1.4rem; }
+    .profile-bio { max-width: 100%; }
+    .summary-row { grid-template-columns: 1fr; }
+    .summary-item { padding: 16px; }
+    .summary-num { font-size: 22px; }
+    .section-block { padding: 20px; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .profile-header { padding: 16px; }
+    .profile-name { font-size: 1.2rem; flex-direction: column; align-items: flex-start; }
+    .profile-actions { width: 100%; }
+    .profile-actions a, .profile-actions form { width: 100%; }
+    .profile-actions .btn { width: 100%; text-align: center; }
+    .section-block { padding: 16px; }
+    .lg-grid { grid-template-columns: repeat(2, 1fr); }
+    .section-title { font-size: 1.4rem !important; }
+  }
 </style>
 
 <div class="section-header">

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Planning - GameStore Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.9.0/lib/viz-standalone.js"></script>
+<script>
+async function renderGraphviz() {
+  const viz = await Viz.instance();
+  document.querySelectorAll('.graphviz').forEach(function(el) {
+    try {
+      var dot = el.textContent.trim();
+      var svg = viz.renderString(dot, {format:'svg', engine:'dot'});
+      el.innerHTML = svg;
+    } catch(e) { console.error('Graphviz error', e); }
+  });
+}
+renderGraphviz();
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { max-width: 1200px; margin: 0 auto; background: #fff; color: #000; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; padding: 50px 60px; }
+h1 { font-size: 32px; margin-bottom: 10px; }
+h2 { font-size: 20px; margin-top: 60px; margin-bottom: 22px; padding-bottom: 10px; border-bottom: 2px solid #000; }
+h3 { font-size: 18px; margin-top: 36px; margin-bottom: 16px; }
+p { margin-bottom: 18px; line-height: 1.8; text-align: justify; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 28px; }
+th, td { border: 1px solid #000; padding: 12px 16px; text-align: left; vertical-align: top; }
+th { background: #eee; font-weight: bold; }
+tr:nth-child(even) td { background: #f5f5f5; }
+ul { margin: 0 0 14px 20px; }
+li { margin-bottom: 4px; }
+.subtitle { font-size: 14px; color: #666; margin-bottom: 30px; }
+.section-desc { font-size: 14px; color: #666; margin-bottom: 20px; }
+
+/* Gantt chart */
+.gantt-container { overflow-x: auto; margin-bottom: 20px; }
+.gantt-table { min-width: 780px; }
+.gantt-table th.month-header { text-align: center; background: #eee; }
+.gantt-table th.phase-label { text-align: left; min-width: 180px; }
+.gantt-table td.week-cell { width: 40px; text-align: center; font-size: 12px; }
+.gantt-table td.active { background: #666; color: #fff; }
+.gantt-table td.inactive { background: #fff; }
+
+/* Risk diagram wrapper */
+.graphviz { text-align: center; background: #fff; margin: 30px 0; padding: 25px; border: 1px solid #ddd; border-radius: 4px; min-height: 60px; }
+.graphviz svg { max-width: 100%; height: auto; }
+.kpi-col-1 { width: 30%; }
+.kpi-col-2 { width: 25%; }
+.kpi-col-3 { width: 45%; }
+@media print { body { padding: 0; } .graphviz { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>Project Planning &mdash; GameStore Platform</h1>
+<p class="subtitle">Document version 1.0 &mdash; May 2026</p>
+
+<!-- ===== 1. Executive Summary ===== -->
+<h2>1. Executive Summary</h2>
+<p>
+GameStore is a digital game distribution platform built on ASP.NET Core 8.0 (.NET 8) using the Model-View-Controller (MVC) architectural pattern. The platform provides a complete marketplace for purchasing, managing, and reviewing digital games, with role-based access for customers, developers, and administrators. The solution is structured across four projects: GameStore.PL (presentation layer with Razor views and controllers), GameStore.BLL (business logic layer with 20 service interfaces), GameStore.DAL (data access layer with Entity Framework Core 9.0.8 and SQL Server), and GameStore.Tests (unit tests using xUnit, Moq, and FluentAssertions, comprising 185 tests across 17 test files).
+</p>
+<p>
+The platform implements cookie-based authentication (.GameStore.Auth cookie) with Google OAuth integration, Stripe payment processing (Checkout Sessions and webhooks), real-time features via SignalR (/hub/notifications hub handling notifications and chat), and SendGrid for transactional email delivery. Caching is handled through ASP.NET Core Output Cache (10-minute sliding expiration) with Redis fallback to in-memory distributed cache. The application is hosted on Kestrel (localhost:5000) with SQL Server and Redis provisioned via Docker Compose.
+</p>
+<p>
+The project spans a 12-week delivery timeline from May through July 2026, organized into six phases. With 33 controllers (17 main, 11 Admin area, 5 Developer area), 62+ Razor views across three areas, and 23 database entities managed through 20 EF Core migrations, the platform delivers a comprehensive feature set including game browsing, shopping cart, wishlist, library management, developer dashboards, admin panels, chat/messaging, and a support ticket system.
+</p>
+
+<!-- ===== 2. Business Objectives ===== -->
+<h2>2. Business Objectives</h2>
+<p class="section-desc">The following strategic objectives define the measurable goals for the GameStore platform launch and operation.</p>
+<table>
+<thead>
+<tr><th style="width:40px;">#</th><th>Objective</th></tr>
+</thead>
+<tbody>
+<tr><td style="text-align:center;">1</td><td>Deliver a production-ready ASP.NET Core MVC platform with full game catalog management, shopping cart, and checkout flow integrated with Stripe payments.</td></tr>
+<tr><td style="text-align:center;">2</td><td>Implement role-based access control supporting three tiers (CUSTOMER, DEVELOPER, ADMIN) with authorization policies (AdminOnly, DeveloperOnly, CustomerOnly) and granular area-based views.</td></tr>
+<tr><td style="text-align:center;">3</td><td>Achieve 185 unit tests across 17 test files covering all BLL service interfaces, using xUnit with FluentAssertions and Moq, with a minimum of 80% code coverage on business logic.</td></tr>
+<tr><td style="text-align:center;">4</td><td>Maintain platform availability of 99.9% uptime with Brotli/Gzip response compression, output caching, Redis-backed distributed caching, and rate limiting on auth endpoints.</td></tr>
+<tr><td style="text-align:center;">5</td><td>Provide a developer self-service portal enabling game uploads, sales management, revenue tracking, and review monitoring through dedicated Developer area views.</td></tr>
+<tr><td style="text-align:center;">6</td><td>Establish real-time communication features including friend requests, direct messaging, presence tracking, and notification delivery via SignalR hub.</td></tr>
+</tbody>
+</table>
+
+<!-- ===== 3. Project Timeline (Gantt Chart) ===== -->
+<h2>3. Project Timeline</h2>
+<p class="section-desc">The project runs over 12 weeks from May through July 2026, organized into six phases.</p>
+
+<div class="gantt-container">
+<table class="gantt-table">
+<thead>
+<tr>
+  <th class="phase-label">Phase</th>
+  <th class="month-header" colspan="4">May 2026</th>
+  <th class="month-header" colspan="4">Jun 2026</th>
+  <th class="month-header" colspan="4">Jul 2026</th>
+</tr>
+<tr>
+  <th style="background:#eee;"></th>
+  <th class="week-cell">W1</th><th class="week-cell">W2</th>
+  <th class="week-cell">W3</th><th class="week-cell">W4</th>
+  <th class="week-cell">W5</th><th class="week-cell">W6</th>
+  <th class="week-cell">W7</th><th class="week-cell">W8</th>
+  <th class="week-cell">W9</th><th class="week-cell">W10</th>
+  <th class="week-cell">W11</th><th class="week-cell">W12</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Requirements Analysis</td>
+  <td class="week-cell active"></td><td class="week-cell active"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+</tr>
+<tr>
+  <td>System Design</td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell active"></td><td class="week-cell active"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+</tr>
+<tr>
+  <td>Implementation</td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell active"></td><td class="week-cell active"></td>
+  <td class="week-cell active"></td><td class="week-cell active"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+</tr>
+<tr>
+  <td>Testing</td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell active"></td><td class="week-cell active"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+</tr>
+<tr>
+  <td>Deployment</td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell active"></td><td class="week-cell inactive"></td>
+</tr>
+<tr>
+  <td>Maintenance</td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell inactive"></td>
+  <td class="week-cell inactive"></td><td class="week-cell active"></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<!-- ===== 4. Development Phases ===== -->
+<h2>4. Development Phases</h2>
+<p class="section-desc">Each phase of the project is scoped with specific activities and expected deliverables.</p>
+<table>
+<thead>
+<tr><th>Phase</th><th>Duration</th><th>Activities</th><th>Deliverables</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>Requirements Analysis</td>
+  <td>Weeks 1&ndash;2</td>
+  <td>Stakeholder interviews, competitor analysis, user story mapping for customer/developer/admin personas, feature prioritization</td>
+  <td>PRD document, user stories backlog, wireframe mockups for 62+ Razor views across 3 areas</td>
+</tr>
+<tr>
+  <td>System Design</td>
+  <td>Weeks 3&ndash;4</td>
+  <td>Architecture design (4-project solution), database schema with 23 entities, EF Core entity relationships, MVC route planning, SignalR hub design</td>
+  <td>System architecture diagram, ERD, route map, SignalR hub specification</td>
+</tr>
+<tr>
+  <td>Implementation</td>
+  <td>Weeks 5&ndash;8</td>
+  <td>Controller and view development across 33 controllers, EF Core migrations (20 total), Stripe integration (Checkout + Webhooks), SignalR hub, Auth + Google OAuth, SendGrid, Redis caching, rate limiting</td>
+  <td>Working application (alpha), 185 unit tests, 20 EF Core migrations, CI pipeline</td>
+</tr>
+<tr>
+  <td>Testing</td>
+  <td>Weeks 9&ndash;10</td>
+  <td>Integration testing, rate limiter validation, Stripe webhook testing, load testing with output cache and Redis, security audit of cookie auth</td>
+  <td>Test reports, performance benchmarks, bug tracker, security review</td>
+</tr>
+<tr>
+  <td>Deployment</td>
+  <td>Week 11</td>
+  <td>Production environment setup, Docker Compose deployment (SQL Server + Redis + Kestrel), HTTPS configuration, DNS setup, Stripe webhook endpoint registration</td>
+  <td>Production instance on localhost:5000, deployment runbook, Docker Compose configuration</td>
+</tr>
+<tr>
+  <td>Maintenance</td>
+  <td>Week 12 onward</td>
+  <td>Bug fixes, performance tuning, Redis cache tuning, Stripe webhook reliability monitoring, SendGrid deliverability tracking</td>
+  <td>Sprint maintenance logs, patch releases, updated documentation</td>
+</tr>
+</tbody>
+</table>
+
+<!-- ===== 5. Task Assignment ===== -->
+<h2>5. Task Assignment</h2>
+<p class="section-desc">Roles and responsibilities for the core project team.</p>
+<table>
+<thead>
+<tr><th>Role</th><th>Responsibilities</th><th>Deliverables</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>Full-Stack Developer</td>
+  <td>Implement 33 MVC controllers and 62+ Razor views across 3 areas, manage EF Core schema with 23 entities, integrate Stripe Checkout + Webhooks, configure SignalR hub for notifications and chat</td>
+  <td>Working ASP.NET Core 8.0 application, 20 EF Core migrations, Stripe payment pipeline, SignalR hub</td>
+</tr>
+<tr>
+  <td>Backend / Database Developer</td>
+  <td>Design and build DAL (20 service interfaces, Unit of Work pattern), manage database schema and migrations, implement BLL business logic, configure Redis caching, set up rate limiting</td>
+  <td>GameStore.DAL + GameStore.BLL projects, Redis integration, rate limiter policies, 185 unit tests</td>
+</tr>
+<tr>
+  <td>DevOps Engineer</td>
+  <td>Set up Docker Compose with SQL Server and Redis containers, configure Kestrel hosting on localhost:5000, implement Brotli/Gzip compression, manage Stripe webhook endpoints</td>
+  <td>docker-compose.yml, CI/CD pipeline, deployment runbook, health check endpoint</td>
+</tr>
+<tr>
+  <td>Tester</td>
+  <td>Write and execute 185 unit tests with xUnit, Moq, and FluentAssertions; test auth flows (cookie + Google OAuth), Stripe webhook idempotency, SignalR real-time messaging, rate limiter edge cases</td>
+  <td>17 test files, test execution reports, bug tracker, QA sign-off</td>
+</tr>
+</tbody>
+</table>
+
+<!-- ===== 6. Risk Management ===== -->
+<h2>6. Risk Management</h2>
+<p class="section-desc">The diagram below maps the risk assessment categories and their relationships to mitigation strategies.</p>
+
+<div class="graphviz" style="text-align:center; background:#fff;">
+digraph {
+  rankdir=LR;
+  graph [bgcolor="white", fontname="Arial"];
+  node [fontname="Arial", shape="box", style="rounded", width=1.8];
+  edge [fontname="Arial", fontsize=9, color="black"];
+
+  "Risk Assessment" -> "Technical Risks" -> "Mitigation Strategies";
+  "Risk Assessment" -> "Schedule Risks" -> "Mitigation Strategies";
+  "Risk Assessment" -> "Integration Risks" -> "Mitigation Strategies";
+}
+</div>
+
+<p class="section-desc">Detailed risk register identifying potential project risks along with probability, impact, and planned mitigation measures.</p>
+<table>
+<thead>
+<tr><th style="width:28%;">Risk</th><th style="width:14%;">Probability</th><th style="width:14%;">Impact</th><th style="width:44%;">Mitigation Strategy</th></tr>
+</thead>
+<tbody>
+<tr>
+  <td>Stripe webhook delivery failure or signature validation errors</td>
+  <td>Medium</td>
+  <td>High</td>
+  <td>Implement webhook idempotency with Stripe.EventId; configure retry logic in StripeWebhookController; log all webhook payloads for manual reconciliation</td>
+</tr>
+<tr>
+  <td>SendGrid email delivery delays or bounces affecting auth flow (email verification, password reset)</td>
+  <td>Medium</td>
+  <td>High</td>
+  <td>Implement email sending retry with exponential backoff; monitor SendGrid activity API; provide manual resend option in UI with rate limit (3/15min)</td>
+</tr>
+<tr>
+  <td>EF Core migration conflicts from schema changes across 20 migrations</td>
+  <td>Low</td>
+  <td>High</td>
+  <td>Use migration history snapshots; test all migrations against staging DB before production; maintain rollback scripts for each migration</td>
+</tr>
+<tr>
+  <td>Redis cache connection failure causing performance degradation</td>
+  <td>Low</td>
+  <td>Medium</td>
+  <td>Implement fallback to in-memory distributed cache when Redis is unavailable; monitor Redis health via docker-compose healthcheck</td>
+</tr>
+<tr>
+  <td>Rate limiting blocking legitimate users under peak load</td>
+  <td>Medium</td>
+  <td>Medium</td>
+  <td>Set conservative rate limits (Login 10/min, Register 3/10min, Resend 3/15min, Verify 10/min); monitor 429 responses; whitelist known IPs for beta testing</td>
+</tr>
+<tr>
+  <td>Cookie authentication session hijacking via XSS</td>
+  <td>Low</td>
+  <td>Critical</td>
+  <td>Enforce HttpOnly, Secure, SameSite=Lax on all cookies (.GameStore.Auth, .GameStore.Session); implement anti-forgery token on all POST requests; set X-Content-Type-Options and X-Frame-Options headers</td>
+</tr>
+<tr>
+  <td>SignalR connection churn under high concurrent chat usage</td>
+  <td>Medium</td>
+  <td>Medium</td>
+  <td>Implement ConnectionTracker for connection lifecycle management; limit message payload size; configure Azure SignalR Service for scale in production</td>
+</tr>
+<tr>
+  <td>Game file upload failures (100 MB limit exceeded or disk space)</td>
+  <td>Low</td>
+  <td>High</td>
+  <td>Enforce 100 MB request body limit in Kestrel + FormOptions; validate file type server-side; implement chunked upload for larger files; monitor disk usage on gamefile volume</td>
+</tr>
+<tr>
+  <td>Google OAuth breaking changes or callback URL mismatches</td>
+  <td>Low</td>
+  <td>Medium</td>
+  <td>Register correct callback path (/auth/google-callback) in Google Console; implement error logging in external login flow; provide local account fallback</td>
+</tr>
+<tr>
+  <td>Brotli/Gzip compression causing response corruption on legacy proxies</td>
+  <td>Low</td>
+  <td>Low</td>
+  <td>Enable compression only for known MIME types; test compressed responses across browsers; provide Accept-Encoding negotiation</td>
+</tr>
+</tbody>
+</table>
+
+<!-- ===== 7. KPI Metrics ===== -->
+<h2>7. KPI Metrics</h2>
+<p class="section-desc">Key performance indicators that will be tracked post-launch to measure platform success and guide iterative improvements.</p>
+<table>
+<thead>
+<tr><th class="kpi-col-1">Metric Name</th><th class="kpi-col-2">Target Value</th><th class="kpi-col-3">Measurement Method</th></tr>
+</thead>
+<tbody>
+<tr><td>Registered Users</td><td>1,000 within 90 days</td><td>User entity count via database query</td></tr>
+<tr><td>Daily Active Users (DAU)</td><td>300 within 90 days</td><td>Session tracking via SignalR ConnectionTracker presence data</td></tr>
+<tr><td>Completed Orders</td><td>100 per day</td><td>Order entity aggregate with PaymentStatus.Completed filter</td></tr>
+<tr><td>Platform Uptime</td><td>99.9% monthly</td><td>Health check endpoint (/health) monitored via external probe</td></tr>
+<tr><td>Average Response Time</td><td>&lt; 200 ms</td><td>ASP.NET Core logging with response time on all controller actions</td></tr>
+<tr><td>Output Cache Hit Rate</td><td>&ge; 60%</td><td>Cache hit/miss counters from Output Cache middleware</td></tr>
+<tr><td>Stripe Checkout Conversion</td><td>&ge; 55%</td><td>Stripe Dashboard funnel (session created to payment completed)</td></tr>
+<tr><td>SignalR Message Delivery Latency</td><td>&lt; 500 ms (p95)</td><td>Client-side timing on ReceiveMessage event</td></tr>
+<tr><td>Email Verification Rate</td><td>&ge; 70%</td><td>Users with EmailConfirmed = true / total registered users</td></tr>
+<tr><td>Password Reset Success Rate</td><td>&ge; 80%</td><td>PasswordResetToken usage events vs total reset requests</td></tr>
+<tr><td>Developer Onboarding Rate</td><td>10 developers in first month</td><td>DeveloperApplications with ApplicationStatus.Approved</td></tr>
+<tr><td>Unit Test Code Coverage</td><td>&ge; 80% on BLL services</td><td>Coverlet collector reports from test runs</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

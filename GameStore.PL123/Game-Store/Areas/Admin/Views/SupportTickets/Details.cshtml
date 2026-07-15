@@ -16,6 +16,19 @@
     .td-reply-name { font-family:var(--font-mono); font-size:11px; color:var(--cyan); }
     .td-reply-time { font-family:var(--font-mono); font-size:9px; color:var(--text-dim); margin-left:8px; }
     .td-reply-text { font-family:var(--font-mono); font-size:12px; color:var(--text); line-height:1.6; margin-top:4px; }
+    @@media (max-width: 768px) {
+      .td-header { padding: 16px; }
+      .td-subject { font-size: 14px; }
+      .td-message { font-size: 12px; padding: 12px; }
+      .td-reply { padding: 12px; }
+      .td-reply-text { font-size: 11px; }
+    }
+    @@media (max-width: 576px) {
+      .td-header { padding: 12px; }
+      .td-reply { flex-direction: column; gap: 8px; }
+      .td-reply-av { width: 28px; height: 28px; font-size: 11px; }
+      .td-message { font-size: 11px; padding: 10px; }
+    }
 </style>
 
 <div class="td-container mt-4 pt-4">

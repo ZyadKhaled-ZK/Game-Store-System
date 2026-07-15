@@ -1,0 +1,181 @@
+@model RefundViewModel
+@{
+    ViewData["Title"] = "Refunds";
+}
+
+<style>
+  .refunds-page { max-width: 1000px; margin: 0 auto; }
+  .order-card { background: var(--bg2); border: 1px solid var(--border-red); margin-bottom: 16px; }
+  .order-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-red); background: rgba(230,57,70,0.03); }
+  .order-id { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+  .order-date { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+  .order-total { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--gold); }
+  .order-body { padding: 16px 20px; }
+  .refund-game { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(230,57,70,0.08); }
+  .refund-game:last-child { border-bottom: none; }
+  .refund-game-img { width: 48px; height: 32px; object-fit: cover; border: 1px solid var(--border-red); }
+  .refund-game-img-placeholder { width: 48px; height: 32px; background: var(--bg3); border: 1px solid var(--border-red); display: flex; align-items: center; justify-content: center; color: var(--red); font-size: 14px; }
+  .refund-game-title { font-family: var(--font-display); font-size: 0.9rem; color: white; flex: 1; }
+  .refund-game-price { font-family: var(--font-mono); font-size: 0.85rem; color: var(--gold); }
+  .empty-state { text-align: center; padding: 80px; font-family: var(--font-mono); color: var(--text-dim); }
+
+  .request-card { background: var(--bg2); border: 1px solid rgba(230,57,70,0.15); margin-bottom: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .request-status { font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; padding: 4px 10px; border: 1px solid; }
+  .status-pending { color: var(--gold); border-color: rgba(255,183,3,0.3); }
+  .status-approved { color: #4ade80; border-color: rgba(74,222,128,0.3); }
+  .status-rejected { color: var(--red); border-color: rgba(230,57,70,0.3); }
+
+  .refund-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); align-items:center; justify-content:center; z-index:1000; }
+  .refund-modal.open { display:flex; }
+  .refund-modal-content { background:var(--bg2); border:1px solid var(--border-red); padding:32px; max-width:500px; width:90%; }
+  .refund-modal-title { font-family:var(--font-display); font-size:1.2rem; color:white; margin-bottom:16px; text-transform:uppercase; }
+  .refund-modal textarea { width:100%; background:var(--bg3); border:1px solid var(--border-red); color:var(--text); padding:12px; font-family:var(--font-mono); font-size:12px; resize:vertical; min-height:80px; outline:none; }
+  .refund-modal textarea:focus { border-color:var(--red); }
+  @@media (max-width: 768px) {
+    .empty-state { padding: 40px 20px; }
+    .order-header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+    .order-body { padding: 12px 16px; }
+    .order-total { font-size: 1rem; }
+    .request-card { padding: 12px 16px; flex-direction: column; gap: 8px; text-align: center; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .empty-state { padding: 30px 16px; }
+    .order-header { flex-direction: column; align-items: stretch !important; text-align: center; }
+    .refund-game { flex-wrap: wrap; gap: 8px; }
+    .refund-game-title { flex-basis: 100%; order: -1; font-size: 0.85rem; }
+    .refund-game .btn { width: 100%; }
+    .page-header { flex-direction: column; align-items: stretch !important; }
+    .page-header .btn { width: 100%; text-align: center; }
+    .refund-modal-content { padding: 20px; max-width: 95%; }
+    .section-title { font-size: 1.4rem !important; }
+  }
+</style>
+
+<div class="refunds-page">
+  <div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:32px;">
+    <div>
+      <h2 class="section-title glitch">REFUNDS</h2>
+    </div>
+    <a href="/" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> BACK TO STORE</a>
+  </div>
+
+  @if (!string.IsNullOrEmpty(Model.Message))
+  {
+    <div style="padding:12px 16px; margin-bottom:16px; border:1px solid @(Model.IsError ? "var(--red)" : "#4ade80"); background:rgba(0,0,0,0.2); font-family:var(--font-mono); font-size:12px; color:@(Model.IsError ? "var(--red)" : "#4ade80");">
+      @Model.Message
+    </div>
+  }
+
+  <!-- Existing Requests -->
+  @if (Model.Requests.Any())
+  {
+    <div style="margin-bottom:32px;">
+      <div class="section-tag" style="margin-bottom:12px;">My Refund Requests</div>
+      @foreach (var req in Model.Requests)
+      {
+        var statusClass = req.Status == RefundStatus.Pending || req.Status == RefundStatus.PendingFinalize ? "status-pending" : req.Status == RefundStatus.Approved ? "status-approved" : "status-rejected";
+        var statusLabel = req.Status == RefundStatus.Pending ? "PENDING" : req.Status == RefundStatus.PendingFinalize ? "PROCESSING" : req.Status == RefundStatus.Approved ? "APPROVED" : "REJECTED";
+        <div class="request-card">
+          <div>
+            <div style="font-family:var(--font-display);color:white;">@req.GameTitle</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:4px;">$@req.Amount.ToString("0.00") &middot; @req.RequestedAt.ToString("yyyy-MM-dd")</div>
+            @if (!string.IsNullOrEmpty(req.AdminNote))
+            {
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-top:4px;">Note: @req.AdminNote</div>
+            }
+          </div>
+          <div class="request-status @statusClass">@statusLabel</div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Eligible Orders -->
+  <div class="section-tag" style="margin-bottom:12px;">Eligible Orders</div>
+  @if (!Model.Orders.Any())
+  {
+    <div class="empty-state">
+      <div style="font-size:3rem; margin-bottom:16px; color:var(--red);">&empty;</div>
+      <h3 style="font-family:var(--font-display); color:white; margin-bottom:8px;">NO ELIGIBLE ORDERS</h3>
+      <p>You don't have any completed orders eligible for refund. <a href="/" style="color:var(--gold);">BROWSE GAMES &rarr;</a></p>
+    </div>
+  }
+
+  @foreach (var order in Model.Orders)
+  {
+    <div class="order-card">
+      <div class="order-header">
+        <div>
+          <div class="order-id">ORDER #@order.Id.Substring(0, Math.Min(8, order.Id.Length)).ToUpper()</div>
+          <div class="order-date">@order.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+        </div>
+        <div class="order-total">$@order.TotalPrice.ToString("0.00")</div>
+      </div>
+      <div class="order-body">
+        @foreach (var item in order.OrderItems)
+        {
+          var alreadyRequested = Model.Requests.Any(r => r.OrderId == order.Id && r.GameId == item.GameId);
+          <div class="refund-game">
+            @if (!string.IsNullOrEmpty(item.Game?.CoverImageUrl))
+            {
+              <img class="refund-game-img" src="@item.Game.CoverImageUrl" alt="@item.Game.Title" />
+            }
+            else if (item.Game?.ScreenshotUrls.Any() == true)
+            {
+              <img class="refund-game-img" src="@item.Game.ScreenshotUrls[0]" alt="@item.Game.Title" />
+            }
+            else
+            {
+              <div class="refund-game-img-placeholder">&#8853;</div>
+            }
+            <div class="refund-game-title">@(item.Game?.Title ?? "UNKNOWN")</div>
+            <div class="refund-game-price">$@item.PriceAtPurchase.ToString("0.00")</div>
+            @if (alreadyRequested)
+            {
+              <span style="font-family:var(--font-mono);font-size:10px;color:var(--gold);border:1px solid rgba(255,183,3,0.2);padding:4px 8px;">REQUESTED</span>
+            }
+            else
+            {
+              <button class="btn btn-secondary" style="padding:6px 12px;font-size:11px;" onclick="openRefundModal('@order.Id','@item.GameId','@(item.Game?.Title ?? "UNKNOWN")')">REFUND</button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Refund Modal -->
+<div id="refundModal" class="refund-modal">
+  <div class="refund-modal-content">
+    <div class="refund-modal-title" id="refundModalTitle">REFUND</div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-bottom:12px;">Why are you requesting a refund?</div>
+    <form method="post" action="/Refunds/Submit">
+      @Html.AntiForgeryToken()
+      <input type="hidden" name="OrderId" id="refundOrderId" />
+      <input type="hidden" name="GameId" id="refundGameId" />
+      <textarea name="Reason" id="refundReason" placeholder="Explain why you want a refund..." required></textarea>
+      <div style="display:flex;gap:12px;margin-top:16px;justify-content:flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeRefundModal()" style="padding:8px 16px;font-size:12px;">CANCEL</button>
+        <button type="submit" class="btn btn-primary" style="padding:8px 16px;font-size:12px;">SUBMIT REQUEST</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openRefundModal(orderId, gameId, title) {
+    document.getElementById('refundOrderId').value = orderId;
+    document.getElementById('refundGameId').value = gameId;
+    document.getElementById('refundModalTitle').textContent = 'REFUND: ' + title;
+    document.getElementById('refundReason').value = '';
+    document.getElementById('refundModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeRefundModal() {
+    document.getElementById('refundModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('refundModal')?.addEventListener('click', function(e) { if (e.target === this) closeRefundModal(); });
+</script>

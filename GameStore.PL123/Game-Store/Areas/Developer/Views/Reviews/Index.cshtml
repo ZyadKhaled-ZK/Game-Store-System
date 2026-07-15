@@ -1,7 +1,14 @@
-@model List<Review>
+@model PagedResult<Review>
 @{
     var gameLookup = ViewData["GameLookup"] as Dictionary<string, string> ?? new();
 }
+
+<style>
+  @@media (max-width: 576px) {
+    .page-header h1 { font-size: 1.2rem; }
+    .empty-state { padding: 40px 20px; }
+  }
+</style>
 
 <div id="alertMessage" data-msg="@ViewData["Message"]" data-error="@ViewData["IsError"]"></div>
 
@@ -10,11 +17,11 @@
     <p>Reviews and ratings from players on your published games.</p>
 </div>
 
-@if (!Model.Any())
+@if (!Model.Items.Any())
 {
-    <div class="card" style="text-align:center;padding:60px;">
-        <h3 style="font-size:16px;color:var(--text-dim);">NO REVIEWS YET</h3>
-        <p style="color:var(--text-dim);margin:10px 0 20px;">Reviews will appear here once players rate your games.</p>
+    <div class="empty-state">
+        <h3>NO REVIEWS YET</h3>
+        <p>Reviews will appear here once players rate your games.</p>
         <a asp-area="Developer" asp-controller="Games" asp-action="Index" class="btn btn-primary">MY GAMES</a>
     </div>
 }
@@ -32,13 +39,13 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var review in Model)
+                @foreach (var review in Model.Items)
                 {
                     <tr>
-                        <td style="color:var(--gold);">@(gameLookup.GetValueOrDefault(review.GameId) ?? "Unknown")</td>
-                        <td style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);">@review.User?.Username</td>
+                        <td class="text-gold">@(gameLookup.GetValueOrDefault(review.GameId) ?? "Unknown")</td>
+                        <td class="text-mono fs-12 text-dim">@review.User?.Username</td>
                         <td>
-                            <span style="color:var(--gold);font-family:var(--font-display);">
+                            <span class="text-gold" style="font-family:var(--font-display);">
                             @for (int ri = 0; ri < review.Rating; ri++) { <text>★</text> }
                             @for (int ri = review.Rating; ri < 5; ri++) { <text>☆</text> }
                         </span>
@@ -50,17 +57,18 @@ else
                             }
                             else
                             {
-                                <span style="color:var(--text-dim);font-style:italic;">—</span>
+                                <span class="text-dim" style="font-style:italic;">—</span>
                             }
                         </td>
-                        <td style="font-size:11px;font-family:var(--font-mono);color:var(--text-dim);">@review.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        <td class="fs-11 text-mono text-dim">@review.CreatedAt.ToString("yyyy-MM-dd")</td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+    <partial name="_Pagination" model="Model" />
 }
 
-<div style="margin-top:20px;">
+<div class="mt-20">
     <a asp-area="Developer" asp-controller="Dashboard" asp-action="Index" class="btn btn-secondary">&lt; BACK TO DASHBOARD</a>
 </div>

@@ -10,14 +10,17 @@ public class CartController : Controller
     private readonly IOrderService _orderService;
     private readonly StripeSettings _stripeSettings;
     private readonly ISaleService _saleService;
+    private readonly ICreditService _creditService;
 
     public CartController(ICartService cartService, IOrderService orderService,
-        IOptions<StripeSettings> stripeOptions, ISaleService saleService)
+        IOptions<StripeSettings> stripeOptions, ISaleService saleService,
+        ICreditService creditService)
     {
         _cartService = cartService;
         _orderService = orderService;
         _stripeSettings = stripeOptions.Value;
         _saleService = saleService;
+        _creditService = creditService;
     }
 
     private string UserId => HttpContext.Session.GetString("UserId") ?? string.Empty;
@@ -103,7 +106,58 @@ public class CartController : Controller
         var gameIds = cartItems.Select(ci => ci.GameId).ToList();
         var activeSales = await _saleService.GetActiveSalesByGameIdsAsync(gameIds);
 
+        var totalPrice = cartItems.Sum(ci =>
+        {
+            var sale = activeSales.FirstOrDefault(s => s.GameId == ci.GameId);
+            return sale != null ? sale.NewPrice : (ci.Game?.Price ?? 0);
+        });
+        var availableCredit = await _creditService.GetAvailableBalanceAsync(UserId);
+
+        // Full-credit path — skip Stripe entirely
+        if (availableCredit >= totalPrice)
+        {
+            var internalSessionId = "internal_" + Guid.NewGuid().ToString();
+            var (resSuccess, resMsg) = await _creditService.ReserveAsync(UserId, totalPrice, internalSessionId);
+            if (!resSuccess)
+            {
+                TempData["Message"] = resMsg;
+                TempData["IsError"] = true;
+                return RedirectToAction("Index");
+            }
+
+            var (success, message, order) = await _orderService.CompleteFreeCheckoutAsync(UserId);
+            if (!success)
+            {
+                await _creditService.ReleaseReservationAsync(UserId, internalSessionId);
+                TempData["Message"] = message;
+                TempData["IsError"] = true;
+                return RedirectToAction("Index");
+            }
+
+            await _creditService.ConfirmReservationAsync(UserId, internalSessionId,
+                $"Store credit payment for order {order!.Id}");
+            return View("Success", order);
+        }
+
         var domain = $"{Request.Scheme}://{Request.Host}";
+
+        // Partial credit: create a one-time Stripe coupon
+        string? couponId = null;
+        if (availableCredit > 0)
+        {
+            var creditCents = (long)(availableCredit * 100);
+            var couponOpts = new Stripe.CouponCreateOptions
+            {
+                AmountOff = creditCents,
+                Currency = "usd",
+                Duration = "once",
+                MaxRedemptions = 1,
+                Name = "Store Credit"
+            };
+            var couponSvc = new Stripe.CouponService();
+            var coupon = await couponSvc.CreateAsync(couponOpts);
+            couponId = coupon.Id;
+        }
 
         var options = new SessionCreateOptions
         {
@@ -115,6 +169,9 @@ public class CartController : Controller
             {
                 { "user_id", UserId }
             },
+            Discounts = couponId != null
+                ? new List<SessionDiscountOptions> { new() { Coupon = couponId } }
+                : null,
             LineItems = cartItems.Select(ci =>
             {
                 var sale = activeSales.FirstOrDefault(s => s.GameId == ci.GameId);
@@ -139,6 +196,12 @@ public class CartController : Controller
 
         var service = new SessionService();
         var session = await service.CreateAsync(options);
+
+        // Reserve the credit against this Stripe session
+        if (availableCredit > 0)
+        {
+            await _creditService.ReserveAsync(UserId, availableCredit, session.Id);
+        }
 
         HttpContext.Session.SetString("StripeSessionId", session.Id);
 

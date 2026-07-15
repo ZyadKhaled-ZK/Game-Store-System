@@ -1,0 +1,18 @@
+{
+  "entries": [
+    {
+      "amount": 11.00,
+      "type": "refund",
+      "reason": "Refund for Fear  (order 2705eb9d-1637-4c7c-bf23-1434a1016a34)",
+      "stripeSessionId": null,
+      "createdAt": "2026-07-02T13:59:43.5831866Z"
+    },
+    {
+      "amount": -11.00,
+      "type": "purchase",
+      "reason": "Store credit payment for order 9fa44235-c10c-44dc-8b09-aa49ea018d56",
+      "stripeSessionId": "internal_084f496e-74e8-4d44-9bbe-74d15456c90a",
+      "createdAt": "2026-07-02T14:00:25.5353664Z"
+    }
+  ]
+}

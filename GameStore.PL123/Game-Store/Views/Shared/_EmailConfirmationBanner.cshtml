@@ -1,0 +1,17 @@
+@{
+    var userId = Context.Session.GetString("UserId");
+    var emailConfirmed = Context.Session.GetString("EmailConfirmed");
+}
+@if (!string.IsNullOrEmpty(userId) && emailConfirmed == "False")
+{
+    <style>
+        .confirm-bar { background: #2a2000; border-bottom: 1px solid var(--gold-dim); padding: 10px 20px; display: flex; align-items: center; justify-content: center; gap: 12px; font-family: var(--font-mono); font-size: 13px; color: var(--gold); }
+        .confirm-bar a { color: white; text-decoration: underline; }
+        .confirm-bar .close-bar { background: none; border: none; color: var(--gold-dim); cursor: pointer; font-size: 18px; padding: 0 4px; margin-left: 8px; }
+        .confirm-bar .close-bar:hover { color: var(--gold); }
+    </style>
+    <div class="confirm-bar" id="confirmBar">
+        <span>&#9888; Please confirm your email address — check your inbox for the verification link.</span>
+        <button class="close-bar" onclick="document.getElementById('confirmBar').remove()">&times;</button>
+    </div>
+}

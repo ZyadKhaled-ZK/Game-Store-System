@@ -1,12 +1,33 @@
-@model List<Game>
+@model PagedResult<Game>
 @{
     var categories = ViewData["Categories"] as List<Category> ?? new();
     var devId = ViewData["DeveloperId"]?.ToString() ?? "";
 }
 
+<style>
+  @@media (max-width: 768px) {
+    .page-header.flex-between { flex-direction: column; align-items: stretch !important; gap: 12px; }
+    .page-header.flex-between .btn { width: 100%; text-align: center; }
+    .page-header.flex-between + .empty-state .btn { width: 100%; }
+    .empty-state { padding: 40px 20px; }
+    .form-grid-2 { grid-template-columns: 1fr; }
+    .modal-box-lg { padding: 24px !important; }
+    .flex.flex-wrap.gap-10 { flex-direction: column; }
+    .flex.flex-wrap.gap-10 label { width: 100%; }
+  }
+  @@media (max-width: 576px) {
+    .page-header.flex-between h1 { font-size: 1.2rem; }
+    .empty-state { padding: 30px 16px; }
+    .modal-box-lg { padding: 16px !important; }
+    .accordion-panel .grid-2 { grid-template-columns: 1fr; }
+    .flex.gap-8.flex-wrap { flex-direction: column; }
+    .flex.gap-8.flex-wrap input, .flex.gap-8.flex-wrap .btn { width: 100%; }
+  }
+</style>
+
 <div id="alertMessage" data-msg="@ViewData["Message"]" data-error="@ViewData["IsError"]"></div>
 
-<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
+<div class="page-header flex-between" style="align-items:flex-end;">
     <div>
         <h1>My Games</h1>
         <p>Manage your published games.</p>
@@ -14,11 +35,11 @@
     <button type="button" class="btn btn-primary" onclick="openCreateModal()">+ NEW GAME</button>
 </div>
 
-@if (!Model.Any())
+@if (!Model.Items.Any())
 {
-    <div class="card" style="text-align:center;padding:60px;">
-        <h3 style="font-size:16px;color:var(--text-dim);">NO GAMES YET</h3>
-        <p style="color:var(--text-dim);margin:10px 0 20px;">Publish your first game to the store.</p>
+    <div class="empty-state">
+        <h3>NO GAMES YET</h3>
+        <p>Publish your first game to the store.</p>
         <button type="button" class="btn btn-primary" onclick="openCreateModal()">PUBLISH GAME</button>
     </div>
 }
@@ -38,13 +59,13 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var game in Model)
+                @foreach (var game in Model.Items)
                 {
                     <tr>
-                        <td style="color:var(--gold);">@game.Title</td>
-                        <td style="font-family:var(--font-mono);">@(game.Price == 0 ? "FREE" : $"${game.Price:F2}")</td>
-                        <td style="font-size:11px;">@game.ReleaseDate.ToString("yyyy-MM-dd")</td>
-                        <td style="font-size:11px;color:var(--text-dim);">@game.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        <td class="text-gold">@game.Title</td>
+                        <td class="text-mono">@(game.Price == 0 ? "FREE" : $"${game.Price:F2}")</td>
+                        <td class="fs-11">@game.ReleaseDate.ToString("yyyy-MM-dd")</td>
+                        <td class="fs-11 text-dim">@game.CreatedAt.ToString("yyyy-MM-dd")</td>
                         <td>
                             @if (game.GameCategories.Any())
                             {
@@ -52,23 +73,23 @@ else
                             }
                             else
                             {
-                                <span style="color:var(--text-dim);">—</span>
+                                <span class="text-dim">—</span>
                             }
                         </td>
                         <td>
                             @if (!string.IsNullOrEmpty(game.GameFileUrl))
                             {
-                                <a href="@game.GameFileUrl" class="btn btn-secondary" style="padding:2px 8px;font-size:10px;text-decoration:none;" download="@(game.GameFileName ?? "game-file")"><i class="bi bi-download"></i> DL</a>
+                                <a href="@game.GameFileUrl" class="btn btn-secondary btn-xs" download="@(game.GameFileName ?? "game-file")"><i class="bi bi-download"></i> DL</a>
                             }
                             else
                             {
-                                <span style="color:var(--text-dim);">—</span>
+                                <span class="text-dim">—</span>
                             }
                         </td>
                         <td>
-                            <button type="button" class="btn btn-secondary" style="padding:4px 10px;font-size:10px;margin-right:4px;" onclick="openEditModal('@game.Id', '@game.Title.Replace("'", "\\'")', '@Html.Raw((game.Description ?? "").Replace("'", "\\'").Replace("\r\n", "\\n").Replace("\n", "\\n"))', '@game.Price', '@game.ReleaseDate.ToString("yyyy-MM-dd")', '@(game.CoverImageUrl ?? "")', '@(game.TrailerUrl ?? "")', '@string.Join(",", game.GameCategories.Select(gc => gc.CategoryId))', '@(game.GameFileUrl ?? "")', '@(game.GameFileName ?? "")', '@game.GameFileSizeBytes')">EDIT</button>
-                            <button type="button" class="btn btn-danger" style="padding:4px 10px;font-size:10px;" onclick="confirmAction('DELETE @game.Title?', 'Are you sure you want to delete this game? This action cannot be undone.', function(){ document.getElementById('deleteForm_@game.Id').submit(); })">DELETE</button>
-                            <form method="post" asp-action="Delete" id="deleteForm_@game.Id" style="display:none;">
+                            <button type="button" class="btn btn-secondary btn-sm" style="margin-right:4px;" onclick="openEditModal('@game.Id', '@game.Title.Replace("'", "\\'")', '@Html.Raw((game.Description ?? "").Replace("'", "\\'").Replace("\r\n", "\\n").Replace("\n", "\\n"))', '@game.Price', '@game.ReleaseDate.ToString("yyyy-MM-dd")', '@(game.CoverImageUrl ?? "")', '@(game.TrailerUrl ?? "")', '@string.Join(",", game.GameCategories.Select(gc => gc.CategoryId))', '@(game.GameFileUrl ?? "")', '@(game.GameFileName ?? "")', '@game.GameFileSizeBytes')">EDIT</button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="confirmAction('DELETE @game.Title?', 'Are you sure you want to delete this game? This action cannot be undone.', function(){ document.getElementById('deleteForm_@game.Id').submit(); })">DELETE</button>
+                            <form method="post" asp-action="Delete" id="deleteForm_@game.Id" class="flex" style="display:none;">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@game.Id"/>
                             </form>
@@ -78,14 +99,15 @@ else
             </tbody>
         </table>
     </div>
+    <partial name="_Pagination" model="Model" />
 }
 
 <!-- Create Modal -->
 <div id="createModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto;text-align:left;">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(0,229,255,0.1);margin-bottom:4px;">
-      <span style="font-family:var(--font-display);font-size:15px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;">New Game</span>
-      <span onclick="closeCreateModal()" style="cursor:pointer;font-size:22px;color:var(--text-dim);line-height:1;opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">&times;</span>
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <span class="modal-title">New Game</span>
+      <span class="modal-close" onclick="closeCreateModal()">&times;</span>
     </div>
     <form method="post" asp-action="Create" enctype="multipart/form-data">
       @Html.AntiForgeryToken()
@@ -98,7 +120,7 @@ else
             <label>Description</label>
             <textarea name="Description" class="form-control" maxlength="4000"></textarea>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="form-grid-2">
             <div class="form-group">
                 <label>Price ($)</label>
                 <input type="number" name="Price" class="form-control" step="0.01" min="0" max="9999.99" value="0" />
@@ -111,6 +133,7 @@ else
         <div class="form-group">
             <label>Cover Image URL</label>
             <input type="url" name="CoverImageUrl" class="form-control" maxlength="500" />
+            <input type="file" name="CoverImageFile" class="form-control" style="margin-top:6px;" accept="image/*" />
         </div>
         <div class="form-group">
             <label>Game File (ZIP/RAR/EXE)</label>
@@ -122,10 +145,10 @@ else
         </div>
         <div class="form-group">
             <label>Categories</label>
-            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <div class="flex flex-wrap gap-10">
                 @foreach (var cat in categories)
                 {
-                    <label style="font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);">
+                    <label class="text-mono fs-11 flex gap-6" style="cursor:pointer;align-items:center;color:var(--text);">
                         <input type="checkbox" name="CategoryIds" value="@cat.Id" />
                         @cat.Name
                     </label>
@@ -133,7 +156,7 @@ else
             </div>
         </div>
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:18px;border-top:1px solid rgba(0,229,255,0.1);margin-top:4px;">
+      <div class="flex flex-wrap gap-10" style="justify-content:flex-end;padding-top:18px;border-top:1px solid rgba(0,229,255,0.1);margin-top:4px;">
         <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">CANCEL</button>
         <button type="submit" class="btn btn-primary">PUBLISH</button>
       </div>
@@ -143,10 +166,10 @@ else
 
 <!-- Edit Modal -->
 <div id="editModal" class="modal-overlay">
-  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto;text-align:left;">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid rgba(0,229,255,0.1);margin-bottom:4px;">
-      <span style="font-family:var(--font-display);font-size:15px;letter-spacing:2px;color:var(--cyan);text-transform:uppercase;">Edit Game</span>
-      <span onclick="closeEditModal()" style="cursor:pointer;font-size:22px;color:var(--text-dim);line-height:1;opacity:0.7;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">&times;</span>
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <span class="modal-title">Edit Game</span>
+      <span class="modal-close" onclick="closeEditModal()">&times;</span>
     </div>
     <form method="post" asp-action="Edit" enctype="multipart/form-data">
       @Html.AntiForgeryToken()
@@ -160,7 +183,7 @@ else
             <label>Description</label>
             <textarea name="Description" id="editDescription" class="form-control" maxlength="4000"></textarea>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="form-grid-2">
             <div class="form-group">
                 <label>Price ($)</label>
                 <input type="number" name="Price" id="editPrice" class="form-control" step="0.01" min="0" max="9999.99" />
@@ -173,14 +196,15 @@ else
         <div class="form-group">
             <label>Cover Image URL</label>
             <input type="url" name="CoverImageUrl" id="editCoverImageUrl" class="form-control" maxlength="500" />
+            <input type="file" name="CoverImageFile" id="editCoverImageFile" class="form-control" style="margin-top:6px;" accept="image/*" />
         </div>
         <div class="form-group">
             <label>Game File (ZIP/RAR/EXE)</label>
             <input type="file" name="GameFile" id="editGameFile" class="form-control" accept=".zip,.rar,.7z,.exe,.msi,.apk" />
-            <div id="currentFileInfo" style="display:none;margin-top:8px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);padding:8px 12px;background:rgba(7,7,9,0.6);border:1px solid rgba(0,229,255,0.12);border-radius:var(--radius-sm);">
-              <span style="color:var(--cyan);">CURRENT FILE:</span>
+            <div id="currentFileInfo" class="file-info">
+              <span class="text-cyan">CURRENT FILE:</span>
               <span id="currentFileName"></span>
-              <label style="margin-left:16px;cursor:pointer;color:var(--red);">
+              <label class="text-red" style="margin-left:16px;cursor:pointer;">
                 <input type="checkbox" name="RemoveGameFile" value="true" id="editRemoveGameFile" style="accent-color:var(--red);"/>
                 REMOVE FILE
               </label>
@@ -190,12 +214,66 @@ else
             <label>Trailer URL</label>
             <input type="url" name="TrailerUrl" id="editTrailerUrl" class="form-control" maxlength="500" />
         </div>
+
+        <!-- SYSTEM REQUIREMENTS ACCORDION -->
+        <div class="accordion-group">
+          <button type="button" class="accordion-trigger" onclick="devToggleReqs(this)">
+            <span>SYSTEM REQUIREMENTS</span>
+            <span id="devReqsToggle">▶</span>
+          </button>
+          <div id="devReqsSection" class="accordion-panel">
+            <div id="devReqsStatus" class="text-mono fs-10 text-dim mb-8"></div>
+            <div class="grid-2" style="gap:16px;">
+              <div>
+                <div class="text-mono fs-11 text-red mb-8" style="text-transform:uppercase;">Minimum</div>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="OS" data-req-type="min" data-req-field="os"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="Processor" data-req-type="min" data-req-field="processor"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="Memory" data-req-type="min" data-req-field="memory"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="Graphics" data-req-type="min" data-req-field="graphics"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="DirectX" data-req-type="min" data-req-field="directX"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="Storage" data-req-type="min" data-req-field="storage"/>
+              </div>
+              <div>
+                <div class="text-mono fs-11 text-gold mb-8" style="text-transform:uppercase;">Recommended</div>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="OS" data-req-type="rec" data-req-field="os"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="Processor" data-req-type="rec" data-req-field="processor"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="Memory" data-req-type="rec" data-req-field="memory"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="Graphics" data-req-type="rec" data-req-field="graphics"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="DirectX" data-req-type="rec" data-req-field="directX"/>
+                <input class="form-control dev-req-field mb-8 fs-12" placeholder="Storage" data-req-type="rec" data-req-field="storage"/>
+              </div>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm mt-12" onclick="devSaveRequirements()"><i class="fas fa-save"></i> SAVE REQUIREMENTS</button>
+          </div>
+        </div>
+
+        <!-- VERSION MANAGEMENT ACCORDION -->
+        <div class="accordion-group">
+          <button type="button" class="accordion-trigger" onclick="devToggleVersions(this)">
+            <span>VERSIONS</span>
+            <span id="devVersionsToggle">▶</span>
+          </button>
+          <div id="devVersionsSection" class="accordion-panel">
+            <div id="devVersionsStatus" class="text-mono fs-10 text-dim mb-8"></div>
+            <div id="devVersionsList" class="mb-12"></div>
+            <div style="border-top:1px solid rgba(230,57,70,0.15);padding-top:12px;">
+              <div class="text-mono fs-10 text-dim mb-8">UPLOAD NEW VERSION</div>
+              <div class="flex gap-8 flex-wrap" style="align-items:center;">
+                <input type="text" id="devNewVersionLabel" class="form-control" placeholder="e.g. 1.0.0" style="width:120px;font-size:12px;" />
+                <input type="file" id="devNewVersionFile" class="form-control" style="font-size:12px;padding:4px;flex:1;" />
+              </div>
+              <textarea id="devNewVersionChangelog" class="form-control" placeholder="Changelog (optional)" style="margin-top:8px;font-size:12px;resize:vertical;min-height:50px;"></textarea>
+              <button type="button" class="btn btn-secondary btn-sm mt-8" onclick="devUploadVersion()">⬆ UPLOAD VERSION</button>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
             <label>Categories</label>
-            <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <div class="flex flex-wrap gap-10">
                 @foreach (var cat in categories)
                 {
-                    <label style="font-family:var(--font-mono);font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);">
+                    <label class="text-mono fs-11 flex gap-6" style="cursor:pointer;align-items:center;color:var(--text);">
                         <input type="checkbox" name="CategoryIds" value="@cat.Id" class="edit-cat" data-cat-id="@cat.Id" />
                         @cat.Name
                     </label>
@@ -203,7 +281,7 @@ else
             </div>
         </div>
       </div>
-      <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:18px;border-top:1px solid rgba(0,229,255,0.1);margin-top:4px;">
+      <div class="flex gap-10" style="justify-content:flex-end;padding-top:18px;border-top:1px solid rgba(0,229,255,0.1);margin-top:4px;">
         <button type="button" class="btn btn-secondary" onclick="closeEditModal()">CANCEL</button>
         <button type="submit" class="btn btn-primary">UPDATE</button>
       </div>
@@ -213,6 +291,7 @@ else
 
 @section Scripts {
 <script>
+
 function fmtSize(bytes) {
     if (!bytes || bytes == 0 || bytes == '0') return '';
     if (bytes < 1024) return bytes + ' B';
@@ -233,6 +312,7 @@ function openEditModal(id, title, desc, price, releaseDate, cover, trailer, catI
     document.getElementById('editCoverImageUrl').value = cover;
     document.getElementById('editTrailerUrl').value = trailer;
     document.getElementById('editGameFile').value = '';
+    document.getElementById('editCoverImageFile').value = '';
     document.getElementById('editRemoveGameFile').checked = false;
     document.querySelectorAll('.edit-cat').forEach(function(cb) { cb.checked = false; });
     if (catIds) {
@@ -248,8 +328,178 @@ function openEditModal(id, title, desc, price, releaseDate, cover, trailer, catI
     } else {
         fileInfo.style.display = 'none';
     }
-    document.getElementById('editModal').style.display = 'flex';
+    devLoadRequirements(id);
+    devLoadVersions(id);
+    showModal('editModal');
 }
 function closeEditModal() { closeModal('editModal'); }
+
+function devToggleReqs(btn) {
+    var section = document.getElementById('devReqsSection');
+    var toggle = document.getElementById('devReqsToggle');
+    var isOpen = section.style.display !== 'none';
+    section.style.display = isOpen ? 'none' : 'block';
+    toggle.textContent = isOpen ? '▶' : '▼';
+}
+
+function devLoadRequirements(gameId) {
+    document.querySelectorAll('.dev-req-field').forEach(function(el) { el.value = ''; });
+    document.getElementById('devReqsStatus').textContent = 'LOADING...';
+    var url = '/Developer/Games/GetRequirements/' + gameId;
+    fetch(url)
+      .then(function(r) {
+        if (!r.ok) { throw new Error('HTTP ' + r.status + ' for ' + url); }
+        return r.json();
+      })
+      .then(function(data) {
+        if (!data) { document.getElementById('devReqsStatus').textContent = '\u2014'; return; }
+        document.querySelectorAll('.dev-req-field').forEach(function(el) {
+          var type = el.dataset.reqType;
+          var field = el.dataset.reqField;
+          var section = type === 'min' ? data.minimum : data.recommended;
+          if (section) {
+            var val = section[field];
+            if (val) el.value = val;
+          }
+        });
+        document.getElementById('devReqsStatus').textContent = 'REQUIREMENTS LOADED';
+      })
+      .catch(function(e) { document.getElementById('devReqsStatus').textContent = 'ERROR LOADING — ' + e.message; });
+}
+
+function devSaveRequirements() {
+    var gameId = document.getElementById('editGameId').value;
+    if (!gameId) return;
+    var model = { minimum: {}, recommended: {} };
+    document.querySelectorAll('.dev-req-field').forEach(function(el) {
+      var type = el.dataset.reqType;
+      var field = el.dataset.reqField;
+      var section = type === 'min' ? model.minimum : model.recommended;
+      section[field] = el.value || null;
+    });
+    fetch('/Developer/Games/SaveRequirements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value },
+      body: JSON.stringify({ gameId: gameId, model: model })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById('devReqsStatus').textContent = d.success ? 'SAVED' : 'ERROR: ' + d.message;
+    })
+    .catch(function() { document.getElementById('devReqsStatus').textContent = 'SAVE FAILED'; });
+}
+
+function devToggleVersions(btn) {
+    var section = document.getElementById('devVersionsSection');
+    var toggle = document.getElementById('devVersionsToggle');
+    var isOpen = section.style.display !== 'none';
+    section.style.display = isOpen ? 'none' : 'block';
+    toggle.textContent = isOpen ? '▶' : '▼';
+}
+
+function devLoadVersions(gameId) {
+    document.getElementById('devVersionsList').innerHTML = '';
+    document.getElementById('devVersionsStatus').textContent = 'LOADING...';
+    var url = '/Developer/Games/GetVersions/' + gameId;
+    fetch(url)
+      .then(function(r) {
+        if (!r.ok) { throw new Error('HTTP ' + r.status + ' for ' + url); }
+        return r.json();
+      })
+      .then(function(data) {
+        if (!data || data.length === 0 || data.success === false) {
+          document.getElementById('devVersionsStatus').textContent = data.success === false ? 'ACCESS DENIED' : 'NO VERSIONS';
+          return;
+        }
+        var html = '<div style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);margin-bottom:6px;">' + data.length + ' version(s) on file</div>';
+        data.forEach(function(v) {
+          var isCurrent = v.isCurrent;
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;margin-bottom:4px;border:1px solid ' + (isCurrent ? 'rgba(74,222,128,0.2)' : 'rgba(230,57,70,0.08)') + ';background:' + (isCurrent ? 'rgba(74,222,128,0.03)' : '') + ';">';
+          html += '<div><div style="font-family:var(--font-display);color:' + (isCurrent ? '#4ade80' : 'white') + ';font-size:13px;">' + escapeHtml(v.versionLabel) + (isCurrent ? ' <span style="font-size:10px;color:#4ade80;border:1px solid rgba(74,222,128,0.3);padding:2px 6px;">CURRENT</span>' : '') + '</div>';
+          html += '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;">' + fmtSize(v.fileSizeBytes) + ' &middot; ' + escapeHtml(v.fileName) + '</div>';
+          if (v.changelog) html += '<div style="font-size:10px;color:var(--text-dim);margin-top:2px;">' + escapeHtml(v.changelog) + '</div>';
+          html += '<div style="font-size:10px;color:var(--text-dim);margin-top:2px;">' + v.uploadedAt + '</div></div><div>';
+          if (!isCurrent) {
+            html += '<button class="btn btn-secondary" style="padding:4px 8px;font-size:10px;margin-right:4px;" onclick="devSetCurrentVersion(\'' + gameId + '\',\'' + v.id + '\')">SET CURRENT</button>';
+          }
+          html += '<button class="btn btn-secondary" style="padding:4px 8px;font-size:10px;" onclick="devDeleteVersion(\'' + gameId + '\',\'' + v.id + '\')">DELETE</button>';
+          html += '</div></div>';
+        });
+        document.getElementById('devVersionsList').innerHTML = html;
+        document.getElementById('devVersionsStatus').textContent = '';
+      })
+      .catch(function(e) { document.getElementById('devVersionsStatus').textContent = 'ERROR LOADING — ' + e.message; });
+}
+
+function devUploadVersion() {
+    var gameId = document.getElementById('editGameId').value;
+    var label = document.getElementById('devNewVersionLabel').value.trim();
+    var file = document.getElementById('devNewVersionFile').files[0];
+    var changelog = document.getElementById('devNewVersionChangelog').value.trim();
+    if (!gameId || !label || !file) { alert('Version label and file are required.'); return; }
+    var formData = new FormData();
+    formData.append('gameId', gameId);
+    formData.append('versionLabel', label);
+    formData.append('changelog', changelog);
+    formData.append('file', file);
+    document.getElementById('devVersionsStatus').textContent = 'UPLOADING...';
+    fetch('/Developer/Games/UploadVersion', {
+      method: 'POST',
+      headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value },
+      body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById('devVersionsStatus').textContent = d.success ? 'UPLOADED' : 'ERROR: ' + d.message;
+      if (d.success) {
+        document.getElementById('devNewVersionLabel').value = '';
+        document.getElementById('devNewVersionFile').value = '';
+        document.getElementById('devNewVersionChangelog').value = '';
+        devLoadVersions(gameId);
+      }
+    })
+    .catch(function() { document.getElementById('devVersionsStatus').textContent = 'UPLOAD FAILED'; });
+}
+
+function devDeleteVersion(gameId, versionId) {
+    if (!confirm('Delete this version?')) return;
+    document.getElementById('devVersionsStatus').textContent = 'DELETING...';
+    var formData = new FormData();
+    formData.append('gameId', gameId);
+    formData.append('versionId', versionId);
+    fetch('/Developer/Games/DeleteVersion', {
+      method: 'POST',
+      headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value },
+      body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById('devVersionsStatus').textContent = d.success ? 'DELETED' : 'ERROR: ' + d.message;
+      if (d.success) devLoadVersions(gameId);
+    })
+    .catch(function() { document.getElementById('devVersionsStatus').textContent = 'DELETE FAILED'; });
+}
+
+function devSetCurrentVersion(gameId, versionId) {
+    var formData = new FormData();
+    formData.append('gameId', gameId);
+    formData.append('versionId', versionId);
+    fetch('/Developer/Games/SetCurrentVersion', {
+      method: 'POST',
+      headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value },
+      body: formData
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById('devVersionsStatus').textContent = d.success ? 'UPDATED' : 'ERROR: ' + d.message;
+      if (d.success) devLoadVersions(gameId);
+    })
+    .catch(function() { document.getElementById('devVersionsStatus').textContent = 'UPDATE FAILED'; });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 </script>
 }

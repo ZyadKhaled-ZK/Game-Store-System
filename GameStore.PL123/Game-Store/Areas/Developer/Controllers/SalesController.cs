@@ -20,7 +20,7 @@ public class SalesController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(int page = 1)
     {
         var userId = HttpContext.Session.GetString("UserId");
         if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Auth");
@@ -33,8 +33,8 @@ public class SalesController : Controller
             return RedirectToAction("Index", "Profile");
         }
 
-        var sales = await _saleService.GetByDeveloperAsync(dev.Id);
-        return View(sales);
+        var result = await _saleService.GetByDeveloperAsync(dev.Id, page);
+        return View(result);
     }
 
     [HttpGet]

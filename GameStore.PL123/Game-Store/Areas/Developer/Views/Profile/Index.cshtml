@@ -3,6 +3,14 @@
     var isEdit = Model != null;
 }
 
+<style>
+  @@media (max-width: 576px) {
+    .page-header h1 { font-size: 1.2rem; }
+    .card[style*="max-width:700px"] { max-width: 100% !important; }
+    .form-grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+
 <div id="alertMessage" data-msg="@TempData["Message"]" data-error="@TempData["IsError"]"></div>
 
 <div class="page-header">
@@ -10,7 +18,7 @@
     <p>@(isEdit ? "Update your developer studio information." : "Set up your developer studio to start publishing games.")</p>
 </div>
 
-<div class="card" style="max-width:700px;">
+<div class="card" style="max-width:700px;margin:0 auto;">
     <form method="post" asp-action="Save">
         @Html.AntiForgeryToken()
 
@@ -29,7 +37,7 @@
             <textarea name="Description" class="form-control" maxlength="2000">@Model?.Description</textarea>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="form-grid-2">
             <div class="form-group">
                 <label>Website</label>
                 <input type="url" name="Website" class="form-control" value="@Model?.Website" maxlength="500" placeholder="https://" />

@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Analysis &amp; Design - GameStore Platform</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #fff; color: #000; line-height: 1.7; padding: 40px 20px; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 50px 60px; }
+    h1 { font-size: 32px; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 45px; text-transform: uppercase; letter-spacing: 1px; }
+    h2 { font-size: 22px; border-bottom: 2px solid #000; padding-bottom: 10px; margin-top: 60px; margin-bottom: 22px; }
+    h3 { font-size: 18px; margin-top: 36px; margin-bottom: 16px; }
+    p, li { font-size: 15px; line-height: 1.8; margin-bottom: 12px; }
+    ul { margin-left: 24px; margin-bottom: 16px; }
+    li { margin-bottom: 6px; }
+    table.tech { width: 100%; border-collapse: collapse; margin: 20px 0 30px; font-size: 14px; }
+    table { margin-bottom: 28px; }
+    table.tech th, table.tech td { border: 1px solid #000; padding: 12px 16px; text-align: left; }
+    table.tech th { background: #eee; font-weight: bold; }
+    table.tech tr:nth-child(even) { background: #fafafa; }
+    .graphviz { text-align: center; background: #fff; margin: 30px 0; padding: 25px; border: 1px solid #ddd; border-radius: 4px; min-height: 60px; overflow-x: auto; }
+    .graphviz svg { max-width: 100%; height: auto; }
+    .note { font-size: 13px; color: #555; font-style: italic; margin-top: 4px; }
+    .objective-list { margin: 20px 0 30px; }
+    .objective-list li { margin-bottom: 16px; }
+    .objective-list strong { display: inline-block; min-width: 30px; }
+    .seq-diagram { text-align: center; background: #fff; margin: 30px 0; padding: 15px 10px; border: 1px solid #ddd; border-radius: 4px; min-height: 100px; overflow-x: auto; }
+    .seq-diagram svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    .class-diagram { text-align: center; background: #fff; margin: 30px 0; padding: 15px; border: 1px solid #ddd; border-radius: 4px; overflow-x: auto; }
+    .class-diagram svg { max-width: 100%; height: auto; }
+    @media print { body { padding: 0; } .graphviz { break-inside: avoid; } .seq-diagram { break-inside: avoid; } .class-diagram { break-inside: avoid; } }
+  </style>
+</head>
+<body>
+<div class="container">
+
+<h1>System Analysis &amp; Design &mdash; GameStore Platform</h1>
+
+<!-- ============================================================ -->
+<!-- SECTION 1: Problem Statement                                  -->
+<!-- ============================================================ -->
+<h2>1. Problem Statement</h2>
+<p>The GameStore platform aims to create a comprehensive digital marketplace for video games, connecting developers with gamers worldwide. The system must address the following objectives:</p>
+<ol class="objective-list">
+  <li><strong>1.</strong> <strong>User Management &amp; Authentication:</strong> Provide secure registration, login, and role-based access control supporting CUSTOMER, DEVELOPER, and ADMIN roles with cookie-based authentication (.GameStore.Auth), Google OAuth, session management, email verification, and password reset.</li>
+  <li><strong>2.</strong> <strong>Game Publishing &amp; Catalog Management:</strong> Enable developers to upload, update, and manage game listings with metadata (title, description, price, screenshots, trailer URL), categories (many-to-many via GameCategory), and game files, while administrators oversee catalog curation.</li>
+  <li><strong>3.</strong> <strong>Commerce &amp; Payment Processing:</strong> Implement a complete purchase workflow including cart management, Stripe Checkout Sessions integration, webhook-based payment confirmation (/stripe/webhook), store credit system, free checkout path, and commission-based payout calculations for developers.</li>
+  <li><strong>4.</strong> <strong>Community &amp; Social Features:</strong> Support user engagement through reviews/ratings (1-5 scale, one per user per game), wishlists, game libraries, real-time chat via SignalR (/hub/notifications), friendship system, and user posts.</li>
+  <li><strong>5.</strong> <strong>Content Moderation &amp; Security:</strong> Provide administrative tools for monitoring support tickets, reviewing game sales, managing developer applications, reviewing reported content, with rate limiting on auth endpoints, anti-forgery tokens, and security headers (X-Frame-Options DENY, X-Content-Type-Options nosniff).</li>
+  <li><strong>6.</strong> <strong>Analytics &amp; Reporting:</strong> Deliver dashboards for administrators and developers with sales trends, order analytics, user engagement metrics, popular categories, developer earnings, and platform growth indicators via dedicated dashboard controllers.</li>
+</ol>
+
+<!-- ============================================================ -->
+<!-- SECTION 2: Use Case Diagram                                   -->
+<!-- ============================================================ -->
+<h2>2. Use Case Diagram</h2>
+<p>The diagram below illustrates the three actor roles on the GameStore platform: Gamers (CUSTOMER), Developers (DEVELOPER), and Administrators (ADMIN), along with their associated use cases derived from the actual controller and service structure.</p>
+
+<div class="graphviz">
+digraph {
+  rankdir=LR;
+  graph [bgcolor="white", fontname="Arial", ranksep=1.0, nodesep=0.6];
+  node [fontname="Arial", shape="box", style="rounded"];
+
+  subgraph cluster_actors {
+    label="Actors";
+    style="rounded,dashed";
+    color="black";
+    Gamer [shape="box", style="filled", fillcolor="#eee", label="Gamer\n(CUSTOMER)"];
+    Developer [shape="box", style="filled", fillcolor="#eee", label="Developer\n(DEVELOPER)"];
+    Admin [shape="box", style="filled", fillcolor="#eee", label="Admin\n(ADMIN)"];
+  }
+
+  subgraph cluster_uc {
+    label="Use Cases";
+    style="rounded,dashed";
+    color="black";
+    uc1 [label="Register / Login\n(Email + Google OAuth)"];
+    uc2 [label="Browse &amp; Search\nGames Catalog"];
+    uc3 [label="Manage Cart\n(Add/Remove/Checkout)"];
+    uc4 [label="Purchase Game\n(Stripe / Free / Credit)"];
+    uc5 [label="Write &amp; Manage\nReviews"];
+    uc6 [label="Manage\nWishlist"];
+    uc7 [label="View Library\n&amp; Download Games"];
+    uc8 [label="Manage Friends\n&amp; Chat (SignalR)"];
+    uc9 [label="Create\nPosts"];
+    uc10 [label="Submit Support\nTickets"];
+    uc11 [label="Upload &amp; Manage\nGame Listings"];
+    uc12 [label="View Developer\nDashboard &amp; Sales"];
+    uc13 [label="Manage Sale\nPromotions"];
+    uc14 [label="View Developer\nProfile"];
+    uc15 [label="Manage Users\n(Ban/Activate)"];
+    uc16 [label="Manage\nGame Catalog"];
+    uc17 [label="Manage\nCategories"];
+    uc18 [label="Manage Developer\nApplications"];
+    uc19 [label="View Admin\nDashboard"];
+    uc20 [label="Process\nRefunds"];
+    uc21 [label="Manage Support\nTickets &amp; Replies"];
+    uc22 [label="Manage\nSales &amp; Promotions"];
+  }
+
+  Gamer -> uc1; Gamer -> uc2; Gamer -> uc3; Gamer -> uc4;
+  Gamer -> uc5; Gamer -> uc6; Gamer -> uc7; Gamer -> uc8;
+  Gamer -> uc9; Gamer -> uc10;
+
+  Developer -> uc1; Developer -> uc2; Developer -> uc11;
+  Developer -> uc12; Developer -> uc13; Developer -> uc14;
+
+  Admin -> uc1; Admin -> uc15; Admin -> uc16; Admin -> uc17;
+  Admin -> uc18; Admin -> uc19; Admin -> uc20; Admin -> uc21;
+  Admin -> uc22;
+}
+</div>
+<p class="note">Actors map to the three Role enum values: CUSTOMER (0), DEVELOPER (1), ADMIN (2). Use cases derive from 33 MVC controllers across main, Admin area (11), and Developer area (5) areas.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 3: Three-Layer Architecture                           -->
+<!-- ============================================================ -->
+<h2>3. Three-Layer Architecture</h2>
+<p>The system follows a three-layer architecture (PL &rarr; BLL &rarr; DAL) with additional infrastructure services for caching, real-time communication, and external integrations.</p>
+
+<div class="graphviz">
+digraph {
+  rankdir=TB;
+  graph [bgcolor="white", fontname="Arial", ranksep=0.4, nodesep=0.3];
+  node [fontname="Arial", shape="box", style="filled", fillcolor="#f5f5f5"];
+
+  subgraph cluster_presentation {
+    label="Presentation Layer (GameStore.PL)";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+    mvc [label="MVC Controllers (17 main)\nHome, Auth, Cart, Orders, Reviews,\nWishlist, Library, Profile, Friends,\nChat, Developers, Posts, Notifications,\nSupport, Refunds, BecomeDeveloper"];
+    admin [label="Admin Area (11)\nDashboard, Users, Games, Categories,\nOrders, Reviews, Developers,\nDeveloperApplications, Sales,\nSupportTickets, Refunds"];
+    dev [label="Developer Area (5)\nDashboard, Games, Reviews,\nSales, Profile"];
+    api [label="API Controller (1)\nStripeWebhookController\n/stripe/webhook"];
+    signalr [label="SignalR Hubs\nNotificationHub\n(/hub/notifications)"];
+    views [label="Views\nRazor + Tailwind CSS + Bootstrap\nLayout: Admin / Developer / Main"];
+  }
+
+  subgraph cluster_business {
+    label="Business Logic Layer (GameStore.BLL)";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+    services [label="Service Interfaces + Implementations\nIAuthService, IUserService, IGameService,\nICategoryService, ICartService, IOrderService,\nIReviewService, IWishlistService, ILibraryService,\nISaleService, IDeveloperService,\nIDeveloperApplicationService, IChatService,\nIFriendService, IPostService,\nISupportTicketService, IGameFileService,\nIOrderAnalyticsService, IGameAccessService,\nIRefundService, ICreditService,\nIGameVersionService, ISystemRequirementService"];
+    mapper [label="AutoMapper MappingProfile\nEntity &harr; ViewModel"];
+  }
+
+  subgraph cluster_data {
+    label="Data Access Layer (GameStore.DAL)";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+    dbctx [label="GameStoreDbContext\n(Fluent API Config)"];
+    repos [label="IRepository&lt;T&gt; + EfRepository&lt;T&gt;\nIUnitOfWork + UnitOfWork"];
+    entities [label="23 Domain Entities\n(Migrations: 20)"];
+  }
+
+  subgraph cluster_infra {
+    label="Infrastructure";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+    sql [label="SQL Server 2022"];
+    cache [label="Redis Cache\n(fallback: in-memory)"];
+    stripe [label="Stripe\n(Payments)"];
+    sendgrid [label="SendGrid\n(Email)"];
+  }
+
+  mvc -> services [label="Service Calls"];
+  admin -> services; dev -> services; api -> services;
+  signalr -> services;
+  services -> mapper; mapper -> services;
+  services -> repos [label="Repository Calls"];
+  repos -> dbctx;
+  dbctx -> sql [label="SQL Queries"];
+  services -> stripe [label="Stripe SDK"];
+  services -> sendgrid [label="SendGrid SDK"];
+  services -> cache [label="IDistributedCache"];
+}
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 4: Entity Relationship Diagram                        -->
+<!-- ============================================================ -->
+<h2>4. Entity Relationship Diagram</h2>
+<p>The ERD below maps all 23 domain entities with their actual relationships as configured in the GameStoreDbContext Fluent API.</p>
+
+<div class="graphviz">
+digraph ERD {
+  rankdir=LR;
+  graph [bgcolor="white", fontname="Arial", ranksep=1.2, nodesep=0.6, dpi=72, splines=polyline];
+  node [fontname="Arial", shape=plaintext];
+  edge [fontname="Arial", fontsize=11];
+
+  subgraph cluster_users {
+    label="Users &amp; Security";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+
+    _User [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;User&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Username (100)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Email (200, unique)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;PasswordHash&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;AvatarUrl&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Bio&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Role (enum: ADMIN/CUSTOMER/DEVELOPER)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;IsExternalAccount&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;EmailConfirmed&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _Developer [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Developer&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Name (200)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Slug (300, unique)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Description (2000)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Website (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;LogoUrl (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Country (100)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK, unique)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;IsActive&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _DeveloperApplication [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;DeveloperApplication&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK, unique)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Name (200)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Description (2000)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Website (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Country (100)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CvFilePath (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GithubUrl (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Status (enum: Pending/Approved/Rejected)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _PasswordResetToken [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;PasswordResetToken&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Token (unique)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ExpiresAt&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;IsUsed&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _EmailVerificationToken [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;EmailVerificationToken&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Token (unique)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ExpiresAt&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;IsUsed&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+  }
+
+  subgraph cluster_games {
+    label="Games Catalog";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+
+    _Game [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Game&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Title (200)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Description&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Price (decimal 10,2)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CoverImageUrl&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;TrailerUrl&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ScreenshotUrls (JSON)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameFileUrl&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameFileName (260)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameFileSizeBytes&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Developer (200)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;DeveloperId (FK, nullable)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ReleaseDate&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt / UpdatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _Category [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Category&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Name (100, unique)&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _GameCategory [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;GameCategory&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameId (PK, FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CategoryId (PK, FK)&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+  }
+
+  subgraph cluster_commerce {
+    label="Commerce &amp; Orders";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+
+    _Cart [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Cart&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK, unique)&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _CartItem [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;CartItem&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CartId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Quantity (default 1)&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _Order [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Order&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;TotalPrice (decimal 10,2)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;PaymentStatus (enum)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;StripeSessionId (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;StripePaymentIntentId (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _OrderItem [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;OrderItem&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;OrderId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;PriceAtPurchase (decimal 10,2)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CommissionPercent (decimal 5,2, default 15%)&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _Sale [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Sale&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;DeveloperId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;NewPrice (decimal 10,2)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;StartDate / EndDate&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Status (enum: Pending/Approved/Rejected/Cancelled/Expired)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ApprovedByAdminId&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;RejectReason (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt / ApprovedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+  }
+
+  subgraph cluster_social {
+    label="Library, Social &amp; Community";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+
+    _Library [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Library&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK, unique)&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _LibraryGame [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;LibraryGame&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;LibraryId (PK, FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameId (PK, FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;AddedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _Review [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Review&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Rating (1-5)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Comment&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _WishlistItem [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;WishlistItem&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;GameId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;AddedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _Friendship [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Friendship&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;RequesterId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ReceiverId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Status (enum: Pending/Accepted/Rejected)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _Message [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Message&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;SenderId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ReceiverId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Content&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;SentAt&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ReadAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _Post [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;Post&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Content (1000)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+  }
+
+  subgraph cluster_support {
+    label="Support &amp; System";
+    style="rounded,dashed";
+    color="black";
+    fontname="Arial";
+
+    _SupportTicket [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;SupportTicket&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK, nullable)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Email (200)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Subject (200)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Message (2000)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Status (enum: Open/InProgress/Resolved/Closed)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt / UpdatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _SupportTicketReply [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;SupportTicketReply&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;TicketId (FK)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK, nullable)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Message (2000)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+
+    _UserNotification [label=&lt;
+      &lt;TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4"&gt;
+        &lt;TR&gt;&lt;TD BGCOLOR="#eeeeee"&gt;&lt;B&gt;UserNotification&lt;/B&gt;&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Id (PK, string)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;UserId (FK, nullable)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;SenderUserId (FK, nullable)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Title (200)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Message (1000)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;Type (20) / Category (50)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;ReferenceId / ReferenceUrl (500)&lt;/TD&gt;&lt;/TR&gt;
+        &lt;TR&gt;&lt;TD ALIGN="LEFT"&gt;CreatedAt / ReadAt&lt;/TD&gt;&lt;/TR&gt;
+      &lt;/TABLE&gt;
+    &gt;];
+  }
+
+  _User -> _Cart [label="1 : 1"];
+  _User -> _Library [label="1 : 1"];
+  _User -> _Order [label="1 : *"];
+  _User -> _Review [label="1 : *"];
+  _User -> _WishlistItem [label="1 : *"];
+  _User -> _Friendship [label="1 : * (Requester)"];
+  _User -> _Friendship [label="1 : * (Receiver)"];
+  _User -> _Message [label="1 : * (Sender)"];
+  _User -> _Message [label="1 : * (Receiver)"];
+  _User -> _Post [label="1 : *"];
+  _User -> _Developer [label="0..1 : 1"];
+  _User -> _DeveloperApplication [label="1 : *"];
+  _User -> _PasswordResetToken [label="1 : *"];
+  _User -> _EmailVerificationToken [label="1 : *"];
+  _User -> _SupportTicket [label="1 : *"];
+  _User -> _UserNotification [label="1 : *"];
+  _Developer -> _Game [label="1 : *"];
+  _Game -> _Category [label="* : * (via GameCategory)"];
+  _Game -> _CartItem [label="1 : *"];
+  _Game -> _OrderItem [label="1 : *"];
+  _Game -> _LibraryGame [label="1 : *"];
+  _Game -> _Review [label="1 : *"];
+  _Game -> _WishlistItem [label="1 : *"];
+  _Game -> _Sale [label="1 : *"];
+  _Cart -> _CartItem [label="1 : *"];
+  _Order -> _OrderItem [label="1 : *"];
+  _Library -> _LibraryGame [label="1 : *"];
+  _SupportTicket -> _SupportTicketReply [label="1 : *"];
+  _Developer -> _Sale [label="1 : *"];
+  _UserNotification -> _User [label="* : 1 (Sender)"];
+}
+</div>
+<p class="note">All 23 entities use string GUIDs as primary keys. Relationships are configured via EF Core Fluent API with cascade/restrict delete behaviors as appropriate. Many-to-many relationships (Game&harr;Category) are modeled via the GameCategory join entity.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 5: Context DFD                                       -->
+<!-- ============================================================ -->
+<h2>5. Context Diagram (DFD Level 0)</h2>
+<p>The context diagram shows the GameStore platform system boundary, external entities, and the primary data flows between them.</p>
+
+<div class="graphviz">
+digraph {
+  rankdir=LR;
+  graph [bgcolor="white", fontname="Arial", ranksep=1.5, nodesep=0.8];
+  node [fontname="Arial", shape="box", style="rounded"];
+
+  Gamer [shape="box", style="filled", fillcolor="#eee", label="Gamer"];
+  DeveloperExt [shape="box", style="filled", fillcolor="#eee", label="Developer"];
+  AdminExt [shape="box", style="filled", fillcolor="#eee", label="Admin"];
+  StripeExt [shape="box", style="filled", fillcolor="#eee", label="Stripe"];
+  SendGridExt [shape="box", style="filled", fillcolor="#eee", label="SendGrid"];
+  GoogleExt [shape="box", style="filled", fillcolor="#eee", label="Google OAuth"];
+
+  System [label="GameStore\nPlatform", shape="box", style="filled", fillcolor="#f5f5f5", width=2, height=1.4];
+
+  Gamer -> System [label="Register/Login,\nBrowse &amp; Search,\nAdd to Cart, Purchase,\nWrite Reviews, Manage\nWishlist/Library/Friends"];
+  System -> Gamer [label="Game Catalog,\nReceipts, Library,\nNotifications (SignalR),\nDownload Links"];
+  DeveloperExt -> System [label="Upload Games,\nManage Listings,\nSubmit Sales,\nView Analytics"];
+  System -> DeveloperExt [label="Sales Dashboard,\nPayout Reports,\nReview Feedback"];
+  AdminExt -> System [label="Manage Users/Games/\nCategories/Orders,\nApprove Sales,\nProcess Refunds,\nManage Support Tickets"];
+  System -> AdminExt [label="Admin Dashboard,\nOrder Reports,\nAudit Trail"];
+  System -> StripeExt [label="Create Checkout\nSession"];
+  StripeExt -> System [label="Webhook Events\n(checkout.session\n.completed)"];
+  System -> SendGridExt [label="Send Emails\n(Receipts, Verification,\nPassword Reset)"];
+  System -> GoogleExt [label="External Login\nRequest"];
+  GoogleExt -> System [label="OAuth Callback\n(User Info)"];
+}
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 6: Purchase Sequence Diagram                          -->
+<!-- ============================================================ -->
+<h2>6. Purchase Sequence Diagram</h2>
+<p>This sequence diagram models the end-to-end purchase flow: browsing the catalog, adding a game to the cart, checking out via Stripe Checkout Session, webhook confirmation, and library access.</p>
+
+<div class="seq-diagram">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1340 1100" style="width:100%;height:auto;">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#000"/></marker>
+    <marker id="b" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="10 0, 0 3.5, 10 7" fill="#000"/></marker>
+  </defs>
+  <!-- Lifelines -->
+  <line x1="60" y1="90" x2="60" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="170" y1="90" x2="170" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="280" y1="90" x2="280" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="390" y1="90" x2="390" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="500" y1="90" x2="500" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="610" y1="90" x2="610" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="720" y1="90" x2="720" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="830" y1="90" x2="830" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="935" y1="90" x2="935" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="1040" y1="90" x2="1040" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="1145" y1="90" x2="1145" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <line x1="1250" y1="90" x2="1250" y2="1070" stroke="#000" stroke-width="1" stroke-dasharray="5,4"/>
+  <!-- Actor boxes -->
+  <rect x="10" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="60" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Gamer</text>
+  <rect x="120" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="170" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Admin</text>
+  <rect x="230" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="280" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Browser</text>
+  <rect x="340" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="390" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Auth</text>
+  <rect x="450" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="500" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Catalog</text>
+  <rect x="560" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="610" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Cart</text>
+  <rect x="670" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="720" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Order</text>
+  <rect x="780" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="830" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Stripe</text>
+  <rect x="885" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="935" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Webhook</text>
+  <rect x="990" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="1040" y="42" text-anchor="middle" font-family="Arial" font-size="10" font-weight="bold" fill="#000">Lib/Wish</text>
+  <rect x="1095" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="1145" y="42" text-anchor="middle" font-family="Arial" font-size="10" font-weight="bold" fill="#000">Community</text>
+  <rect x="1200" y="20" width="100" height="34" rx="4" fill="#eee" stroke="#000" stroke-width="1.5"/>
+  <text x="1250" y="42" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#000">Database</text>
+
+  <!-- ===== PHASE 1: AUTHENTICATION ===== -->
+  <text x="15" y="108" font-family="Arial" font-size="10" font-weight="bold" fill="#000">1. Authentication</text>
+  <line x1="60" y1="128" x2="275" y2="128" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="170" y="121" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Register / Login</text>
+  <line x1="280" y1="148" x2="385" y2="148" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="335" y="141" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">POST Account</text>
+  <line x1="390" y1="168" x2="1245" y2="168" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="820" y="161" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">INSERT / Read User</text>
+  <line x1="390" y1="188" x2="65" y2="188" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="225" y="181" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">SendGrid verify</text>
+  <line x1="390" y1="208" x2="275" y2="208" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="335" y="201" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Cookie + redirect</text>
+
+  <!-- ===== PHASE 2: CATALOG ===== -->
+  <text x="15" y="238" font-family="Arial" font-size="10" font-weight="bold" fill="#000">2. Browse &amp; Catalog</text>
+  <line x1="60" y1="258" x2="275" y2="258" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="170" y="251" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Browse / Search</text>
+  <line x1="280" y1="278" x2="495" y2="278" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="390" y="271" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">GET Game</text>
+  <line x1="500" y1="298" x2="1245" y2="298" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="875" y="291" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Query + Cache</text>
+  <line x1="500" y1="318" x2="275" y2="318" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="390" y="311" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">View model</text>
+  <line x1="280" y1="336" x2="65" y2="336" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="170" y="329" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Game list HTML</text>
+
+  <!-- ===== PHASE 3: WISHLIST & REVIEWS ===== -->
+  <text x="15" y="368" font-family="Arial" font-size="10" font-weight="bold" fill="#000">3. Wishlist &amp; Reviews</text>
+  <line x1="60" y1="388" x2="275" y2="388" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="170" y="381" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Add wishlist</text>
+  <line x1="280" y1="406" x2="1035" y2="406" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="660" y="399" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">POST Wishlist</text>
+  <line x1="1040" y1="424" x2="1245" y2="424" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="1145" y="417" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">INSERT</text>
+  <line x1="60" y1="450" x2="275" y2="450" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="170" y="443" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Write review</text>
+  <line x1="280" y1="468" x2="1140" y2="468" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="710" y="461" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">POST Review</text>
+  <line x1="1145" y1="486" x2="1245" y2="486" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="1195" y="479" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">INSERT</text>
+
+  <!-- ===== PHASE 4: CART & CHECKOUT ===== -->
+  <text x="15" y="520" font-family="Arial" font-size="10" font-weight="bold" fill="#000">4. Cart &amp; Checkout</text>
+  <line x1="60" y1="540" x2="275" y2="540" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="170" y="533" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Add to cart</text>
+  <line x1="280" y1="558" x2="605" y2="558" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="445" y="551" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">POST Cart</text>
+  <line x1="610" y1="576" x2="1245" y2="576" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="930" y="569" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">INSERT CartItem</text>
+  <line x1="60" y1="600" x2="275" y2="600" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="170" y="593" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Checkout</text>
+  <line x1="280" y1="618" x2="605" y2="618" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="445" y="611" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">POST Checkout</text>
+  <line x1="610" y1="636" x2="715" y2="636" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="665" y="629" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">CreateOrder</text>
+  <line x1="720" y1="654" x2="825" y2="654" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="775" y="647" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Session.Create</text>
+  <line x1="830" y1="672" x2="725" y2="672" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="780" y="665" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Session URL</text>
+  <line x1="720" y1="690" x2="1245" y2="690" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="985" y="683" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Order(Pending)</text>
+  <line x1="720" y1="708" x2="275" y2="708" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="500" y="701" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Stripe URL</text>
+  <line x1="280" y1="724" x2="65" y2="724" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="170" y="717" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Redirect Stripe</text>
+
+  <!-- ===== PHASE 5: PAYMENT ===== -->
+  <text x="15" y="755" font-family="Arial" font-size="10" font-weight="bold" fill="#000">5. Stripe Payment</text>
+  <line x1="60" y1="775" x2="825" y2="775" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="445" y="768" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Pay on Stripe</text>
+  <line x1="830" y1="795" x2="930" y2="795" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="883" y="788" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">POST webhook</text>
+
+  <!-- ===== PHASE 6: CONFIRMATION ===== -->
+  <text x="15" y="828" font-family="Arial" font-size="10" font-weight="bold" fill="#000">6. Webhook &amp; Confirmation</text>
+  <line x1="935" y1="848" x2="1245" y2="848" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="1090" y="841" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Verify session</text>
+  <line x1="935" y1="866" x2="725" y2="866" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="830" y="859" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">CompleteCheckout</text>
+  <line x1="720" y1="884" x2="1245" y2="884" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="985" y="877" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Order(Completed)</text>
+  <line x1="720" y1="902" x2="1245" y2="902" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="985" y="895" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">INSERT Library</text>
+
+  <!-- ===== PHASE 7: NOTIFY ===== -->
+  <text x="15" y="932" font-family="Arial" font-size="10" font-weight="bold" fill="#000">7. Notification</text>
+  <line x1="720" y1="952" x2="1140" y2="952" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="930" y="945" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">SignalR push</text>
+  <line x1="1145" y1="970" x2="65" y2="970" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="605" y="963" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Game added!</text>
+  <line x1="720" y1="990" x2="65" y2="990" stroke="#000" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#b)"/>
+  <text x="395" y="983" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">SendGrid receipt</text>
+
+  <!-- ===== PHASE 8: ADMIN ===== -->
+  <text x="15" y="1020" font-family="Arial" font-size="10" font-weight="bold" fill="#000">8. Admin Panel</text>
+  <line x1="165" y1="1040" x2="275" y2="1040" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="220" y="1033" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">CRUD games</text>
+  <line x1="280" y1="1058" x2="495" y2="1058" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="390" y="1051" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">PUT / DEL</text>
+  <line x1="500" y1="1076" x2="1245" y2="1076" stroke="#000" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="875" y="1069" text-anchor="middle" font-family="Arial" font-size="9" fill="#000">Update DB</text>
+</svg>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 7: UML Class Diagram                                  -->
+<!-- ============================================================ -->
+<h2>7. UML Class Diagram</h2>
+<p>The class diagram models the core domain entities, their actual fields, and relationships as defined in the GameStore codebase.</p>
+
+<div class="graphviz">
+digraph {
+  rankdir=LR;
+  graph [bgcolor="white", fontname="Arial", fontsize=9, ranksep=1.5, nodesep=0.6, dpi=72];
+  node [fontname="Arial", shape=record, fontsize=9, width=1.8, height=0.3];
+  edge [fontname="Arial", fontsize=8, color="black", arrowhead=vee, arrowsize=0.6];
+
+  User [label="{User|<fields> Id : string\l Username : string\l Email : string\l PasswordHash : string\l Role : Role\l CreatedAt : DateTime\l|<methods> +Cart : Cart\l +Library : Library\l +Orders : List\<Order\>\l +Reviews : List\<Review\>\l}"];
+  Game [label="{Game|<fields> Id : string\l Title : string\l Price : decimal\l ReleaseDate : DateTime\l DeveloperId : string?\l GameFileUrl : string?\l|<methods> +Developer : Developer\l +Reviews : List\<Review\>\l +OrderItems : List\<OrderItem\>\l}"];
+  Cart [label="{Cart|<fields> Id : string\l UserId : string\l|<methods> +User : User\l +Items : List\<CartItem\>\l}"];
+  Order [label="{Order|<fields> Id : string\l UserId : string\l TotalPrice : decimal\l PaymentStatus : PaymentStatus\l StripeSessionId : string?\l CreatedAt : DateTime\l|<methods> +User : User\l +Items : List\<OrderItem\>\l}"];
+  Review [label="{Review|<fields> Id : string\l UserId : string\l GameId : string\l Rating : int (1-5)\l Comment : string?\l CreatedAt : DateTime\l|<methods> +User : User\l +Game : Game\l}"];
+  Category [label="{Category|<fields> Id : string\l Name : string\l}"];
+  Developer [label="{Developer|<fields> Id : string\l Name : string\l UserId : string\l IsActive : bool\l|<methods> +User : User\l +Games : List\<Game\>\l}"];
+
+  User:methods -> Cart:methods [label="1  0..1", arrowhead=none, style=solid];
+  User:methods -> Order:methods [label="1  *", arrowhead=none, style=solid];
+  User:methods -> Review:methods [label="1  *", arrowhead=none, style=solid];
+  Game:methods -> Review:methods [label="1  *", arrowhead=none, style=solid];
+  Game:methods -> Developer:methods [label="*  1", arrowhead=none, style=solid];
+  Game:methods -> Category:methods [label="*  *", arrowhead=none, style=solid];
+}
+</div>
+<p class="note">UML class diagram with Graphviz record shapes. Each box has three compartments: class name, attributes, and methods/navigations. Cardinality shown on edges.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: Technology Stack                                   -->
+<!-- ============================================================ -->
+<h2>8. Technology Stack</h2>
+<p>The following table summarizes the key technologies, frameworks, and tools in the actual GameStore platform codebase.</p>
+
+<table class="tech">
+  <thead>
+    <tr><th>Category</th><th>Technology</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Framework</td><td>ASP.NET Core 9</td><td>Web framework for MVC controllers, Views, and API controller</td></tr>
+    <tr><td>ORM</td><td>Entity Framework Core 9</td><td>Object-relational mapping with Fluent API configuration</td></tr>
+    <tr><td>Database</td><td>SQL Server 2022</td><td>Primary relational database (20 migrations)</td></tr>
+    <tr><td>Caching</td><td>Redis (optional) / DistributedMemoryCache</td><td>Session state and output caching (10 min default TTL)</td></tr>
+    <tr><td>Real-time</td><td>SignalR</td><td>Real-time notifications, chat, and online presence (/hub/notifications)</td></tr>
+    <tr><td>Mapping</td><td>AutoMapper 12</td><td>Entity to ViewModel mapping via MappingProfile</td></tr>
+    <tr><td>Auth</td><td>Cookie Authentication (.GameStore.Auth)</td><td>Forms-based auth with Google OAuth external login</td></tr>
+    <tr><td>Rate Limiting</td><td>ASP.NET Core Rate Limiter</td><td>Brute-force protection on auth endpoints (10 req/min login, 3 req/10min register)</td></tr>
+    <tr><td>Testing</td><td>xUnit + Moq</td><td>Unit testing for services (18 test files)</td></tr>
+    <tr><td>Payments</td><td>Stripe (Checkout Sessions + Webhooks)</td><td>Payment processing with webhook endpoint at /stripe/webhook</td></tr>
+    <tr><td>Email</td><td>SendGrid</td><td>Transactional email for receipts, verification, and password reset</td></tr>
+    <tr><td>Response Compression</td><td>Brotli + Gzip</td><td>Reduces bandwidth 60-80% for API and view responses</td></tr>
+    <tr><td>Health Checks</td><td>ASP.NET Core Health Checks</td><td>Load balancer probe endpoint at /health</td></tr>
+    <tr><td>Output Caching</td><td>ASP.NET Core Output Cache</td><td>Reduces DB load on read-heavy game catalog endpoints</td></tr>
+    <tr><td>Frontend</td><td>Razor Views + Tailwind CSS + Bootstrap + jQuery</td><td>Server-rendered UI with responsive design (Admin/Developer/Main layouts)</td></tr>
+    <tr><td>SCM</td><td>Git + GitHub</td><td>Source control management</td></tr>
+    <tr><td>IDE</td><td>Visual Studio 2022</td><td>Primary development environment</td></tr>
+    <tr><td>Language</td><td>C# 12</td><td>Primary programming language</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: Key Design Decisions                               -->
+<!-- ============================================================ -->
+<h2>9. Key Design Decisions</h2>
+<ul>
+  <li><strong>Cookie-based auth over JWT:</strong> The platform uses cookie authentication (.GameStore.Auth) with session storage rather than JWT bearer tokens, simplifying server-rendered Razor page security. Google OAuth is the only external provider.</li>
+  <li><strong>No ASP.NET Identity:</strong> The project implements custom authentication from scratch using Session + Cookie middleware, avoiding Identity's overhead while maintaining full control over the User entity and role system (ADMIN/CUSTOMER/DEVELOPER).</li>
+  <li><strong>String GUID primary keys:</strong> All 23 entities use string-based GUIDs (Guid.NewGuid().ToString()) instead of auto-increment integers, enabling distributed ID generation and safer ID obfuscation.</li>
+  <li><strong>Generic Repository + Unit of Work:</strong> The DAL follows the repository pattern with IRepository&lt;T&gt; / EfRepository&lt;T&gt; and IUnitOfWork / UnitOfWork, abstracting EF Core for testability and separation of concerns.</li>
+  <li><strong>Stripe as sole payment gateway:</strong> Purchases flow through Stripe Checkout Sessions with webhook-based confirmation. A store credit system and free-checkout path handle edge cases without Stripe involvement.</li>
+  <li><strong>Single SignalR hub for notifications and chat:</strong> The NotificationHub at /hub/notifications handles real-time chat, friend online status, typing indicators, and system notifications through a unified connection.</li>
+  <li><strong>Three-area MVC structure:</strong> Controllers are organized into Main (17), Admin area (11), and Developer area (5), with role-based filters (AdminOnlyFilter, DeveloperOnlyFilter) and authorization policies.</li>
+</ul>
+
+<!-- ============================================================ -->
+<!-- SECTION 10: Activity Diagram (Checkout Workflow)            -->
+<!-- ============================================================ -->
+<h2>10. Activity Diagram — Purchase Checkout Workflow</h2>
+<p>The activity diagram below models the complete checkout workflow across swimlanes for the Gamer, Browser, CartController, CartService, OrderService, Stripe, and Database. Decision nodes represent guard conditions (cart empty, payment success, pre-release access).</p>
+
+<div class="graphviz" data-engine="dot">
+digraph G {
+  rankdir=TB; bgcolor="white"; fontname="Arial"; fontsize=9; compound=true; ranksep=0.3; nodesep=0.4;
+  node [fontname="Arial", fontsize=9, shape=rect, style="rounded", width=1.6, height=0.3];
+  edge [fontname="Arial", fontsize=8];
+  
+  subgraph cluster_gamer { label="Gamer"; style=dashed; color="#888"; fontsize=10;
+    start [label="Browse games" shape=rect style="filled" fillcolor="#f0f0f0"];
+    select [label="Select game" shape=rect style="filled" fillcolor="#f0f0f0"];
+    addcart [label="Add to cart" shape=rect style="filled" fillcolor="#f0f0f0"];
+    checkout [label="Checkout" shape=rect style="filled" fillcolor="#f0f0f0"];
+    pay [label="Pay on Stripe" shape=rect style="filled" fillcolor="#f0f0f0"];
+    end [label="View library" shape=rect style="filled" fillcolor="#f0f0f0"];
+    start -> select; select -> addcart; addcart -> checkout; checkout -> pay; pay -> end;
+  }
+  
+  subgraph cluster_system { label="System"; style=dashed; color="#888"; fontsize=10;
+    cart_empty [label="Cart empty?" shape=diamond style="filled" fillcolor="#fff3cd"];
+    valid_cart [label="Get cart items" shape=rect];
+    create_order [label="Create order\n(Pending)" shape=rect];
+    stripe_session [label="Create Stripe\nCheckout Session" shape=rect];
+    pay_success [label="Payment\nsucceeded?" shape=diamond style="filled" fillcolor="#fff3cd"];
+    webhook [label="Stripe webhook:\ncheckout.session.completed" shape=rect];
+    verify [label="Verify\nsession" shape=rect];
+    complete [label="Complete order\n(Completed)" shape=rect];
+    grant [label="Grant library\naccess" shape=rect];
+    notify [label="SendGrid receipt\n+ SignalR notify" shape=rect];
+  }
+  
+  addcart -> cart_empty; cart_empty -> valid_cart [label="No"]; cart_empty -> end [label="Yes"];
+  valid_cart -> create_order; create_order -> stripe_session; stripe_session -> pay;
+  pay -> pay_success; pay_success -> webhook [label="Yes"]; pay_success -> end [label="No / Cancel"];
+  webhook -> verify; verify -> complete; complete -> grant; grant -> notify; notify -> end;
+}
+</div>
+<p class="note">Activity diagram with swimlanes (Gamer / System). Diamond nodes represent decision points: cart empty check, payment success check, stripe session creation, and async webhook confirmation flow.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 11: State Diagram — Order & User Lifecycle          -->
+<!-- ============================================================ -->
+<h2>11. State Diagram — Order &amp; User Account States</h2>
+<p>The state diagram shows the lifecycle of an <strong>Order</strong> (left) and a <strong>User Account</strong> (right) as defined in the actual domain model enums.</p>
+
+<div class="graphviz" data-engine="dot">
+digraph G {
+  rankdir=LR; bgcolor="white"; fontname="Arial"; fontsize=9; compound=true; ranksep=0.5;
+  node [fontname="Arial", fontsize=9, shape=rect, style="rounded, filled", fillcolor="#f5f5f5", width=1.6, height=0.3];
+  edge [fontname="Arial", fontsize=8];
+  
+  subgraph cluster_order { label="Order (PaymentStatus)"; style=dashed; color="#888"; fontsize=10;
+    Pending [label="Pending"];
+    Completed [label="Completed"];
+    Failed [label="Failed"];
+    Refunded [label="Refunded"];
+    PartiallyRefunded [label="Partially\nRefunded"];
+    Pending -> Completed [label="Stripe webhook:\npayment_intent.succeeded"];
+    Pending -> Failed [label="Payment declined\n/ timeout"];
+    Completed -> Refunded [label="Admin approves\nrefund request"];
+    Completed -> PartiallyRefunded [label="Partial refund\nissued"];
+  }
+  
+  subgraph cluster_user { label="User Account"; style=dashed; color="#888"; fontsize=10;
+    Unverified [label="Unverified"];
+    Active [label="Active"];
+    Developer [label="Developer"];
+    Banned [label="Banned"];
+    Unverified -> Active [label="Email\nconfirmed"];
+    Active -> Developer [label="Dev app\napproved"];
+    Active -> Banned [label="Admin\nbans user"];
+    Developer -> Banned [label="Admin\nbans user"];
+    Banned -> Active [label="Admin\nunbans user"];
+    Developer -> Active [label="Admin\ndemotes"];
+  }
+}
+</div>
+<p class="note">Order states follow the PaymentStatus enum: Pending, Completed, Failed, Refunded, PartiallyRefunded. User account states model the full lifecycle from registration through verification, developer upgrade, and potential moderation actions.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 12: Wireframes & Mockups                            -->
+<!-- ============================================================ -->
+<h2>12. Wireframes &amp; Mockups</h2>
+<p>The following wireframes represent the key user-facing screens of the GameStore platform. Each wireframe corresponds to a real view file in the codebase.</p>
+
+<div style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:20px 0;">
+  <div style="border:1px solid #000;border-radius:6px;width:300px;padding:10px;background:#fafafa;">
+    <div style="border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px;font-weight:bold;font-size:13px;">Home Page (Views/Home/Index.cshtml)</div>
+    <svg width="280" height="180" viewBox="0 0 280 180"><rect x="0" y="0" width="280" height="180" fill="#fff" stroke="#000" stroke-width="1"/>
+      <rect x="10" y="8" width="80" height="20" rx="3" fill="#ddd" stroke="#000" stroke-width="0.5"/>
+      <rect x="100" y="8" width="80" height="20" rx="3" fill="#ddd" stroke="#000" stroke-width="0.5"/>
+      <rect x="190" y="8" width="80" height="20" rx="3" fill="#ddd" stroke="#000" stroke-width="0.5"/>
+      <rect x="10" y="38" width="260" height="28" rx="3" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="56" text-anchor="middle" font-family="Arial" font-size="7" fill="#666">Search bar</text>
+      <rect x="10" y="76" width="60" height="70" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <rect x="76" y="76" width="60" height="70" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <rect x="142" y="76" width="60" height="70" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <rect x="208" y="76" width="60" height="70" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="40" y="116" text-anchor="middle" font-family="Arial" font-size="6" fill="#999">Game 1</text>
+      <text x="106" y="116" text-anchor="middle" font-family="Arial" font-size="6" fill="#999">Game 2</text>
+      <text x="172" y="116" text-anchor="middle" font-family="Arial" font-size="6" fill="#999">Game 3</text>
+      <text x="238" y="116" text-anchor="middle" font-family="Arial" font-size="6" fill="#999">Game 4</text>
+      <rect x="90" y="156" width="100" height="16" rx="2" fill="#fff" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="167" text-anchor="middle" font-family="Arial" font-size="7" fill="#000">&lt; 1 2 3 ... &gt;</text>
+    </svg>
+    <div style="font-size:10px;color:#666;margin-top:4px;">Game grid with search, category filters, pagination</div>
+  </div>
+  <div style="border:1px solid #000;border-radius:6px;width:300px;padding:10px;background:#fafafa;">
+    <div style="border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px;font-weight:bold;font-size:13px;">Cart Page (Views/Cart/Index.cshtml)</div>
+    <svg width="280" height="180" viewBox="0 0 280 180"><rect x="0" y="0" width="280" height="180" fill="#fff" stroke="#000" stroke-width="1"/>
+      <rect x="10" y="8" width="260" height="24" rx="3" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="24" text-anchor="middle" font-family="Arial" font-size="8" font-weight="bold" fill="#000">Shopping Cart</text>
+      <rect x="10" y="40" width="40" height="40" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="60" y="56" font-family="Arial" font-size="7" fill="#000">Game A</text>
+      <text x="60" y="72" font-family="Arial" font-size="6" fill="#666">$19.99</text>
+      <rect x="240" y="50" width="30" height="16" rx="2" fill="#fff" stroke="#000" stroke-width="0.5"/>
+      <text x="255" y="61" text-anchor="middle" font-family="Arial" font-size="6" fill="#000">Del</text>
+      <line x1="10" y1="88" x2="270" y2="88" stroke="#ccc" stroke-width="0.5"/>
+      <rect x="10" y="96" width="40" height="40" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="60" y="112" font-family="Arial" font-size="7" fill="#000">Game B</text>
+      <text x="60" y="128" font-family="Arial" font-size="6" fill="#666">$9.99</text>
+      <rect x="240" y="106" width="30" height="16" rx="2" fill="#fff" stroke="#000" stroke-width="0.5"/>
+      <text x="255" y="117" text-anchor="middle" font-family="Arial" font-size="6" fill="#000">Del</text>
+      <line x1="10" y1="144" x2="270" y2="144" stroke="#ccc" stroke-width="0.5"/>
+      <text x="170" y="162" font-family="Arial" font-size="8" font-weight="bold" fill="#000">Total: $29.98</text>
+      <rect x="190" y="152" width="80" height="22" rx="3" fill="#333" stroke="#000" stroke-width="0.5"/>
+      <text x="230" y="167" text-anchor="middle" font-family="Arial" font-size="7" fill="#fff">Checkout</text>
+    </svg>
+    <div style="font-size:10px;color:#666;margin-top:4px;">Cart items with game thumbnails, prices, remove buttons, total and checkout CTA</div>
+  </div>
+  <div style="border:1px solid #000;border-radius:6px;width:300px;padding:10px;background:#fafafa;">
+    <div style="border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px;font-weight:bold;font-size:13px;">Library Page (Views/Library/Index.cshtml)</div>
+    <svg width="280" height="180" viewBox="0 0 280 180"><rect x="0" y="0" width="280" height="180" fill="#fff" stroke="#000" stroke-width="1"/>
+      <rect x="10" y="8" width="260" height="24" rx="3" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="24" text-anchor="middle" font-family="Arial" font-size="8" font-weight="bold" fill="#000">My Library</text>
+      <rect x="10" y="40" width="80" height="90" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="50" y="70" text-anchor="middle" font-family="Arial" font-size="7" fill="#000">Game A</text>
+      <rect x="20" y="100" width="60" height="16" rx="2" fill="#333" stroke="#000" stroke-width="0.5"/>
+      <text x="50" y="112" text-anchor="middle" font-family="Arial" font-size="6" fill="#fff">Download</text>
+      <rect x="100" y="40" width="80" height="90" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="70" text-anchor="middle" font-family="Arial" font-size="7" fill="#000">Game B</text>
+      <rect x="110" y="100" width="60" height="16" rx="2" fill="#333" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="112" text-anchor="middle" font-family="Arial" font-size="6" fill="#fff">Download</text>
+      <rect x="190" y="40" width="80" height="90" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="230" y="70" text-anchor="middle" font-family="Arial" font-size="7" fill="#000">Game C</text>
+      <rect x="200" y="100" width="60" height="16" rx="2" fill="#333" stroke="#000" stroke-width="0.5"/>
+      <text x="230" y="112" text-anchor="middle" font-family="Arial" font-size="6" fill="#fff">Download</text>
+      <rect x="90" y="155" width="100" height="16" rx="2" fill="#fff" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="166" text-anchor="middle" font-family="Arial" font-size="7" fill="#000">&lt; 1 2 3 ... &gt;</text>
+    </svg>
+    <div style="font-size:10px;color:#666;margin-top:4px;">Owned games grid with download buttons per game, pagination</div>
+  </div>
+  <div style="border:1px solid #000;border-radius:6px;width:300px;padding:10px;background:#fafafa;">
+    <div style="border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px;font-weight:bold;font-size:13px;">Admin Dashboard (Areas/Admin/Views/Dashboard/Index.cshtml)</div>
+    <svg width="280" height="180" viewBox="0 0 280 180"><rect x="0" y="0" width="280" height="180" fill="#fff" stroke="#000" stroke-width="1"/>
+      <rect x="10" y="8" width="260" height="24" rx="3" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="24" text-anchor="middle" font-family="Arial" font-size="8" font-weight="bold" fill="#000">Admin Dashboard</text>
+      <rect x="10" y="40" width="60" height="36" rx="2" fill="#f5f5f5" stroke="#000" stroke-width="0.5"/>
+      <text x="40" y="56" text-anchor="middle" font-family="Arial" font-size="7" font-weight="bold" fill="#000">1,234</text>
+      <text x="40" y="68" text-anchor="middle" font-family="Arial" font-size="5" fill="#666">Users</text>
+      <rect x="76" y="40" width="60" height="36" rx="2" fill="#f5f5f5" stroke="#000" stroke-width="0.5"/>
+      <text x="106" y="56" text-anchor="middle" font-family="Arial" font-size="7" font-weight="bold" fill="#000">56</text>
+      <text x="106" y="68" text-anchor="middle" font-family="Arial" font-size="5" fill="#666">Games</text>
+      <rect x="142" y="40" width="60" height="36" rx="2" fill="#f5f5f5" stroke="#000" stroke-width="0.5"/>
+      <text x="172" y="56" text-anchor="middle" font-family="Arial" font-size="7" font-weight="bold" fill="#000">$12K</text>
+      <text x="172" y="68" text-anchor="middle" font-family="Arial" font-size="5" fill="#666">Revenue</text>
+      <rect x="208" y="40" width="60" height="36" rx="2" fill="#f5f5f5" stroke="#000" stroke-width="0.5"/>
+      <text x="238" y="56" text-anchor="middle" font-family="Arial" font-size="7" font-weight="bold" fill="#000">89</text>
+      <text x="238" y="68" text-anchor="middle" font-family="Arial" font-size="5" fill="#666">Orders</text>
+      <rect x="10" y="84" width="260" height="18" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="96" text-anchor="middle" font-family="Arial" font-size="7" fill="#000">Chart: Revenue by Month</text>
+      <rect x="10" y="108" width="260" height="18" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="120" text-anchor="middle" font-family="Arial" font-size="7" fill="#000">Recent Orders table</text>
+      <rect x="10" y="132" width="260" height="18" rx="2" fill="#eee" stroke="#000" stroke-width="0.5"/>
+      <text x="140" y="144" text-anchor="middle" font-family="Arial" font-size="7" fill="#000">Pending Support Tickets</text>
+      <rect x="10" y="156" width="130" height="18" rx="2" fill="#333" stroke="#000" stroke-width="0.5"/>
+      <text x="75" y="168" text-anchor="middle" font-family="Arial" font-size="7" fill="#fff">Manage Games</text>
+      <rect x="146" y="156" width="124" height="18" rx="2" fill="#333" stroke="#000" stroke-width="0.5"/>
+      <text x="208" y="168" text-anchor="middle" font-family="Arial" font-size="7" fill="#fff">View Users</text>
+    </svg>
+    <div style="font-size:10px;color:#666;margin-top:4px;">Stats cards, revenue chart, recent orders, support tickets, quick-action buttons</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION 13: UI/UX Guidelines                                -->
+<!-- ============================================================ -->
+<h2>13. UI/UX Guidelines</h2>
+<p>The GameStore platform uses a custom dark cyberpunk theme defined in <code>site.css</code> and <code>developer.css</code>. Bootstrap 5 is used exclusively for structural grid classes; all visual styling is custom CSS. The design system is driven by CSS custom properties (variables).</p>
+
+<table>
+  <thead>
+    <tr><th>Category</th><th>Specification</th><th>CSS Variable / Implementation</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Primary Background</td><td>Dark (#0a0a0a) with subtle grain texture</td><td><code>--bg: #0a0a0a</code></td></tr>
+    <tr><td>Red Accent</td><td>Primary CTAs, badges, errors</td><td><code>--red: #ff4444</code></td></tr>
+    <tr><td>Gold Accent</td><td>Highlights, ratings, premium elements</td><td><code>--gold: #ffd700</code></td></tr>
+    <tr><td>Cyan Accent</td><td>Developer portal theme, links</td><td><code>--cyan: #00e5ff</code></td></tr>
+    <tr><td>Body Font</td><td>Rajdhani (Google Fonts), 16px, 1.6 line-height</td><td><code>--font-body: 'Rajdhani', sans-serif</code></td></tr>
+    <tr><td>Display Font</td><td>Orbitron (Google Fonts), uppercase, for headings</td><td><code>--font-display: 'Orbitron', sans-serif</code></td></tr>
+    <tr><td>Monospace Font</td><td>Share Tech Mono, for code/technical content</td><td><code>--font-mono: 'Share Tech Mono', monospace</code></td></tr>
+    <tr><td>Layout Structure</td><td>Three separate layouts: <code>_Layout.cshtml</code> (main), <code>_AdminLayout.cshtml</code>, <code>_DeveloperLayout.cshtml</code></td><td>Shared <code>_Layout</code> uses navbar + sidebar + main content region</td></tr>
+    <tr><td>Responsive Design</td><td>Bootstrap grid breakpoints for mobile/tablet/desktop</td><td>Navbar collapses to hamburger on mobile</td></tr>
+    <tr><td>Accessibility</td><td>High contrast text (#fff on #0a0a0a), <code>aria-label</code> on icon-only buttons, keyboard-navigable modals</td><td>Skip-to-content link, focus outlines on all interactive elements</td></tr>
+    <tr><td>Icons</td><td>Bootstrap Icons (main + admin) + Font Awesome 6 (main)</td><td>CDN-loaded icon libraries for consistent visual language</td></tr>
+    <tr><td>Form Elements</td><td>Dark input fields with light text, rounded corners, glow on focus</td><td>Custom <code>input</code>, <code>select</code>, <code>textarea</code> styles override Bootstrap defaults</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 14: Deployment Diagram                              -->
+<!-- ============================================================ -->
+<h2>14. Deployment Diagram</h2>
+<p>The deployment diagram shows the physical topology based on the real <code>docker-compose.yml</code> configuration. The application runs in three Docker containers orchestrated via Docker Compose, with optional IIS deployment for Windows environments.</p>
+
+<div class="graphviz" data-engine="dot">
+digraph G {
+  rankdir=TB; bgcolor="white"; fontname="Arial"; fontsize=9; compound=true; ranksep=0.4; nodesep=0.3;
+  node [fontname="Arial", fontsize=9, shape=rect, style="rounded, filled", fillcolor="#f5f5f5", width=1.6, height=0.3];
+  edge [fontname="Arial", fontsize=8];
+  
+  subgraph cluster_docker { label="Docker Compose Environment"; style=dashed; color="#888"; fontsize=10;
+    gamestore [label="gamestore container\nKestrel :8080/:8081\nGameStore.PL.dll\nASP.NET Core 8" fillcolor="#e8f0fe"];
+    sqlserver [label="sqlserver container\nSQL Server 2022\n:1433\nHealth: sqlcmd -C" fillcolor="#e8f0fe"];
+    redis [label="redis container\nRedis 7-alpine\n:6379\nHealth: redis-cli ping" fillcolor="#e8f0fe"];
+  }
+  
+  subgraph cluster_external { label="External Services"; style=dashed; color="#888"; fontsize=10;
+    stripe [label="Stripe API\nCheckout Sessions\nWebhooks"];
+    sendgrid [label="SendGrid API\nTransactional\nEmails"];
+    google [label="Google OAuth 2.0\nIdentity\nProvider"];
+    browser [label="User Browser\nChrome/Edge/Firefox\nSignalR WebSocket"];
+  }
+  
+  subgraph cluster_volumes { label="Persistent Volumes"; style=dashed; color="#888"; fontsize=10;
+    mssql [label="mssql-data\n/var/opt/mssql"];
+    rdata [label="redis-data\n/data"];
+    upld [label="uploads\n/app/wwwroot/uploads"];
+  }
+  
+  browser -> gamestore [label="HTTPS :5001"];
+  gamestore -> sqlserver [label="TCP :1433\nSQL connection"];
+  gamestore -> redis [label="TCP :6379\nRedis cache"];
+  gamestore -> stripe [label="HTTPS\nStripe API"];
+  gamestore -> sendgrid [label="HTTPS\nSendGrid API"];
+  gamestore -> google [label="HTTPS\nOAuth callback"];
+  sqlserver -> mssql [label="mount"];
+  redis -> rdata [label="mount"];
+  gamestore -> upld [label="mount"];
+}
+</div>
+<p class="note">Deployment diagram showing Docker Compose topology with three containers (gamestore, sqlserver, redis), three external services (Stripe, SendGrid, Google), and three persistent Docker volumes. The app is exposed on ports 5000 (HTTP) and 5001 (HTTPS).</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 15: Component Diagram                               -->
+<!-- ============================================================ -->
+<h2>15. Component Diagram</h2>
+<p>The component diagram illustrates the high-level software components and their dependencies. The four-project solution follows a strict layered architecture: Presentation (PL) depends on Business Logic (BLL) which depends on Data Access (DAL).</p>
+
+<div class="graphviz" data-engine="dot">
+digraph G {
+  rankdir=TB; bgcolor="white"; fontname="Arial"; fontsize=9; compound=true; ranksep=0.5; nodesep=0.3;
+  node [fontname="Arial", fontsize=9, shape=rect, style="rounded, filled", fillcolor="#f5f5f5", width=1.8, height=0.3];
+  edge [fontname="Arial", fontsize=8];
+  
+  subgraph cluster_pl { label="GameStore.PL (Presentation Layer)"; style=dashed; color="#888"; fontsize=10;
+    pl_controllers [label="33 Controllers\n17 Main + 11 Admin + 5 Developer"];
+    pl_views [label="62+ Views\n3 Layouts\n6 Partials"];
+    pl_hubs [label="SignalR Hubs\nNotificationHub\n/hub/notifications"];
+    pl_services [label="PL Services\nEmailService\nJsonFileStore\nCreditService\nRefundService\n..."];
+    pl_filters [label="Auth Filters\nAdminOnlyFilter\nDeveloperOnlyFilter"];
+  }
+  
+  subgraph cluster_bll { label="GameStore.BLL (Business Logic Layer)"; style=dashed; color="#888"; fontsize=10;
+    bll_ifaces [label="20 Service Interfaces\nIAuthService, ICartService,\nIOrderService, IGameService,\nIReviewService, ..."];
+    bll_impl [label="20 Service Implementations\nBusiness logic, validation,\nStripe/SendGrid orchestration"];
+    bll_mapping [label="AutoMapper 12\nMappingProfile\nEntity → ViewModel"];
+    bll_models [label="BLL Models\nPagedResult, MonthlyRevenue,\nTopGameSale, ..."];
+  }
+  
+  subgraph cluster_dal { label="GameStore.DAL (Data Access Layer)"; style=dashed; color="#888"; fontsize=10;
+    dal_entities [label="23 Domain Entities\nUser, Game, Order, Cart,\nReview, Library, ..."];
+    dal_enum [label="4 Enums\nRole, PaymentStatus,\nTicketStatus, RefundStatus"];
+    dal_db [label="GameStoreDbContext\nEF Core 9.0.8\nFluent API Config"];
+    dal_repo [label="IUnitOfWork / UnitOfWork\nIRepository&lt;T&gt; / EfRepository&lt;T&gt;\nGeneric CRUD"];
+  }
+  
+  subgraph cluster_infra { label="Infrastructure / External"; style=dashed; color="#888"; fontsize=10;
+    infra_stripe [label="Stripe\nCheckout Sessions\nWebhooks"];
+    infra_sendgrid [label="SendGrid\nEmail API"];
+    infra_signalr [label="SignalR\nWebSocket\nReal-time"];
+    infra_redis [label="Redis Cache\nDistributed\n(InMemory fallback)"];
+    infra_sql [label="SQL Server 2022\nRelational DB\n20 Migrations"];
+  }
+  
+  pl_controllers -> bll_ifaces [label="DI injection"];
+  pl_hubs -> bll_ifaces;
+  pl_services -> bll_ifaces;
+  bll_impl -> dal_entities;
+  bll_impl -> dal_repo;
+  bll_impl -> dal_db;
+  bll_impl -> infra_stripe;
+  bll_impl -> infra_sendgrid;
+  bll_impl -> infra_signalr;
+  dal_db -> infra_sql;
+  dal_db -> infra_redis;
+}
+</div>
+<p class="note">Component diagram showing four solution projects (PL, BLL, DAL, Tests) and external infrastructure services. Arrows indicate dependency direction: PL → BLL → DAL → SQL Server/Redis, with BLL also orchestrating Stripe, SendGrid, and SignalR.</p>
+
+<!-- ============================================================ -->
+<!-- SECTION 16: API Documentation                               -->
+<!-- ============================================================ -->
+<h2>16. API Documentation</h2>
+<p>The following tables document all 33 controllers and their action endpoints. The project uses conventional MVC routing (not a REST API), with the exception of the Stripe webhook which uses <code>[ApiController]</code> and <code>[Route("stripe/webhook")]</code>.</p>
+
+<h3>Main Area Controllers (17)</h3>
+<table>
+  <thead>
+    <tr><th>Controller</th><th>Method</th><th>Route</th><th>Auth</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td rowspan="16">AuthController</td><td>GET</td><td>/Auth/Login</td><td>—</td><td>Login form</td></tr>
+    <tr><td>POST</td><td>/Auth/Login</td><td>Rate: 10/min</td><td>Authenticate user, set session + cookie</td></tr>
+    <tr><td>GET</td><td>/Auth/Register</td><td>—</td><td>Registration form</td></tr>
+    <tr><td>POST</td><td>/Auth/Register</td><td>Rate: 3/10min</td><td>Create account, send verification email</td></tr>
+    <tr><td>GET</td><td>/Auth/VerifyEmail</td><td>Rate: 10/min</td><td>Confirm email via token</td></tr>
+    <tr><td>GET</td><td>/Auth/ResendVerification</td><td>Rate: 3/15min</td><td>Resend verification email</td></tr>
+    <tr><td>GET</td><td>/Auth/ExternalLogin</td><td>—</td><td>Google OAuth challenge</td></tr>
+    <tr><td>GET</td><td>/Auth/ExternalCallback</td><td>—</td><td>Google OAuth callback handler</td></tr>
+    <tr><td>GET</td><td>/Auth/Logout</td><td>—</td><td>Clear session + cookie</td></tr>
+    <tr><td>GET</td><td>/Auth/ForgotPassword</td><td>—</td><td>Forgot password form</td></tr>
+    <tr><td>POST</td><td>/Auth/ForgotPassword</td><td>—</td><td>Send reset token email</td></tr>
+    <tr><td>GET</td><td>/Auth/ResetPassword</td><td>—</td><td>Reset password form (token)</td></tr>
+    <tr><td>POST</td><td>/Auth/ResetPassword</td><td>—</td><td>Reset password</td></tr>
+    <tr><td>GET</td><td>/Auth/CheckUsername</td><td>—</td><td>Check username availability (JSON)</td></tr>
+    <tr><td>GET</td><td>/Auth/VerifyEmailNotice</td><td>—</td><td>Notice to verify email first</td></tr>
+    <tr><td>GET/POST</td><td>/Auth/CompleteRegistration</td><td>—</td><td>Complete OAuth registration</td></tr>
+    <tr><td>BecomeDeveloperController</td><td>GET/POST</td><td>/BecomeDeveloper/Index</td><td>Session</td><td>Submit developer application</td></tr>
+    <tr><td rowspan="7">CartController</td><td>GET</td><td>/Cart/Index</td><td>Session</td><td>View cart</td></tr>
+    <tr><td>POST</td><td>/Cart/AddToCart</td><td>Session</td><td>Add game to cart (JSON body)</td></tr>
+    <tr><td>POST</td><td>/Cart/Remove</td><td>Session</td><td>Remove item from cart</td></tr>
+    <tr><td>POST</td><td>/Cart/Checkout</td><td>Session</td><td>Create Stripe Session, redirect to Stripe</td></tr>
+    <tr><td>GET</td><td>/Cart/Success</td><td>Session</td><td>Post-payment confirmation page</td></tr>
+    <tr><td>GET</td><td>/Cart/Cancel</td><td>—</td><td>Payment cancelled by user</td></tr>
+    <tr><td>GET</td><td>/Cart/GetCount</td><td>Session</td><td>Get cart item count (JSON)</td></tr>
+    <tr><td rowspan="3">ChatController</td><td>GET</td><td>/Chat/Index</td><td>Session</td><td>Chat UI with user</td></tr>
+    <tr><td>GET</td><td>/Chat/GetMessages</td><td>Session</td><td>Paginated message history (JSON)</td></tr>
+    <tr><td>GET</td><td>/Chat/GetUnreadCount</td><td>Session</td><td>Unread message count (JSON)</td></tr>
+    <tr><td rowspan="8">FriendsController</td><td>GET</td><td>/Friends/Index</td><td>Session</td><td>Friends list + chat</td></tr>
+    <tr><td>GET</td><td>/Friends/Requests</td><td>Session</td><td>Pending friend requests</td></tr>
+    <tr><td>POST</td><td>/Friends/SendRequest</td><td>Session</td><td>Send friend request by username</td></tr>
+    <tr><td>POST</td><td>/Friends/AcceptRequest</td><td>Session</td><td>Accept friend request</td></tr>
+    <tr><td>POST</td><td>/Friends/RejectRequest</td><td>Session</td><td>Reject friend request</td></tr>
+    <tr><td>POST</td><td>/Friends/RemoveFriend</td><td>Session</td><td>Remove friend</td></tr>
+    <tr><td>GET</td><td>/Friends/GetNotificationData</td><td>Session</td><td>Friend notification data (JSON)</td></tr>
+    <tr><td>GET</td><td>/Friends/Search</td><td>Session</td><td>Search users by query (JSON)</td></tr>
+    <tr><td rowspan="5">HomeController</td><td>GET</td><td>/Home/Index</td><td>—</td><td>Home page with game grid</td></tr>
+    <tr><td>GET</td><td>/Home/Privacy</td><td>—</td><td>Privacy policy</td></tr>
+    <tr><td>GET</td><td>/Home/Error</td><td>—</td><td>Error page</td></tr>
+    <tr><td>GET</td><td>/Home/GetRequirements</td><td>—</td><td>Game system requirements (JSON)</td></tr>
+    <tr><td>GET</td><td>/Home/GetVersions</td><td>—</td><td>Game version list (JSON)</td></tr>
+    <tr><td rowspan="4">LibraryController</td><td>GET</td><td>/Library/Index</td><td>Session</td><td>Owned games library</td></tr>
+    <tr><td>GET</td><td>/Library/Download</td><td>Session</td><td>Download game file</td></tr>
+    <tr><td>GET</td><td>/Library/PreviewDownload</td><td>Session</td><td>Download pre-release game (preview)</td></tr>
+    <tr><td rowspan="6">NotificationsController</td><td>GET</td><td>/Notifications/GetUnreadCount</td><td>Session</td><td>Unread notification count (JSON)</td></tr>
+    <tr><td>GET</td><td>/Notifications/GetRecent</td><td>Session</td><td>Recent notifications (JSON)</td></tr>
+    <tr><td>POST</td><td>/Notifications/MarkAsRead</td><td>Session</td><td>Mark notification read</td></tr>
+    <tr><td>POST</td><td>/Notifications/MarkAllAsRead</td><td>Session</td><td>Mark all notifications read</td></tr>
+    <tr><td>GET</td><td>/Notifications/GetAdminNotificationData</td><td>Session + Admin</td><td>Admin notification data (JSON)</td></tr>
+    <tr><td>OrdersController</td><td>GET</td><td>/Orders/Index</td><td>Session</td><td>Order history</td></tr>
+    <tr><td>OrdersController</td><td>GET</td><td>/Orders/Details</td><td>Session</td><td>Order details</td></tr>
+    <tr><td>ProfileController</td><td>GET/POST</td><td>/Profile/Index</td><td>—</td><td>Public profile (GET) / Edit profile (POST)</td></tr>
+    <tr><td>RefundsController</td><td>GET/POST</td><td>/Refunds/Index</td><td>Session</td><td>Refund requests list / Submit refund</td></tr>
+    <tr><td>ReviewsController</td><td>POST</td><td>/Reviews/AddReview</td><td>Session</td><td>Submit game review (JSON)</td></tr>
+    <tr><td>StripeWebhookController</td><td>POST</td><td>/stripe/webhook</td><td>Signature</td><td>Stripe webhook endpoint (API controller)</td></tr>
+    <tr><td>SupportController</td><td>GET/POST</td><td>/Support/Index</td><td>—</td><td>Submit support ticket (public)</td></tr>
+    <tr><td>SupportController</td><td>GET</td><td>/Support/MyTickets</td><td>Session</td><td>User's support tickets</td></tr>
+    <tr><td>SupportController</td><td>GET/POST</td><td>/Support/Details</td><td>Session</td><td>Ticket details + reply</td></tr>
+    <tr><td>WishlistController</td><td>GET</td><td>/Wishlist/Index</td><td>Session</td><td>Wishlist items</td></tr>
+    <tr><td>WishlistController</td><td>POST</td><td>/Wishlist/ToggleWishlist</td><td>Session</td><td>Toggle game in wishlist (JSON)</td></tr>
+    <tr><td>DevelopersController</td><td>GET</td><td>/Developers/Index</td><td>—</td><td>Public developer directory</td></tr>
+  </tbody>
+</table>
+
+<h3>Admin Area Controllers (11)</h3>
+<table>
+  <thead>
+    <tr><th>Controller</th><th>Route Prefix</th><th>Actions</th><th>Auth</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>DashboardController</td><td>/Admin/Dashboard</td><td>Index</td><td>AdminOnly</td></tr>
+    <tr><td>GamesController</td><td>/Admin/Games</td><td>Index, Create, Edit, Delete, AddScreenshot, RemoveScreenshot, SaveRequirements, GetRequirements, GetVersions, UploadVersion, DeleteVersion, SetCurrentVersion</td><td>AdminOnly</td></tr>
+    <tr><td>UsersController</td><td>/Admin/Users</td><td>Index, Details, ChangeRole, Delete</td><td>AdminOnly</td></tr>
+    <tr><td>CategoriesController</td><td>/Admin/Categories</td><td>Index, Create, Edit, Delete</td><td>AdminOnly</td></tr>
+    <tr><td>OrdersController</td><td>/Admin/Orders</td><td>Index</td><td>AdminOnly</td></tr>
+    <tr><td>ReviewsController</td><td>/Admin/Reviews</td><td>Index, Delete</td><td>AdminOnly</td></tr>
+    <tr><td>DevelopersController</td><td>/Admin/Developers</td><td>Index, Details, Edit, Demote, Delete, Reactivate</td><td>AdminOnly</td></tr>
+    <tr><td>DeveloperApplicationsController</td><td>/Admin/DeveloperApplications</td><td>Index, Approve, Reject</td><td>AdminOnly</td></tr>
+    <tr><td>SalesController</td><td>/Admin/Sales</td><td>Index, Approve, Reject</td><td>AdminOnly</td></tr>
+    <tr><td>RefundsController</td><td>/Admin/Refunds</td><td>Index, Approve, Reject</td><td>AdminOnly</td></tr>
+    <tr><td>SupportTicketsController</td><td>/Admin/SupportTickets</td><td>Index, Details, Reply, UpdateStatus, Delete</td><td>AdminOnly</td></tr>
+  </tbody>
+</table>
+
+<h3>Developer Area Controllers (5)</h3>
+<table>
+  <thead>
+    <tr><th>Controller</th><th>Route Prefix</th><th>Actions</th><th>Auth</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>DashboardController</td><td>/Developer/Dashboard</td><td>Index</td><td>DeveloperOnly</td></tr>
+    <tr><td>GamesController</td><td>/Developer/Games</td><td>Index, Create, Edit, Delete, SaveRequirements, GetRequirements, GetVersions, UploadVersion, DeleteVersion, SetCurrentVersion</td><td>DeveloperOnly</td></tr>
+    <tr><td>SalesController</td><td>/Developer/Sales</td><td>Index, Create</td><td>DeveloperOnly</td></tr>
+    <tr><td>ReviewsController</td><td>/Developer/Reviews</td><td>Index</td><td>DeveloperOnly</td></tr>
+    <tr><td>ProfileController</td><td>/Developer/Profile</td><td>Index, Save</td><td>DeveloperOnly</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<!-- SECTION 17: Testing & Validation                            -->
+<!-- ============================================================ -->
+<h2>17. Testing &amp; Validation</h2>
+<p>The testing strategy covers all 20 BLL service interfaces with <strong>185 xUnit tests</strong> across <strong>17 test files</strong>. The complete testing documentation is in the <a href="../06-testing/06-testing.html">Testing Report</a>.</p>
+
+<table>
+  <thead>
+    <tr><th>Metric</th><th>Value</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Test Framework</td><td>xUnit 2.9.3</td><td>Industry-standard for .NET unit testing</td></tr>
+    <tr><td>Mocking</td><td>Moq 4.20.72</td><td>All external dependencies (IUnitOfWork, services) mocked</td></tr>
+    <tr><td>Assertions</td><td>FluentAssertions 6.12.2</td><td>Readable, chainable assertions</td></tr>
+    <tr><td>Code Coverage</td><td>87% lines (target)</td><td>Measured via coverlet</td></tr>
+    <tr><td>CI Integration</td><td>GitHub Actions</td><td>Tests run against real SQL Server + Redis containers</td></tr>
+    <tr><td>Test Pattern</td><td>AAA (Arrange-Act-Assert)</td><td>Consistent across all test files</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Key test files and their coverage:</strong></p>
+<ul>
+  <li><code>AuthServiceTests.cs</code> — Login, Register, ChangePassword, ResetPassword, OAuth flows (18 tests)</li>
+  <li><code>OrderServiceTests.cs</code> — CompleteCheckout, CompleteFreeCheckout, transaction handling, sale application (22 tests)</li>
+  <li><code>CartServiceTests.cs</code> — AddToCart, RemoveFromCart, GetCartItems, pre-release guards (10 tests)</li>
+  <li><code>GameServiceTests.cs</code> — CRUD, pagination, filtering, inactive developer filter (15 tests)</li>
+  <li><code>UserServiceTests.cs</code> — ChangeRole, Delete, self-demotion guard (12 tests)</li>
+  <li><code>FriendServiceTests.cs</code> — SendRequest, AcceptRequest, auto-accept logic (10 tests)</li>
+  <li><code>ReviewServiceTests.cs</code> — CreateReview, duplicate prevention, ownership validation (8 tests)</li>
+  <li><code>SaleServiceTests.cs</code> — Create, Approve, Reject, pending sale cancellation (10 tests)</li>
+  <li><em>(9 more test files covering remaining services)</em></li>
+</ul>
+
+<!-- ============================================================ -->
+<!-- SECTION 18: Deployment Strategy                             -->
+<!-- ============================================================ -->
+<h2>18. Deployment Strategy</h2>
+<p>The GameStore platform supports three deployment modes, each with specific infrastructure requirements and configuration.</p>
+
+<h3>Option 1: Docker Compose (Recommended)</h3>
+<table>
+  <thead>
+    <tr><th>Component</th><th>Image / Config</th><th>Port</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Web Application</td><td>Custom Dockerfile (multi-stage build, .NET 8 SDK → runtime)</td><td>8080 (HTTP) / 8081 (HTTPS)</td><td>Health check depends on SQL + Redis</td></tr>
+    <tr><td>Database</td><td>mcr.microsoft.com/mssql/server:2022-latest</td><td>1433</td><td>Persistent volume mssql-data; SA password via env var</td></tr>
+    <tr><td>Cache</td><td>redis:7-alpine</td><td>6379</td><td>Persistent volume redis-data; AOF persistence</td></tr>
+    <tr><td>Uploads</td><td>Docker volume</td><td>—</td><td>Game files, screenshots, user avatars persisted</td></tr>
+  </tbody>
+</table>
+<p><strong>Command:</strong> <code>docker compose up -d</code> (from repository root). App available at <code>http://localhost:5000</code>.</p>
+
+<h3>Option 2: IIS / Windows Server</h3>
+<p>The <code>web.config</code> at the repository root configures <code>AspNetCoreModuleV2</code> to host the application behind IIS. Requires .NET 8 Runtime and SQL Server installed on the Windows Server machine.</p>
+
+<h3>Option 3: Manual (Development)</h3>
+<p><strong>Prerequisites:</strong> .NET 8 SDK, SQL Server LocalDB or Express, Redis (optional, falls back to in-memory cache).</p>
+<p><strong>Steps:</strong> Configure User Secrets (Stripe, SendGrid, Google OAuth), update connection string in <code>appsettings.json</code>, run <code>dotnet run --project Game-Store</code>. Database migrations and seed data apply automatically.</p>
+
+<h3>CI/CD Pipeline</h3>
+<p>The GitHub Actions workflow (defined in <code>.github/workflows/ci.yml</code>) runs on every push/PR, provisioning SQL Server + Redis as Docker service containers for integration testing. Successful pipelines produce a deployable <code>gamestore-app</code> artifact.</p>
+
+<h3>Scaling Considerations</h3>
+<ul>
+  <li><strong>Database:</strong> SQL Server connection pooling via <code>MultipleActiveResultSets=true</code>. Read replicas can be added for reporting queries (OrderAnalyticsService).</li>
+  <li><strong>Cache:</strong> Redis Sentinel or Cluster for high-availability distributed caching. Current implementation falls back to <code>DistributedMemoryCache</code> when Redis is unavailable.</li>
+  <li><strong>Application:</strong> Horizontal scaling behind a load balancer with sticky sessions (Session state) and SignalR backplane for WebSocket scale-out.</li>
+  <li><strong>File Storage:</strong> Game files stored on Docker volumes; production should migrate to Azure Blob / AWS S3 for durability and CDN delivery.</li>
+</ul>
+
+<!-- ============================================================ -->
+<!-- SECTION 19: Functional & Non-Functional Requirements        -->
+<!-- ============================================================ -->
+<h2>19. Functional &amp; Non-Functional Requirements Summary</h2>
+<p>The complete requirements specification is documented in the <a href="../03-requirements/03-requirements.html">Requirements Report</a>. This section provides a high-level summary of the 71 functional requirements and 22 non-functional requirements.</p>
+
+<h3>Functional Requirements by Module</h3>
+<table>
+  <thead>
+    <tr><th>Module</th><th>FR Count</th><th>Key Requirements</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Authentication &amp; Account</td><td>14</td><td>FR-01 to FR-14: Register, Login, Logout, Google OAuth, Email verification, Password reset, Profile management, External account linking</td></tr>
+    <tr><td>Game Catalog</td><td>10</td><td>FR-15 to FR-24: Browse games, Search &amp; filter, Game details with screenshots, System requirements, Version history, Developer information</td></tr>
+    <tr><td>Shopping Cart &amp; Orders</td><td>10</td><td>FR-25 to FR-34: Add/remove from cart, Cart persistence, Checkout with Stripe, Order history, Order details, Free checkout</td></tr>
+    <tr><td>Library &amp; Downloads</td><td>6</td><td>FR-35 to FR-40: View owned games, Download game files, Pre-release download access, Game library management</td></tr>
+    <tr><td>Wishlist &amp; Reviews</td><td>8</td><td>FR-41 to FR-48: Add/remove wishlist, Toggle wishlist, Submit review (1-5 stars), Edit/delete review</td></tr>
+    <tr><td>Social Features</td><td>9</td><td>FR-49 to FR-57: Friends list, Send/accept/reject friend requests, Real-time chat, User posts, Friend suggestions</td></tr>
+    <tr><td>Developer Portal</td><td>6</td><td>FR-58 to FR-63: Developer application, Game publishing, Sales/promotions, Dashboard analytics, Revenue reports</td></tr>
+    <tr><td>Admin Panel</td><td>8</td><td>FR-64 to FR-71: User management, Game moderation, Category management, Order management, Refund processing, Support ticket management, Developer application approval</td></tr>
+  </tbody>
+</table>
+
+<h3>Non-Functional Requirements</h3>
+<table>
+  <thead>
+    <tr><th>Category</th><th>Count</th><th>Key Requirements</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Performance</td><td>5</td><td>Page load &lt; 2s (p95), Output cache 10 min TTL, Response compression Brotli/Gzip, Redis cache with in-memory fallback</td></tr>
+    <tr><td>Security</td><td>6</td><td>BCrypt password hashing (legacy SHA256), Cookie auth (HttpOnly/Secure/SameSite), Anti-forgery tokens, Rate limiting on auth (10/min), SQL injection protection via EF Core</td></tr>
+    <tr><td>Usability</td><td>4</td><td>Responsive design (mobile/tablet/desktop), Dark theme with high contrast, Keyboard navigation, Screen reader support via aria-labels</td></tr>
+    <tr><td>Reliability</td><td>4</td><td>99.9% uptime target, Stripe webhook idempotency, Transactional order completion, Health check endpoint at /health</td></tr>
+    <tr><td>Scalability</td><td>3</td><td>Horizontal scaling support, Redis Sentinel for HA, Read replicas for analytics queries</td></tr>
+  </tbody>
+</table>
+
+</div><!-- /.container -->
+
+<script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.9.0/lib/viz-standalone.js"></script>
+<script>
+async function renderGraphviz() {
+  const viz = await Viz.instance();
+  document.querySelectorAll('.graphviz').forEach(function(el) {
+    try {
+      var dot = el.textContent.trim();
+      var svg = viz.renderString(dot, {format:'svg', engine: el.dataset.engine || 'dot'});
+      el.innerHTML = svg;
+    } catch(e) { console.error('Viz.js render error:', e); }
+  });
+}
+renderGraphviz();
+</script>
+
+</body>
+</html>

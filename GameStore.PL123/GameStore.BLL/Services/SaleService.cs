@@ -40,6 +40,33 @@ namespace GameStore.BLL.Services
                 .ToListAsync();
         }
 
+        public async Task<PagedResult<Sale>> GetByDeveloperAsync(string developerId, int page, int pageSize = 10)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _uow.Repository<Sale>().Query()
+                .Include(s => s.Game)
+                .Where(s => s.DeveloperId == developerId)
+                .OrderByDescending(s => s.CreatedAt)
+                .AsNoTracking();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Sale>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+        }
+
         public async Task<List<Sale>> GetActiveSalesByGameIdsAsync(List<string> gameIds)
         {
             if (gameIds == null || gameIds.Count == 0)
@@ -63,7 +90,13 @@ namespace GameStore.BLL.Services
             if (endDate <= startDate)
                 return (false, "End date must be after start date.");
 
-            if (endDate <= DateTime.UtcNow)
+            // Unspecified kind means browser-sent date in Egypt local time; Utc/Local means already normalized
+            var isEgyptLocal = endDate.Kind == DateTimeKind.Unspecified;
+            var egyptTz = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+            var now = isEgyptLocal
+                ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, egyptTz)
+                : DateTime.UtcNow;
+            if (endDate <= now)
                 return (false, "End date must be in the future.");
 
             if (newPrice < 0.01m)
@@ -78,6 +111,13 @@ namespace GameStore.BLL.Services
 
             if (newPrice >= game.Price)
                 return (false, "Sale price must be less than the original price.");
+
+            var startUtc = isEgyptLocal
+                ? TimeZoneInfo.ConvertTimeToUtc(startDate, egyptTz)
+                : startDate.ToUniversalTime();
+            var endUtc = isEgyptLocal
+                ? TimeZoneInfo.ConvertTimeToUtc(endDate, egyptTz)
+                : endDate.ToUniversalTime();
 
             await _uow.BeginTransactionAsync();
             try
@@ -98,8 +138,8 @@ namespace GameStore.BLL.Services
                     GameId = gameId,
                     DeveloperId = developerId,
                     NewPrice = newPrice,
-                    StartDate = startDate,
-                    EndDate = endDate,
+                    StartDate = startUtc,
+                    EndDate = endUtc,
                     Status = SaleStatus.Pending
                 };
 

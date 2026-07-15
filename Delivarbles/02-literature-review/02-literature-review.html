@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Literature Review - GameStore Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.9.0/lib/viz-standalone.js"></script>
+<script>
+async function renderGraphviz() {
+  const viz = await Viz.instance();
+  document.querySelectorAll('.graphviz').forEach(function(el) {
+    try {
+      var dot = el.textContent.trim();
+      var svg = viz.renderString(dot, {format:'svg', engine:'dot'});
+      el.innerHTML = svg;
+    } catch(e) { console.error('Graphviz error', e); }
+  });
+}
+renderGraphviz();
+</script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; color: #000; background: #fff; line-height: 1.7; max-width: 1200px; margin: 0 auto; padding: 50px 60px; }
+h1 { font-size: 32px; text-align: center; margin-bottom: 10px; padding-bottom: 15px; border-bottom: 2px solid #000; }
+h2 { font-size: 20px; margin-top: 60px; margin-bottom: 22px; padding-bottom: 10px; border-bottom: 1px solid #999; }
+h3 { font-size: 16px; margin-top: 36px; margin-bottom: 16px; }
+p { margin-bottom: 18px; line-height: 1.8; text-align: justify; }
+.section-desc { font-size: 14px; color: #666; margin-bottom: 20px; }
+table { width: 100%; border-collapse: collapse; margin: 15px 0 28px 0; font-size: 13px; }
+th, td { border: 1px solid #999; padding: 12px 16px; text-align: left; vertical-align: top; }
+th { background: #f5f5f5; font-weight: bold; color: #000; }
+td { background: #fff; color: #000; }
+tr:nth-child(even) td { background: #f5f5f5; }
+.graphviz { text-align: center; background: #fff; margin: 30px 0; padding: 25px; border: 1px solid #ddd; border-radius: 4px; min-height: 60px; }
+.graphviz svg { max-width: 100%; height: auto; }
+ol, ul { margin: 10px 0 15px 25px; }
+li { margin-bottom: 6px; }
+.bibliography { margin-top: 10px; }
+.bibliography p { text-align: left; padding-left: 36px; text-indent: -36px; margin-bottom: 8px; font-size: 14px; }
+.suggestions li { margin-bottom: 10px; }
+@media print { body { padding: 0; } .graphviz { break-inside: avoid; } }
+</style>
+</head>
+<body>
+
+<h1>Literature Review &mdash; GameStore Platform</h1>
+
+<h2>1. Market Context</h2>
+
+<p>The global gaming market surpassed $205 billion in annual revenue as of 2025, with digital distribution accounting for over 90% of all game sales. Platforms such as Steam, the Epic Games Store, GOG, and Itch.io have reshaped how developers publish and consumers discover games. The rise of subscription services, cloud gaming, and user-generated content continues to drive platform evolution. GameStore enters this space as an ASP.NET Core 8.0 MVC platform built on a modern .NET stack with SQL Server, Redis caching, and SignalR real-time features&mdash;targeting a developer-friendly niche with transparent revenue sharing and integrated community tooling.</p>
+
+<h2>2. Market Segment Distribution</h2>
+
+<p>The gaming market spans multiple segments, each with distinct distribution and revenue models:</p>
+
+<div class="graphviz" style="text-align:center; background:#fff;">
+digraph G {
+  rankdir=TB;
+  graph [bgcolor="white", fontname="Arial"];
+  node [fontname="Arial", shape="box", style="rounded", width=2, height=0.6];
+  "Mobile Gaming\n51%";
+  "Console Gaming\n25%";
+  "PC Gaming\n20%";
+  "Browser Gaming\n4%";
+}
+</div>
+
+<p>Mobile gaming leads at 51%, driven by smartphone proliferation and free-to-play models. Console gaming holds 25%, sustained by first-party exclusives and digital storefronts. PC gaming accounts for 20%, supported by digital platforms like Steam and Itch.io. Browser gaming retains 4%, largely through legacy titles and casual web games.</p>
+
+<h2>3. Competitive Analysis</h2>
+
+<p>A feature comparison of the major digital game distribution platforms reveals key differentiation points. GameStore positions itself with a competitive 85/15 revenue split, built-in real-time features via SignalR, and a .NET 8 MVC architecture that offers familiar tooling for the Microsoft ecosystem.</p>
+
+<h3>Feature Comparison Matrix</h3>
+
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Steam</th>
+<th>Epic Games Store</th>
+<th>GOG</th>
+<th>Itch.io</th>
+<th>GameStore</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Revenue Share</td><td>70/30 (tiered)</td><td>88/12</td><td>70/30</td><td>90/10 (optional)</td><td>85/15</td></tr>
+<tr><td>DRM</td><td>Steam DRM (opt)</td><td>Minimal</td><td>None (DRM-free)</td><td>None (optional)</td><td>Optional</td></tr>
+<tr><td>Real-time Features</td><td>Friends, chat</td><td>Friends list</td><td>None</td><td>Comments</td><td>SignalR chat + notifications</td></tr>
+<tr><td>Cloud Saves</td><td>Yes</td><td>Yes</td><td>Yes (GOG Galaxy)</td><td>No</td><td>Yes</td></tr>
+<tr><td>Refund Policy</td><td>2h / 14d</td><td>2h / 14d</td><td>30 days</td><td>Seller-defined</td><td>2h / 14d</td></tr>
+<tr><td>Mod Support</td><td>Steam Workshop</td><td>None</td><td>Manual</td><td>Manual</td><td>Mod hub (dev-defined)</td></tr>
+<tr><td>Mobile Access</td><td>Steam Link app</td><td>None</td><td>GOG Galaxy mobile</td><td>Responsive web</td><td>Responsive Bootstrap 5</td></tr>
+<tr><td>Review System</td><td>User reviews</td><td>User ratings</td><td>User ratings</td><td>User ratings</td><td>User reviews + curator</td></tr>
+<tr><td>Wishlist</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Bundles</td><td>Yes</td><td>No</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Regional Pricing</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Developer-set</td><td>Yes</td></tr>
+<tr><td>API Access</td><td>Steamworks API</td><td>EOS</td><td>GOG Galaxy API</td><td>Butler API</td><td>MVC controllers + webhook</td></tr>
+<tr><td>Developer Analytics</td><td>Steamworks insights</td><td>Basic analytics</td><td>Basic stats</td><td>Basic stats</td><td>Sales dashboard (admin)</td></tr>
+<tr><td>Auth Methods</td><td>Steam account</td><td>Epic account</td><td>GOG account</td><td>Email + OAuth</td><td>Cookie + Google OAuth</td></tr>
+</tbody>
+</table>
+
+<h3>Competitive Positioning</h3>
+
+<p>The strategic positioning of each platform relative to revenue share and feature depth:</p>
+
+<div class="graphviz" style="text-align:center; background:#fff;">
+digraph {
+  rankdir=LR;
+  graph [bgcolor="white", fontname="Arial"];
+  node [fontname="Arial", shape="box", style="rounded"];
+  "Steam" -> "Market Leader (70/30)";
+  "Epic Games" -> "88/12 + Exclusives";
+  "GOG" -> "DRM-Free + Galaxy";
+  "Itch.io" -> "Open / Indie-First";
+  "GameStore" -> "85/15 + .NET 8 MVC";
+}
+</div>
+
+<p>Steam dominates through network effects and feature breadth. Epic competes on revenue share and exclusive titles. GOG differentiates with a strict DRM-free policy and curated catalog. Itch.io serves the indie and experimental scene with maximum developer flexibility. GameStore occupies a unique position: a .NET 8 MVC storefront with competitive 85/15 revenue split, SignalR-powered social features, and deep integration with the Microsoft ecosystem through EF Core 9, SQL Server, and Redis.</p>
+
+<h2>4. Market Gap Analysis</h2>
+
+<p>Key unmet needs in the current digital distribution landscape include:</p>
+
+<ul>
+<li><strong>Opaque discovery algorithms:</strong> Steam's recommendation engine favours established titles, burying indie games under thousands of releases.</li>
+<li><strong>Limited developer analytics:</strong> Most platforms provide only basic sales figures without conversion funnels, demographic data, or A/B testing.</li>
+<li><strong>Insufficient direct-to-consumer relationships:</strong> Developers lack channels for direct communication with their audience beyond store reviews.</li>
+<li><strong>Fragmented real-time social features:</strong> No major platform combines integrated chat, friend lists, notifications, and community feeds within a single web-native interface.</li>
+<li><strong>Platform lock-in:</strong> Proprietary SDKs (Steamworks, EOS) create dependency and limit portability.</li>
+</ul>
+
+<p>GameStore directly addresses these gaps by implementing SignalR for real-time chat and notifications, cookie + Google OAuth authentication with three role-based authorization tiers (Admin, Developer, Customer), a Redis-backed output caching layer for performance, and transparent discovery via category browsing and curator reviews.</p>
+
+<h2>5. Technology Stack Comparison</h2>
+
+<p>The following table compares the architectural layers of major platforms against the GameStore stack, with actual version numbers from the codebase:</p>
+
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Steam</th>
+<th>Epic Games</th>
+<th>Itch.io</th>
+<th>GameStore</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Framework</td><td>C++ (custom)</td><td>C++ (Unreal)</td><td>Ruby on Rails</td><td>ASP.NET Core 8.0</td></tr>
+<tr><td>Architecture</td><td>Custom monolith</td><td>Microservices</td><td>MVC monolith</td><td>MVC (1 API: StripeWebhook)</td></tr>
+<tr><td>ORM</td><td>Proprietary</td><td>Custom</td><td>Active Record</td><td>EF Core 9.0.8</td></tr>
+<tr><td>Database</td><td>Proprietary</td><td>Custom (multiple)</td><td>PostgreSQL</td><td>SQL Server 2022 (Docker)</td></tr>
+<tr><td>Cache</td><td>Custom CDN</td><td>Custom CDN</td><td>Cloudflare</td><td>Output Cache + Redis 7</td></tr>
+<tr><td>Real-time</td><td>Internal protocol</td><td>EOS subsystems</td><td>WebSockets (ActionCable)</td><td>SignalR 8.0 (/hub/notifications)</td></tr>
+<tr><td>Payments</td><td>Steam Wallet</td><td>Multiple providers</td><td>Stripe + PayPal</td><td>Stripe.net 52.1 (Checkout + Webhooks)</td></tr>
+<tr><td>Email</td><td>Internal</td><td>Internal</td><td>SendGrid</td><td>SendGrid 9.29.3</td></tr>
+<tr><td>Frontend</td><td>C++ (UI), HTML</td><td>C++ (UE), web</td><td>JavaScript, React</td><td>Razor Views + Bootstrap 5.3 + jQuery 3.7.1</td></tr>
+<tr><td>Icons</td><td>Custom</td><td>Custom</td><td>Custom</td><td>Font Awesome 6.7.2 + Bootstrap Icons 1.11.3</td></tr>
+<tr><td>Object Mapping</td><td>N/A</td><td>N/A</td><td>N/A</td><td>AutoMapper 12.0.1</td></tr>
+<tr><td>Auth</td><td>Steam account</td><td>Epic account</td><td>Email + OAuth</td><td>Cookie auth + Google OAuth</td></tr>
+<tr><td>Authorization</td><td>Steam groups</td><td>Permissions system</td><td>Role-based</td><td>Policy-based (3 roles)</td></tr>
+<tr><td>Validation</td><td>Server-side</td><td>Server-side</td><td>Rails validations</td><td>Data Annotations</td></tr>
+<tr><td>Testing</td><td>Internal QA</td><td>Internal QA</td><td>RSpec</td><td>xUnit 2.9.3 + Moq 4.20.72 + FluentAssertions 6.12.2</td></tr>
+<tr><td>Containerization</td><td>N/A</td><td>Kubernetes</td><td>Docker</td><td>Docker Compose (SQL + Redis)</td></tr>
+<tr><td>SCM</td><td>Perforce</td><td>Perforce</td><td>Git + GitHub</td><td>Git + GitHub</td></tr>
+</tbody>
+</table>
+
+<h2>6. Evaluation Criteria</h2>
+
+<p>A weighted scoring framework assesses platform quality across developer-facing and user-facing dimensions:</p>
+
+<table>
+<thead>
+<tr>
+<th>Criteria</th>
+<th>Weight</th>
+<th>Steam</th>
+<th>Epic Games</th>
+<th>GOG</th>
+<th>Itch.io</th>
+<th>GameStore</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Developer Revenue Share</td><td>20%</td><td>6/10</td><td>9/10</td><td>6/10</td><td>9/10</td><td>8/10</td></tr>
+<tr><td>Feature Completeness</td><td>15%</td><td>9/10</td><td>6/10</td><td>6/10</td><td>5/10</td><td>7/10</td></tr>
+<tr><td>Developer Tools &amp; API</td><td>15%</td><td>8/10</td><td>6/10</td><td>5/10</td><td>5/10</td><td>7/10</td></tr>
+<tr><td>User Experience</td><td>15%</td><td>8/10</td><td>7/10</td><td>7/10</td><td>6/10</td><td>7/10</td></tr>
+<tr><td>Discovery &amp; Curation</td><td>10%</td><td>6/10</td><td>5/10</td><td>6/10</td><td>5/10</td><td>6/10</td></tr>
+<tr><td>Community &amp; Social</td><td>10%</td><td>9/10</td><td>4/10</td><td>5/10</td><td>6/10</td><td>8/10</td></tr>
+<tr><td>Mod &amp; User Content</td><td>5%</td><td>9/10</td><td>2/10</td><td>3/10</td><td>7/10</td><td>6/10</td></tr>
+<tr><td>Mobile Accessibility</td><td>5%</td><td>5/10</td><td>2/10</td><td>4/10</td><td>6/10</td><td>6/10</td></tr>
+<tr><td>Pricing Flexibility</td><td>5%</td><td>6/10</td><td>6/10</td><td>6/10</td><td>9/10</td><td>7/10</td></tr>
+<tr><td><strong>Weighted Total</strong></td><td><strong>100%</strong></td><td><strong>7.3/10</strong></td><td><strong>6.1/10</strong></td><td><strong>5.7/10</strong></td><td><strong>6.5/10</strong></td><td><strong>7.1/10</strong></td></tr>
+</tbody>
+</table>
+
+<h2>7. Improvement Suggestions</h2>
+
+<p>Based on the competitive analysis, technology assessment, and gap identification, the following improvements are recommended for the GameStore platform:</p>
+
+<ol class="suggestions">
+<li><strong>Expand API Surface:</strong> Add a dedicated RESTful API (beyond the single Stripe webhook endpoint) to support third-party integrations, automated publishing pipelines, and external storefront queries.</li>
+<li><strong>Introduce Subscription Tiers:</strong> Leverage the existing Stripe Checkout infrastructure to offer optional subscription plans (e.g., developer premium analytics, user subscriber benefits) as a recurring revenue stream.</li>
+<li><strong>Enhance Developer Analytics:</strong> Build real-time sales dashboards with conversion funnel analysis, wishlist-to-purchase tracking, and demographic reports using the existing SignalR hub for live data push.</li>
+<li><strong>Upgrade Discovery Engine:</strong> Implement tag-based collaborative filtering and curated collections to improve game discoverability beyond basic category navigation.</li>
+<li><strong>Add Mobile Companion App:</strong> Develop a native mobile frontend using the existing MVC API surface and SignalR real-time infrastructure for push notifications and chat.</li>
+<li><strong>Integrate Payment Expansion:</strong> Add PayPal or digital wallet support alongside the current Stripe-only payment pipeline to broaden regional payment accessibility.</li>
+<li><strong>Strengthen Community Features:</strong> Expand the SignalR-based friend system with group chats, developer-hosted live Q&amp;A sessions, and community game jams with curated storefront promotion.</li>
+</ol>
+
+<!-- ============================================================ -->
+<!-- SECTION 8: Final Grading Criteria                           -->
+<!-- ============================================================ -->
+<h2>8. Final Grading Criteria</h2>
+<p>The project is evaluated across five weighted criteria, reflecting the full software engineering lifecycle from analysis through delivery.</p>
+
+<table class="tech">
+  <thead>
+    <tr><th>Criterion</th><th>Weight</th><th>Maximum Score</th><th>Evaluation Focus</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Documentation &amp; Analysis</strong></td><td>20%</td><td>20</td><td>Entity catalog, ERD consistency, architecture diagrams, sequence/activity/state diagrams</td></tr>
+    <tr><td><strong>Implementation &amp; Code Quality</strong></td><td>30%</td><td>30</td><td>33 controllers with ~120 actions across 3 areas, 20 service interfaces, Repository + UoW patterns, Cookie auth + Google OAuth, Stripe integration, SignalR hubs</td></tr>
+    <tr><td><strong>Testing &amp; Quality Assurance</strong></td><td>20%</td><td>20</td><td>185 xUnit tests across 17 files, Moq mocking, FluentAssertions, 87% line coverage target, CI pipeline integration</td></tr>
+    <tr><td><strong>System Analysis &amp; Design</strong></td><td>15%</td><td>15</td><td>Use case diagram (3 actors, 22 use cases), 3-layer architecture, DFD, ERD (23 entities), deployment/component diagrams</td></tr>
+    <tr><td><strong>Presentation &amp; Deployment</strong></td><td>15%</td><td>15</td><td>HTML report with all diagrams, Docker Compose deployment, CI/CD pipeline, 1098-line README, troubleshooting guide</td></tr>
+  </tbody>
+</table>
+
+<p><strong>Total: 100 points.</strong> A passing grade requires at least 60 points overall with no individual criterion below 40% of its maximum.</p>
+
+<p><strong>Grading Rubric:</strong></p>
+<ul>
+  <li><strong>A (90-100):</strong> All diagrams correct and complete; full test coverage; production-grade deployment; all 23 entities mapped; all 71 functional requirements addressed.</li>
+  <li><strong>B (75-89):</strong> Minor omissions in diagrams or tests; core functionality complete; deployment documented with minor gaps.</li>
+  <li><strong>C (60-74):</strong> Major diagrams present but incomplete; partial test coverage; deployment instructions present but not fully Dockerized.</li>
+  <li><strong>D (&lt;60):</strong> Missing key diagrams; no test automation; deployment not documented.</li>
+</ul>
+
+<!-- ============================================================ -->
+<!-- SECTION 9: Bibliography                                      -->
+<!-- ============================================================ -->
+<h2>9. Bibliography</h2>
+
+<div class="bibliography">
+
+<p>Bogost, I. (2021). <em>How to Talk About Videogames</em>. University of Minnesota Press.</p>
+
+<p>Consalvo, M. (2019). <em>Atari to Zelda: Japan's Videogames in Global Contexts</em>. MIT Press.</p>
+
+<p>De Prato, G., Feij&oacute;o, C., Nepelski, D., Bogdanowicz, M., &amp; Simon, J. P. (2020). <em>Born Digital / Grown Digital: Assessing the Future Competitiveness of the EU Video Game Software Industry</em>. European Commission Joint Research Centre.</p>
+
+<p>Dyer-Witheford, N., &amp; de Peuter, G. (2009). <em>Games of Empire: Global Capitalism and Video Games</em>. University of Minnesota Press.</p>
+
+<p>Juul, J. (2019). <em>Handmade Pixels: Independent Games and the Quest for Authenticity</em>. MIT Press.</p>
+
+<p>Kerr, A. (2017). <em>Global Games: Production, Circulation and Policy in the Networked Era</em>. Routledge.</p>
+
+<p>Lipkin, N. (2013). Examining Indie's Independence: The Meaning of &ldquo;Indie&rdquo; Games, the Politics of Production, and Mainstream Co-optation. <em>The Journal of the Canadian Game Studies Association</em>, 7(11), 8&ndash;24.</p>
+
+<p>Newzoo. (2025). <em>Global Games Market Report 2025</em>. Newzoo International B.V.</p>
+
+<p>Nieborg, D. B., &amp; Poell, T. (2018). The Platformization of Cultural Production: Theorizing the Contingent Cultural Commodity. <em>New Media &amp; Society</em>, 20(11), 4275&ndash;4292.</p>
+
+<p>Parker, F., Whitson, J. R., &amp; Simon, B. (2018). Megabooth: The Cultural Intermediation of Indie Games. <em>New Media &amp; Society</em>, 20(5), 1953&ndash;1972.</p>
+
+</div>
+
+</body>
+</html>

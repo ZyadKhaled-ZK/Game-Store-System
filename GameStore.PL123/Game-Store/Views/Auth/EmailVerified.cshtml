@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Email Verification";
+    var message = ViewData["Message"]?.ToString() ?? "";
+}
+
+<style>
+  .auth-page { max-width: 420px; margin: 60px auto; }
+  .auth-box { background: var(--bg2); border: 1px solid var(--border-red); padding: 40px; text-align: center; }
+  .auth-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 900; color: white; margin-bottom: 16px; letter-spacing: 2px; }
+  .auth-sub { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-dim); margin-bottom: 32px; }
+  @@media (max-width: 576px) {
+    .auth-page { margin: 30px auto; padding: 0 12px; }
+    .auth-box { padding: 24px; }
+    .auth-title { font-size: 1.3rem; }
+  }
+</style>
+
+<div class="auth-page">
+  <div class="auth-box">
+    <div class="auth-title">@(message.Contains("successfully") ? "&#10003;" : "&#10007;") EMAIL VERIFICATION</div>
+    <div class="auth-sub">@message</div>
+
+    <a href="/Auth/Login" class="btn btn-primary" style="justify-content:center;">GO TO LOGIN</a>
+  </div>
+</div>

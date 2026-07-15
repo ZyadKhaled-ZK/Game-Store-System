@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Requirements Analysis - GameStore Platform</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:Arial, Helvetica, sans-serif; color:#000; background:#fff; line-height:1.6; padding:50px 60px; max-width:1200px; margin:0 auto; }
+h1 { font-size:32px; margin-bottom:10px; text-align:center; border-bottom:3px solid #000; padding-bottom:12px; }
+h2 { font-size:22px; margin-top:60px; margin-bottom:22px; border-bottom:1px solid #999; padding-bottom:10px; }
+h3 { font-size:17px; margin-top:36px; margin-bottom:16px; }
+h4 { font-size:14px; margin-top:24px; margin-bottom:10px; font-weight:700; }
+table { width:100%; border-collapse:collapse; margin:16px 0 24px; font-size:13px; }
+th, td { border:1px solid #999; padding:12px 16px; text-align:left; vertical-align:top; }
+th { background:#eee; font-weight:700; }
+td { background:#fff; }
+tr:nth-child(even) td { background:#f5f5f5; }
+p { margin-bottom:18px; line-height:1.8; }
+.section-desc { font-size:14px; color:#666; margin-bottom:20px; }
+.graphviz svg { max-width:100%; height:auto; }
+.graphviz { text-align:center; background:#fff; margin:30px 0; padding:25px; border:1px solid #ddd; border-radius:4px; min-height:60px; }
+.persona-grid { display:flex; gap:20px; margin:16px 0 24px; flex-wrap:wrap; }
+.persona-card { flex:1; min-width:260px; border:2px solid #000; border-radius:4px; background:#fff; }
+.persona-header { background:#eee; padding:10px 14px; border-bottom:2px solid #000; font-weight:700; font-size:15px; }
+.persona-body { padding:12px 14px; font-size:13px; }
+.persona-body p { margin-bottom:6px; }
+.entity-list { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 20px; }
+.entity-tag { border:1px solid #999; padding:4px 10px; font-size:12px; background:#f5f5f5; border-radius:3px; }
+.entity-tag strong { font-size:11px; text-transform:uppercase; }
+code { font-family:'Courier New',monospace; font-size:12px; background:#f5f5f5; padding:1px 5px; border:1px solid #ddd; border-radius:2px; }
+.role-grid { display:flex; gap:20px; margin:16px 0 24px; flex-wrap:wrap; }
+.role-card { flex:1; min-width:240px; border:2px solid #000; border-radius:4px; background:#fff; }
+.role-header { background:#eee; padding:10px 14px; border-bottom:2px solid #000; font-weight:700; font-size:14px; }
+.role-body { padding:10px 14px; font-size:12px; }
+.role-body ul { margin:4px 0 4px 16px; padding:0; }
+.role-body li { margin-bottom:2px; }
+@media print { body { padding:0; } .graphviz { break-inside:avoid; } }
+</style>
+</head>
+<body>
+
+<h1>Requirements Analysis &mdash; GameStore Platform</h1>
+
+<h2>1. Domain Model &mdash; Entity Catalog</h2>
+
+<p class="section-desc">The GameStore platform comprises 23 entities mapped from the real codebase (GameStore.DAL.Entities).</p>
+
+<h3>Entity List</h3>
+
+<div class="entity-list">
+<span class="entity-tag"><strong>User</strong></span>
+<span class="entity-tag"><strong>Game</strong></span>
+<span class="entity-tag"><strong>Cart</strong></span>
+<span class="entity-tag"><strong>CartItem</strong></span>
+<span class="entity-tag"><strong>Library</strong></span>
+<span class="entity-tag"><strong>LibraryGame</strong></span>
+<span class="entity-tag"><strong>Order</strong></span>
+<span class="entity-tag"><strong>OrderItem</strong></span>
+<span class="entity-tag"><strong>Review</strong></span>
+<span class="entity-tag"><strong>WishlistItem</strong></span>
+<span class="entity-tag"><strong>Friendship</strong></span>
+<span class="entity-tag"><strong>Message</strong></span>
+<span class="entity-tag"><strong>Category</strong></span>
+<span class="entity-tag"><strong>SupportTicket</strong></span>
+<span class="entity-tag"><strong>TicketReply</strong></span>
+<span class="entity-tag"><strong>Payout</strong></span>
+<span class="entity-tag"><strong>Coupon</strong></span>
+<span class="entity-tag"><strong>Notification</strong></span>
+<span class="entity-tag"><strong>AuditLog</strong></span>
+<span class="entity-tag"><strong>RefreshToken</strong></span>
+<span class="entity-tag"><strong>BanLog</strong></span>
+<span class="entity-tag"><strong>Report</strong></span>
+<span class="entity-tag"><strong>DeveloperProfile</strong></span>
+</div>
+
+<h3>Enum Catalog</h3>
+
+<table>
+<thead><tr><th>Enum</th><th>Values</th></tr></thead>
+<tbody>
+<tr><td><code>Role</code></td><td>CUSTOMER, DEVELOPER, ADMIN</td></tr>
+<tr><td><code>GameStatus</code></td><td>DRAFT, PENDING, APPROVED, REJECTED, ARCHIVED</td></tr>
+<tr><td><code>OrderStatus</code></td><td>PENDING, COMPLETED, CANCELLED, REFUNDED</td></tr>
+<tr><td><code>TicketStatus</code></td><td>OPEN, IN_PROGRESS, RESOLVED, CLOSED</td></tr>
+</tbody>
+</table>
+
+<h3>Key Entity Relationships</h3>
+
+<table>
+<thead><tr><th>Entity</th><th>Relationships</th></tr></thead>
+<tbody>
+<tr><td>User</td><td>Has one Cart (1:1), one Library (1:1), many WishlistItems (1:N), many Reviews (1:N), sent/received Messages, sent/received FriendRequests, many Orders, many Notifications, optional DeveloperProfile (1:1), many Reports, many BanLogs, many Payouts, many SupportTickets</td></tr>
+<tr><td>Game</td><td>Belongs to a Developer (User via DeveloperProfile), has many Categories (N:M via GameCategory), many CartItems, many LibraryGames, many OrderItems, many Reviews, many WishlistItems</td></tr>
+<tr><td>Cart</td><td>Belongs to one User (1:1), contains many CartItems (1:N) &rarr; each CartItem points to one Game</td></tr>
+<tr><td>Library</td><td>Belongs to one User (1:1), contains many LibraryGames (1:N) &rarr; each LibraryGame points to one Game</td></tr>
+<tr><td>Order</td><td>Belongs to one User (1:N), contains many OrderItems (1:N) &rarr; each OrderItem points to one Game with price-at-purchase and commission</td></tr>
+<tr><td>SupportTicket</td><td>Belongs to one User (optional, 1:N), contains many TicketReplies (1:N)</td></tr>
+<tr><td>Friendship</td><td>Links two Users (Requester + Receiver) with status (Pending / Accepted / Rejected)</td></tr>
+<tr><td>Message</td><td>Sent by one User to another User with read tracking</td></tr>
+<tr><td>AuditLog</td><td>Tracks entity changes across the system for compliance</td></tr>
+</tbody>
+</table>
+
+<h3>Entity-Relationship Diagram</h3>
+
+<div class="graphviz">
+digraph {
+  rankdir=LR;
+  graph [bgcolor="white", fontname="Arial", ranksep=1.2, nodesep=0.6];
+  node [fontname="Arial", shape="box", style="rounded", width=1.8, height=0.45, fontsize=11];
+  edge [fontname="Arial", fontsize=9, color="black", fontcolor="black"];
+
+  User -> Cart [label="1:1", arrowhead="none", style="dashed"];
+  User -> Library [label="1:1", arrowhead="none", style="dashed"];
+  User -> DeveloperProfile [label="optional 1:1", arrowhead="none", style="dashed"];
+  User -> WishlistItem [label="1:N"];
+  User -> Review [label="1:N"];
+  User -> Order [label="1:N"];
+  User -> Message [label="sender / receiver"];
+  User -> Friendship [label="requester / receiver"];
+  User -> SupportTicket [label="1:N"];
+  User -> Notification [label="1:N"];
+  User -> BanLog [label="1:N"];
+  User -> Report [label="1:N"];
+  User -> RefreshToken [label="1:N"];
+
+  Game -> Category [label="N:M", style="dashed"];
+  Game -> CartItem [label="1:N"];
+  Game -> LibraryGame [label="1:N"];
+  Game -> OrderItem [label="1:N"];
+  Game -> Review [label="1:N"];
+  Game -> WishlistItem [label="1:N"];
+
+  Cart -> CartItem [label="1:N"];
+  CartItem -> Game [label="N:1", dir="back"];
+  Library -> LibraryGame [label="1:N"];
+  LibraryGame -> Game [label="N:1", dir="back"];
+  Order -> OrderItem [label="1:N"];
+  OrderItem -> Game [label="N:1", dir="back"];
+  SupportTicket -> TicketReply [label="1:N"];
+
+  DeveloperProfile -> Game [label="1:N"];
+  DeveloperProfile -> Payout [label="1:N"];
+}
+</div>
+
+<h2>2. Stakeholder Personas</h2>
+
+<div class="persona-grid">
+<div class="persona-card">
+<div class="persona-header">Customer (Omar)</div>
+<div class="persona-body">
+<p><strong>Role:</strong> End-user who browses, purchases, and plays games.</p>
+<p><strong>Goals:</strong> Discover new games, buy securely, build library, connect with friends.</p>
+<p><strong>Pain Points:</strong> Unclear refund policy, difficulty finding specific games, payment issues.</p>
+</div>
+</div>
+
+<div class="persona-card">
+<div class="persona-header">Developer (Sara)</div>
+<div class="persona-body">
+<p><strong>Role:</strong> Game creator who uploads and sells games on the platform.</p>
+<p><strong>Goals:</strong> Publish games easily, track sales analytics, receive timely payouts.</p>
+<p><strong>Pain Points:</strong> Complex upload process, delayed payout cycles, limited visibility into sales data.</p>
+</div>
+</div>
+
+<div class="persona-card">
+<div class="persona-header">Admin (Ahmed)</div>
+<div class="persona-body">
+<p><strong>Role:</strong> Platform manager responsible for moderation, user management, and system health.</p>
+<p><strong>Goals:</strong> Efficient content moderation, accurate revenue reporting, fraud detection.</p>
+<p><strong>Pain Points:</strong> Fake or inappropriate game submissions, fraudulent transactions, manual approval bottlenecks.</p>
+</div>
+</div>
+</div>
+
+<h2>3. Role &amp; Permission Matrix</h2>
+
+<div class="role-grid">
+<div class="role-card">
+<div class="role-header">CUSTOMER</div>
+<div class="role-body">
+<ul>
+<li>Browse and search game catalog</li>
+<li>View game details and reviews</li>
+<li>Purchase games via Stripe or store credit</li>
+<li>Write, edit, and delete reviews</li>
+<li>Add/remove games from wishlist</li>
+<li>View owned games in library</li>
+<li>Download purchased games</li>
+<li>Send/receive friend requests</li>
+<li>Chat with friends (SignalR)</li>
+<li>View and manage notifications</li>
+<li>Submit and track support tickets</li>
+<li>Apply coupons at checkout</li>
+<li>Request refunds</li>
+<li>Edit profile, change password</li>
+<li>Post on profiles</li>
+</ul>
+</div>
+</div>
+
+<div class="role-card">
+<div class="role-header">DEVELOPER</div>
+<div class="role-body">
+<ul>
+<li>All CUSTOMER permissions</li>
+<li>Create developer profile (studio)</li>
+<li>Upload and manage game listings</li>
+<li>Edit game metadata, media, files</li>
+<li>Manage game versions and builds</li>
+<li>Set system requirements per game</li>
+<li>View developer dashboard with analytics</li>
+<li>Track downloads, revenue, average rating</li>
+<li>View game-specific reviews</li>
+<li>Request sales/discounts (admin approval)</li>
+<li>Track payout history and pending balances</li>
+<li>View developer-specific support tickets</li>
+</ul>
+</div>
+</div>
+
+<div class="role-card">
+<div class="role-header">ADMIN</div>
+<div class="role-body">
+<ul>
+<li>All permissions across platform</li>
+<li>Dashboard with revenue, orders, user stats</li>
+<li>CRUD management of all games</li>
+<li>CRUD management of all users (change roles, delete)</li>
+<li>CRUD management of categories</li>
+<li>View and manage all orders</li>
+<li>Approve/reject developer applications</li>
+<li>Approve/reject sale requests</li>
+<li>Moderate reviews (delete inappropriate)</li>
+<li>Manage support tickets (reply, update status, delete)</li>
+<li>Manage refund requests</li>
+<li>Manage developer profiles (demote, reactivate, delete)</li>
+<li>View platform reports and audit logs</li>
+<li>View system settings</li>
+</ul>
+</div>
+</div>
+</div>
+
+<h2>4. User Stories</h2>
+
+<table>
+<thead>
+<tr><th>ID</th><th>Title</th><th>Description</th><th>Priority</th><th>Story Points</th></tr>
+</thead>
+<tbody>
+<tr><td>US-01</td><td>User Registration</td><td>As a visitor, I want to register with email and password so that I can access the platform.</td><td>High</td><td>3</td></tr>
+<tr><td>US-02</td><td>User Login</td><td>As a registered user, I want to log in with my credentials so that I can access my account.</td><td>High</td><td>2</td></tr>
+<tr><td>US-03</td><td>Email Verification</td><td>As a new user, I want to verify my email address so that my account is activated.</td><td>High</td><td>3</td></tr>
+<tr><td>US-04</td><td>Google OAuth Login</td><td>As a user, I want to log in with my Google account so that I can skip manual registration.</td><td>Medium</td><td>5</td></tr>
+<tr><td>US-05</td><td>Password Reset</td><td>As a user, I want to reset my password via email so that I can recover access if forgotten.</td><td>Medium</td><td>3</td></tr>
+<tr><td>US-06</td><td>Browse Game Catalog</td><td>As a customer, I want to browse paginated game listings so that I can discover games.</td><td>High</td><td>5</td></tr>
+<tr><td>US-07</td><td>Search and Filter</td><td>As a customer, I want to search by title/keyword and filter by category, price, and rating so that I can find specific games.</td><td>High</td><td>5</td></tr>
+<tr><td>US-08</td><td>View Game Details</td><td>As a customer, I want to view full game details including description, screenshots, trailer, system requirements, and reviews so that I can decide whether to buy.</td><td>High</td><td>3</td></tr>
+<tr><td>US-09</td><td>Add to Cart</td><td>As a customer, I want to add games to my cart so that I can purchase them later.</td><td>High</td><td>3</td></tr>
+<tr><td>US-10</td><td>Checkout with Stripe</td><td>As a customer, I want to complete purchase via Stripe payment so that I can own the game.</td><td>High</td><td>8</td></tr>
+<tr><td>US-11</td><td>Free Game Checkout</td><td>As a customer, I want to add free games to my library instantly without payment.</td><td>Medium</td><td>3</td></tr>
+<tr><td>US-12</td><td>Store Credit Checkout</td><td>As a customer, I want to use store credit balance toward purchases so that I can utilize refund credits.</td><td>Medium</td><td>5</td></tr>
+<tr><td>US-13</td><td>Apply Coupon</td><td>As a customer, I want to apply a coupon code at checkout so that I can get a discount.</td><td>Low</td><td>3</td></tr>
+<tr><td>US-14</td><td>Write Review</td><td>As a customer, I want to rate and review games I own so that I can share my experience.</td><td>Medium</td><td>3</td></tr>
+<tr><td>US-15</td><td>Manage Wishlist</td><td>As a customer, I want to add/remove games from my wishlist so that I can track titles of interest.</td><td>Low</td><td>2</td></tr>
+<tr><td>US-16</td><td>View Library</td><td>As a customer, I want to view my owned games so that I can download and play them.</td><td>High</td><td>3</td></tr>
+<tr><td>US-17</td><td>Download Games</td><td>As a customer, I want to download game files with version support so that I can install and play.</td><td>High</td><td>5</td></tr>
+<tr><td>US-18</td><td>View Order History</td><td>As a customer, I want to view my past orders so that I can track purchases.</td><td>Low</td><td>2</td></tr>
+<tr><td>US-19</td><td>Request Refund</td><td>As a customer, I want to request a refund on a completed order so that I can get my money back.</td><td>Medium</td><td>5</td></tr>
+<tr><td>US-20</td><td>Friend System</td><td>As a user, I want to search users, send/accept/reject friend requests so that I can connect with others.</td><td>Medium</td><td>5</td></tr>
+<tr><td>US-21</td><td>Real-Time Chat</td><td>As a user, I want to send and receive messages in real time via SignalR so that I can chat with friends.</td><td>Medium</td><td>8</td></tr>
+<tr><td>US-22</td><td>Notifications</td><td>As a user, I want to receive and manage notifications so that I stay informed about activity.</td><td>Medium</td><td>3</td></tr>
+<tr><td>US-23</td><td>Profile Posts</td><td>As a user, I want to create and delete posts on my profile so that I can share updates.</td><td>Low</td><td>2</td></tr>
+<tr><td>US-24</td><td>Submit Support Ticket</td><td>As a user, I want to submit a support ticket so that I can get help with issues.</td><td>High</td><td>3</td></tr>
+<tr><td>US-25</td><td>Ticket Replies</td><td>As a user, I want to reply to my support tickets so that I can follow up on issues.</td><td>Medium</td><td>3</td></tr>
+<tr><td>US-26</td><td>Upload Game</td><td>As a developer, I want to upload a game with title, description, price, media, and file so that it appears in the store.</td><td>High</td><td>8</td></tr>
+<tr><td>US-27</td><td>Manage Game Listing</td><td>As a developer, I want to edit or delete my game listings so that I can keep them current.</td><td>High</td><td>5</td></tr>
+<tr><td>US-28</td><td>Game Versioning</td><td>As a developer, I want to upload new versions of my game so that users receive updates.</td><td>Medium</td><td>5</td></tr>
+<tr><td>US-29</td><td>System Requirements</td><td>As a developer, I want to set system requirements per game so that users know minimum specs.</td><td>Low</td><td>3</td></tr>
+<tr><td>US-30</td><td>Developer Dashboard</td><td>As a developer, I want a dashboard showing game count, downloads, revenue, and average rating so that I can measure performance.</td><td>High</td><td>5</td></tr>
+<tr><td>US-31</td><td>Request Sale</td><td>As a developer, I want to submit a sale request with discounted price and date range so that I can run promotions.</td><td>Medium</td><td>5</td></tr>
+<tr><td>US-32</td><td>View Payouts</td><td>As a developer, I want to track revenue and payouts so that I understand my earnings.</td><td>High</td><td>3</td></tr>
+<tr><td>US-33</td><td>Admin Dashboard</td><td>As an admin, I want a dashboard with total users, games, orders, revenue, charts, and recent orders so that I can monitor the platform.</td><td>High</td><td>8</td></tr>
+<tr><td>US-34</td><td>Manage Categories</td><td>As an admin, I want to create, rename, and delete categories so that the catalog stays organized.</td><td>Medium</td><td>3</td></tr>
+<tr><td>US-35</td><td>Manage Users</td><td>As an admin, I want to change user roles and delete accounts so that I can enforce platform policies.</td><td>High</td><td>5</td></tr>
+<tr><td>US-36</td><td>Approve Developer Applications</td><td>As an admin, I want to approve or reject developer applications so that only legitimate developers join.</td><td>High</td><td>3</td></tr>
+<tr><td>US-37</td><td>Approve Sales</td><td>As an admin, I want to approve or reject developer sale requests so that discounts are controlled.</td><td>Medium</td><td>3</td></tr>
+<tr><td>US-38</td><td>Moderate Reviews</td><td>As an admin, I want to delete inappropriate reviews so that platform quality is maintained.</td><td>Low</td><td>2</td></tr>
+<tr><td>US-39</td><td>Manage Support Tickets</td><td>As an admin, I want to reply to, update status of, and delete support tickets so that user issues are resolved.</td><td>High</td><td>5</td></tr>
+<tr><td>US-40</td><td>Manage Refunds</td><td>As an admin, I want to approve or reject refund requests so that disputes are resolved.</td><td>Medium</td><td>3</td></tr>
+<tr><td>US-41</td><td>Become Developer</td><td>As a customer, I want to submit a developer application with studio name and CV so that I can become a developer.</td><td>Medium</td><td>3</td></tr>
+</tbody>
+</table>
+
+<h2>5. Functional Requirements</h2>
+
+<table>
+<thead>
+<tr><th>ID</th><th>Module</th><th>Requirement</th><th>Priority</th></tr>
+</thead>
+<tbody>
+<tr><td>FR-01</td><td>Authentication</td><td>The system shall allow users to register with username, email, and password.</td><td>High</td></tr>
+<tr><td>FR-02</td><td>Authentication</td><td>The system shall allow users to log in with email and password.</td><td>High</td></tr>
+<tr><td>FR-03</td><td>Authentication</td><td>The system shall send email verification upon registration and require confirmation before login.</td><td>High</td></tr>
+<tr><td>FR-04</td><td>Authentication</td><td>The system shall support Google OAuth login for external account creation.</td><td>Medium</td></tr>
+<tr><td>FR-05</td><td>Authentication</td><td>The system shall support password reset via email with one-hour expiry tokens.</td><td>Medium</td></tr>
+<tr><td>FR-06</td><td>Authentication</td><td>The system shall support resending verification emails for unconfirmed accounts.</td><td>Medium</td></tr>
+<tr><td>FR-07</td><td>Authentication</td><td>The system shall enforce rate limiting on login and registration endpoints.</td><td>High</td></tr>
+<tr><td>FR-08</td><td>Profile</td><td>The system shall allow users to view their own and other users' public profiles.</td><td>Medium</td></tr>
+<tr><td>FR-09</td><td>Profile</td><td>The system shall allow users to edit their avatar, bio, and email.</td><td>Medium</td></tr>
+<tr><td>FR-10</td><td>Profile</td><td>The system shall allow users to change their password with current password confirmation.</td><td>Medium</td></tr>
+<tr><td>FR-11</td><td>Profile</td><td>The system shall allow users to create and delete posts on profiles.</td><td>Low</td></tr>
+<tr><td>FR-12</td><td>Game Catalog</td><td>The system shall display a paginated game listing on the storefront.</td><td>High</td></tr>
+<tr><td>FR-13</td><td>Game Catalog</td><td>The system shall allow searching games by title and description keywords.</td><td>High</td></tr>
+<tr><td>FR-14</td><td>Game Catalog</td><td>The system shall allow filtering games by category.</td><td>High</td></tr>
+<tr><td>FR-15</td><td>Game Catalog</td><td>The system shall show a detailed game page with description, media, system requirements, versions, and reviews.</td><td>High</td></tr>
+<tr><td>FR-16</td><td>Game Catalog</td><td>The system shall display active sale prices for games on discount.</td><td>Medium</td></tr>
+<tr><td>FR-17</td><td>Game Catalog</td><td>The system shall support game versioning with labels, changelogs, and file uploads.</td><td>Medium</td></tr>
+<tr><td>FR-18</td><td>Cart</td><td>The system shall allow users to add games to a shopping cart.</td><td>High</td></tr>
+<tr><td>FR-19</td><td>Cart</td><td>The system shall allow users to remove items from the cart.</td><td>High</td></tr>
+<tr><td>FR-20</td><td>Cart</td><td>The system shall display cart item count in the navigation.</td><td>Medium</td></tr>
+<tr><td>FR-21</td><td>Checkout</td><td>The system shall process payments via Stripe Checkout.</td><td>High</td></tr>
+<tr><td>FR-22</td><td>Checkout</td><td>The system shall allow free checkout for games with price of zero.</td><td>High</td></tr>
+<tr><td>FR-23</td><td>Checkout</td><td>The system shall support store credit as a payment method.</td><td>Medium</td></tr>
+<tr><td>FR-24</td><td>Checkout</td><td>The system shall support Stripe coupons for discounts at checkout.</td><td>Low</td></tr>
+<tr><td>FR-25</td><td>Checkout</td><td>The system shall handle Stripe webhook events for payment confirmation.</td><td>High</td></tr>
+<tr><td>FR-26</td><td>Orders</td><td>The system shall display order history for the logged-in user.</td><td>Low</td></tr>
+<tr><td>FR-27</td><td>Orders</td><td>The system shall show detailed order information including items, prices, and payment status.</td><td>Low</td></tr>
+<tr><td>FR-28</td><td>Library</td><td>The system shall maintain a user library of purchased games.</td><td>High</td></tr>
+<tr><td>FR-29</td><td>Library</td><td>The system shall allow downloading game files with version selection.</td><td>High</td></tr>
+<tr><td>FR-30</td><td>Library</td><td>The system shall support preview downloads for pre-release games when user has access.</td><td>Low</td></tr>
+<tr><td>FR-31</td><td>Library</td><td>The system shall display store credit balance in the library view.</td><td>Low</td></tr>
+<tr><td>FR-32</td><td>Reviews</td><td>The system shall allow users to create reviews with rating (1-5) and comment.</td><td>Medium</td></tr>
+<tr><td>FR-33</td><td>Reviews</td><td>The system shall display reviews grouped by game on the storefront.</td><td>Medium</td></tr>
+<tr><td>FR-34</td><td>Wishlist</td><td>The system shall allow users to toggle games in/out of their wishlist.</td><td>Low</td></tr>
+<tr><td>FR-35</td><td>Wishlist</td><td>The system shall allow users to add wishlist items directly to cart.</td><td>Low</td></tr>
+<tr><td>FR-36</td><td>Friends</td><td>The system shall allow users to search other users by username.</td><td>Medium</td></tr>
+<tr><td>FR-37</td><td>Friends</td><td>The system shall allow sending, accepting, rejecting, and removing friend requests.</td><td>Medium</td></tr>
+<tr><td>FR-38</td><td>Friends</td><td>The system shall show friend suggestions based on mutual connections.</td><td>Low</td></tr>
+<tr><td>FR-39</td><td>Friends</td><td>The system shall display online status and last seen for friends.</td><td>Medium</td></tr>
+<tr><td>FR-40</td><td>Chat</td><td>The system shall support real-time messaging via SignalR hub.</td><td>Medium</td></tr>
+<tr><td>FR-41</td><td>Chat</td><td>The system shall show unread message counts per conversation.</td><td>Medium</td></tr>
+<tr><td>FR-42</td><td>Chat</td><td>The system shall mark messages as read when the conversation is opened.</td><td>Low</td></tr>
+<tr><td>FR-43</td><td>Chat</td><td>The system shall show typing indicators in real time.</td><td>Low</td></tr>
+<tr><td>FR-44</td><td>Notifications</td><td>The system shall create notifications for friend requests, ticket replies, and system events.</td><td>Medium</td></tr>
+<tr><td>FR-45</td><td>Notifications</td><td>The system shall allow users to mark individual or all notifications as read.</td><td>Low</td></tr>
+<tr><td>FR-46</td><td>Notifications</td><td>The system shall send admin-specific notifications for pending sales and developer applications.</td><td>Medium</td></tr>
+<tr><td>FR-47</td><td>Support Tickets</td><td>The system shall allow users to submit support tickets with subject and message.</td><td>High</td></tr>
+<tr><td>FR-48</td><td>Support Tickets</td><td>The system shall allow users and admins to reply to tickets.</td><td>High</td></tr>
+<tr><td>FR-49</td><td>Support Tickets</td><td>The system shall track ticket status: Open, In Progress, Resolved, Closed.</td><td>Medium</td></tr>
+<tr><td>FR-50</td><td>Support Tickets</td><td>The system shall show paginated ticket history for each user.</td><td>Medium</td></tr>
+<tr><td>FR-51</td><td>Coupons</td><td>The system shall support applying Stripe coupons as discounts at checkout.</td><td>Low</td></tr>
+<tr><td>FR-52</td><td>Reports</td><td>The system shall allow users to report inappropriate games or users.</td><td>Low</td></tr>
+<tr><td>FR-53</td><td>Refunds</td><td>The system shall allow users to submit refund requests for completed orders.</td><td>Medium</td></tr>
+<tr><td>FR-54</td><td>Developer Portal</td><td>The system shall allow users to submit a developer application with studio name, description, website, and CV.</td><td>Medium</td></tr>
+<tr><td>FR-55</td><td>Developer Portal</td><td>The system shall provide a developer dashboard showing game count, total downloads, total revenue, net revenue, average rating, and review count.</td><td>High</td></tr>
+<tr><td>FR-56</td><td>Developer Portal</td><td>The system shall allow developers to manage game CRUD operations scoped to their own games.</td><td>High</td></tr>
+<tr><td>FR-57</td><td>Developer Portal</td><td>The system shall allow developers to upload and manage game versions.</td><td>Medium</td></tr>
+<tr><td>FR-58</td><td>Developer Portal</td><td>The system shall allow developers to save system requirements per game.</td><td>Low</td></tr>
+<tr><td>FR-59</td><td>Developer Portal</td><td>The system shall allow developers to request sales with discounted price and date range (admin approval required).</td><td>Medium</td></tr>
+<tr><td>FR-60</td><td>Developer Portal</td><td>The system shall display per-game review listings to developers.</td><td>Medium</td></tr>
+<tr><td>FR-61</td><td>Admin Panel</td><td>The system shall provide an admin dashboard with total users, games, orders, revenue, free games count, charts for revenue by month, orders by day, top selling games, revenue by category, users by role, users by month, and recent orders.</td><td>High</td></tr>
+<tr><td>FR-62</td><td>Admin Panel</td><td>The system shall allow admins to manage all games (create, edit, delete, add/remove screenshots, save requirements, manage versions).</td><td>High</td></tr>
+<tr><td>FR-63</td><td>Admin Panel</td><td>The system shall allow admins to manage categories (create, rename, delete with constraint check).</td><td>Medium</td></tr>
+<tr><td>FR-64</td><td>Admin Panel</td><td>The system shall allow admins to manage users (change role among CUSTOMER/DEVELOPER/ADMIN, delete, view details with orders/library/reviews).</td><td>High</td></tr>
+<tr><td>FR-65</td><td>Admin Panel</td><td>The system shall allow admins to manage orders (view all with details).</td><td>Medium</td></tr>
+<tr><td>FR-66</td><td>Admin Panel</td><td>The system shall allow admins to manage reviews (view and delete).</td><td>Low</td></tr>
+<tr><td>FR-67</td><td>Admin Panel</td><td>The system shall allow admins to manage support tickets (view, reply, update status, delete).</td><td>High</td></tr>
+<tr><td>FR-68</td><td>Admin Panel</td><td>The system shall allow admins to manage refund requests (approve or reject with notes).</td><td>Medium</td></tr>
+<tr><td>FR-69</td><td>Admin Panel</td><td>The system shall allow admins to manage developer applications (approve or reject).</td><td>High</td></tr>
+<tr><td>FR-70</td><td>Admin Panel</td><td>The system shall allow admins to manage sale requests (approve or reject with reason).</td><td>Medium</td></tr>
+<tr><td>FR-71</td><td>Admin Panel</td><td>The system shall allow admins to manage developer profiles (demote, reactivate, delete, edit).</td><td>Medium</td></tr>
+</tbody>
+</table>
+
+<h2>6. Non-Functional Requirements</h2>
+
+<table>
+<thead>
+<tr><th>ID</th><th>Category</th><th>Requirement</th><th>Measurement Method</th></tr>
+</thead>
+<tbody>
+<tr><td>NFR-01</td><td>Performance</td><td>Page load time shall not exceed 2 seconds under normal load.</td><td>Lighthouse / browser DevTools timing</td></tr>
+<tr><td>NFR-02</td><td>Performance</td><td>Search results shall return within 500 ms.</td><td>Server-side response time monitoring</td></tr>
+<tr><td>NFR-03</td><td>Performance</td><td>The system shall support at least 1,000 concurrent users.</td><td>Load testing with k6 / JMeter</td></tr>
+<tr><td>NFR-04</td><td>Security</td><td>All passwords shall be hashed with a strong algorithm (ASP.NET Core Identity default).</td><td>Code review and automated security scan</td></tr>
+<tr><td>NFR-05</td><td>Security</td><td>All communications shall be encrypted via TLS 1.2 or higher.</td><td>SSL Labs test / network scan</td></tr>
+<tr><td>NFR-06</td><td>Security</td><td>The system shall enforce rate limiting on authentication endpoints via ASP.NET Core rate limiting middleware.</td><td>API gateway metrics</td></tr>
+<tr><td>NFR-07</td><td>Security</td><td>Payment data shall never be stored on application servers (Stripe handles PCI compliance).</td><td>PCI DSS compliance audit</td></tr>
+<tr><td>NFR-08</td><td>Security</td><td>Anti-forgery token validation shall be enforced on all POST requests.</td><td>Automated security scan</td></tr>
+<tr><td>NFR-09</td><td>Security</td><td>Admin and Developer areas shall be protected by authorization filters (AdminOnlyFilter, DeveloperOnlyFilter).</td><td>Integration tests</td></tr>
+<tr><td>NFR-10</td><td>Usability</td><td>The user interface shall be consistent across all pages using shared layouts and partial views.</td><td>Design audit against style guide</td></tr>
+<tr><td>NFR-11</td><td>Usability</td><td>Error messages shall be user-friendly and provide actionable guidance.</td><td>UX review and user testing</td></tr>
+<tr><td>NFR-12</td><td>Usability</td><td>The system shall support responsive design for mobile and tablet viewports.</td><td>Responsive design testing (Chrome DevTools)</td></tr>
+<tr><td>NFR-13</td><td>Reliability</td><td>System uptime shall be 99.9% excluding planned maintenance.</td><td>Uptime monitoring (e.g., Pingdom)</td></tr>
+<tr><td>NFR-14</td><td>Reliability</td><td>Database backups shall be taken daily with point-in-time recovery.</td><td>Backup verification logs</td></tr>
+<tr><td>NFR-15</td><td>Reliability</td><td>Failed transactions shall be rolled back atomically via EF Core transactions.</td><td>Integration test coverage</td></tr>
+<tr><td>NFR-16</td><td>Scalability</td><td>The system shall support horizontal scaling for web tier.</td><td>Auto-scaling metrics from cloud provider</td></tr>
+<tr><td>NFR-17</td><td>Scalability</td><td>Static assets shall be served via CDN or from wwwroot with caching headers.</td><td>CDN configuration audit</td></tr>
+<tr><td>NFR-18</td><td>Scalability</td><td>Game file downloads shall support large files with streaming.</td><td>Download throughput monitoring</td></tr>
+<tr><td>NFR-19</td><td>Maintainability</td><td>The codebase shall follow clean architecture with DAL, BLL, and PL layers.</td><td>Architecture review</td></tr>
+<tr><td>NFR-20</td><td>Maintainability</td><td>Unit test coverage shall target at least 80% of business logic.</td><td>Code coverage reports</td></tr>
+<tr><td>NFR-21</td><td>Maintainability</td><td>All external dependencies shall be managed via NuGet package references.</td><td>Dependency audit</td></tr>
+<tr><td>NFR-22</td><td>Maintainability</td><td>Database schema changes shall be managed via EF Core Migrations.</td><td>Migration review</td></tr>
+</tbody>
+</table>
+
+<h2>7. Requirements Traceability Matrix</h2>
+
+<table>
+<thead>
+<tr><th>FR ID</th><th>Related User Stories</th><th>Related NFRs</th></tr>
+</thead>
+<tbody>
+<tr><td>FR-01</td><td>US-01</td><td>NFR-04, NFR-05, NFR-08</td></tr>
+<tr><td>FR-02</td><td>US-02</td><td>NFR-04, NFR-05, NFR-06, NFR-08</td></tr>
+<tr><td>FR-03</td><td>US-03</td><td>NFR-04, NFR-05</td></tr>
+<tr><td>FR-04</td><td>US-04</td><td>NFR-05</td></tr>
+<tr><td>FR-05</td><td>US-05</td><td>NFR-04, NFR-05</td></tr>
+<tr><td>FR-06</td><td>US-03</td><td>NFR-04, NFR-06</td></tr>
+<tr><td>FR-07</td><td>US-01, US-02</td><td>NFR-06</td></tr>
+<tr><td>FR-08</td><td>US-08</td><td>NFR-10, NFR-12</td></tr>
+<tr><td>FR-09</td><td>US-09</td><td>NFR-10</td></tr>
+<tr><td>FR-10</td><td>US-10</td><td>NFR-04, NFR-08</td></tr>
+<tr><td>FR-11</td><td>US-23</td><td>NFR-08</td></tr>
+<tr><td>FR-12</td><td>US-06</td><td>NFR-01, NFR-12</td></tr>
+<tr><td>FR-13</td><td>US-07</td><td>NFR-02</td></tr>
+<tr><td>FR-14</td><td>US-07</td><td>NFR-02</td></tr>
+<tr><td>FR-15</td><td>US-08</td><td>NFR-01</td></tr>
+<tr><td>FR-16</td><td>US-06</td><td>NFR-01</td></tr>
+<tr><td>FR-17</td><td>US-28</td><td>NFR-20, NFR-22</td></tr>
+<tr><td>FR-18</td><td>US-09</td><td>NFR-01</td></tr>
+<tr><td>FR-19</td><td>US-09</td><td>NFR-01</td></tr>
+<tr><td>FR-20</td><td>US-09</td><td>NFR-01</td></tr>
+<tr><td>FR-21</td><td>US-10</td><td>NFR-05, NFR-07, NFR-15</td></tr>
+<tr><td>FR-22</td><td>US-11</td><td>NFR-15</td></tr>
+<tr><td>FR-23</td><td>US-12</td><td>NFR-07, NFR-15</td></tr>
+<tr><td>FR-24</td><td>US-13</td><td>NFR-07</td></tr>
+<tr><td>FR-25</td><td>US-10</td><td>NFR-05, NFR-07</td></tr>
+<tr><td>FR-26</td><td>US-18</td><td>NFR-01, NFR-10</td></tr>
+<tr><td>FR-27</td><td>US-18</td><td>NFR-01</td></tr>
+<tr><td>FR-28</td><td>US-16</td><td>NFR-01</td></tr>
+<tr><td>FR-29</td><td>US-17</td><td>NFR-18</td></tr>
+<tr><td>FR-30</td><td>US-17</td><td>NFR-09</td></tr>
+<tr><td>FR-31</td><td>US-16</td><td>NFR-01</td></tr>
+<tr><td>FR-32</td><td>US-14</td><td>NFR-08</td></tr>
+<tr><td>FR-33</td><td>US-08, US-14</td><td>NFR-01</td></tr>
+<tr><td>FR-34</td><td>US-15</td><td>NFR-01</td></tr>
+<tr><td>FR-35</td><td>US-15</td><td>NFR-01</td></tr>
+<tr><td>FR-36</td><td>US-20</td><td>NFR-02</td></tr>
+<tr><td>FR-37</td><td>US-20</td><td>NFR-08</td></tr>
+<tr><td>FR-38</td><td>US-20</td><td>NFR-02</td></tr>
+<tr><td>FR-39</td><td>US-20</td><td>NFR-10</td></tr>
+<tr><td>FR-40</td><td>US-21</td><td>NFR-01, NFR-05</td></tr>
+<tr><td>FR-41</td><td>US-21</td><td>NFR-01</td></tr>
+<tr><td>FR-42</td><td>US-21</td><td>NFR-01</td></tr>
+<tr><td>FR-43</td><td>US-21</td><td>NFR-01</td></tr>
+<tr><td>FR-44</td><td>US-22</td><td>NFR-01</td></tr>
+<tr><td>FR-45</td><td>US-22</td><td>NFR-01, NFR-08</td></tr>
+<tr><td>FR-46</td><td>US-22, US-33</td><td>NFR-01</td></tr>
+<tr><td>FR-47</td><td>US-24</td><td>NFR-01, NFR-08, NFR-11</td></tr>
+<tr><td>FR-48</td><td>US-25, US-39</td><td>NFR-08</td></tr>
+<tr><td>FR-49</td><td>US-25, US-39</td><td>NFR-10</td></tr>
+<tr><td>FR-50</td><td>US-24</td><td>NFR-01</td></tr>
+<tr><td>FR-51</td><td>US-13</td><td>NFR-07</td></tr>
+<tr><td>FR-52</td><td>US-52</td><td>NFR-08</td></tr>
+<tr><td>FR-53</td><td>US-19</td><td>NFR-08</td></tr>
+<tr><td>FR-54</td><td>US-41</td><td>NFR-08</td></tr>
+<tr><td>FR-55</td><td>US-30</td><td>NFR-01</td></tr>
+<tr><td>FR-56</td><td>US-26, US-27</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-57</td><td>US-28</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-58</td><td>US-29</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-59</td><td>US-31</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-60</td><td>US-60</td><td>NFR-09</td></tr>
+<tr><td>FR-61</td><td>US-33</td><td>NFR-01, NFR-09</td></tr>
+<tr><td>FR-62</td><td>US-34</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-63</td><td>US-34</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-64</td><td>US-35</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-65</td><td>US-65</td><td>NFR-09</td></tr>
+<tr><td>FR-66</td><td>US-38</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-67</td><td>US-39</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-68</td><td>US-40</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-69</td><td>US-36</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-70</td><td>US-37</td><td>NFR-08, NFR-09</td></tr>
+<tr><td>FR-71</td><td>US-71</td><td>NFR-08, NFR-09</td></tr>
+</tbody>
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/@viz-js/viz@3.9.0/lib/viz-standalone.js"></script>
+<script>
+async function renderGraphviz() {
+  const viz = await Viz.instance();
+  document.querySelectorAll('.graphviz').forEach(function(el) {
+    try {
+      var dot = el.textContent.trim();
+      var svg = viz.renderString(dot, {format:'svg', engine:'dot'});
+      el.innerHTML = svg;
+    } catch(e) { console.error('error', e); }
+  });
+}
+renderGraphviz();
+</script>
+
+</body>
+</html>

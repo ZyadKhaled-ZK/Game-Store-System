@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1c103a"/>
+      <stop offset="60%" stop-color="#0b071e"/>
+      <stop offset="100%" stop-color="#030208"/>
+    </radialGradient>
+
+    <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00ffcc" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#00bfff" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0055ff" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#d946ef"/>
+      <stop offset="100%" stop-color="#701a75"/>
+    </linearGradient>
+
+    <radialGradient id="eyeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#3b0764" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+    </filter>
+  </defs>
+
+  <rect width="800" height="800" fill="url(#bgGrad)"/>
+
+  <g transform="translate(0, -10)">
+    <path d="M 400,150 L 620,280 L 580,580 L 400,700 L 220,580 L 180,280 Z" fill="url(#cyanGlow)" filter="url(#softGlow)" opacity="0.6"/>
+    
+    <g stroke="#00ffcc" stroke-width="1" opacity="0.3" fill="none">
+      <line x1="400" y1="80" x2="680" y2="250"/>
+      <line x1="680" y1="250" x2="620" y2="620"/>
+      <line x1="620" y1="620" x2="400" y2="740"/>
+      <line x1="400" y1="740" x2="180" y2="620"/>
+      <line x1="180" y1="620" x2="120" y2="250"/>
+      <line x1="120" y1="250" x2="400" y2="80"/>
+      
+      <line x1="400" y1="80" x2="400" y2="220"/>
+      <line x1="680" y1="250" x2="550" y2="310"/>
+      <line x1="620" y1="620" x2="500" y2="550"/>
+      <line x1="400" y1="740" x2="400" y2="600"/>
+      <line x1="180" y1="620" x2="300" y2="550"/>
+      <line x1="120" y1="250" x2="250" y2="310"/>
+    </g>
+
+    <g fill="#00ffcc" filter="url(#glow)">
+      <circle cx="400" cy="80" r="5"/>
+      <circle cx="680" cy="250" r="5"/>
+      <circle cx="620" cy="620" r="5"/>
+      <circle cx="400" cy="740" r="5"/>
+      <circle cx="180" cy="620" r="5"/>
+      <circle cx="120" cy="250" r="5"/>
+    </g>
+
+    <path d="M 400,220 L 250,310 L 300,550 L 400,600 Z" fill="#581c87" stroke="#a855f7" stroke-width="2"/>
+    <path d="M 400,220 L 550,310 L 500,550 L 400,600 Z" fill="url(#shieldGrad)" stroke="#f472b6" stroke-width="2"/>
+    
+    <g stroke="#f472b6" stroke-width="1.5" opacity="0.6" fill="none">
+      <line x1="400" y1="220" x2="400" y2="340"/>
+      <line x1="250" y1="310" x2="360" y2="390"/>
+      <line x1="550" y1="310" x2="440" y2="390"/>
+      <line x1="300" y1="550" x2="370" y2="470"/>
+      <line x1="500" y1="550" x2="430" y2="470"/>
+      <line x1="400" y1="600" x2="400" y2="490"/>
+    </g>
+
+    <circle cx="400" cy="415" r="110" fill="url(#eyeGlow)" opacity="0.8"/>
+
+    <path d="M 290,415 Q 400,330 510,415 Q 400,500 290,415 Z" fill="#1e1b4b" stroke="#00ffcc" stroke-width="4" filter="url(#glow)"/>
+    <path d="M 310,415 Q 400,350 490,415 Q 400,480 310,415 Z" fill="#090514" stroke="#d946ef" stroke-width="2"/>
+
+    <polygon points="365,415 375,390 400,380 425,390 435,415 425,440 400,450 375,440" fill="#a855f7" stroke="#00ffcc" stroke-width="2"/>
+
+    <path d="M 400,390 Q 412,415 400,440 Q 388,415 400,390 Z" fill="#ffffff" filter="url(#glow)"/>
+
+    <polygon points="400,195 403,205 415,205 405,211 408,223 400,215 392,223 395,211 385,205 397,205" fill="#ffffff" filter="url(#glow)"/>
+    <polygon points="565,325 567,331 575,331 568,335 570,342 565,337 560,342 562,335 555,331 563,331" fill="#ffffff" filter="url(#glow)"/>
+    <polygon points="235,295 237,301 245,301 238,305 240,312 235,307 230,312 232,305 225,301 233,301" fill="#ffffff" filter="url(#glow)"/>
+
+    <g fill="#ffffff">
+      <circle cx="400" cy="220" r="4"/>
+      <circle cx="250" cy="310" r="4"/>
+      <circle cx="550" cy="310" r="4"/>
+      <circle cx="300" cy="550" r="4"/>
+      <circle cx="500" cy="550" r="4"/>
+      <circle cx="400" cy="600" r="4"/>
+    </g>
+  </g>
+</svg>

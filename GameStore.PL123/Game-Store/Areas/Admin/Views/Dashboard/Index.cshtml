@@ -87,6 +87,32 @@
   .ro-user { color: var(--gold); }
   .ro-total { color: var(--gold); font-weight: 700; }
   .ro-date { color: var(--text-dim); font-size: 10px; }
+  @@media (max-width: 992px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .chart-row.two-col { grid-template-columns: 1fr; }
+    .chart-row.three-col { grid-template-columns: 1fr; }
+  }
+  @@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-card { padding: 24px 16px; }
+    .stat-big { font-size: 28px; }
+    .chart-box { padding: 20px; }
+    .chart-canvas-wrap { height: 200px !important; }
+    .qa-card { padding: 18px 20px; }
+    .welcome-title { font-size: 2rem; letter-spacing: 4px; }
+    .welcome-logo { width: 80px; height: 80px; }
+    .recent-orders-table { font-size: 10px; }
+    .recent-orders-table th, .recent-orders-table td { padding: 6px 8px; }
+  }
+  @@media (max-width: 576px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .stat-big { font-size: 24px; }
+    .qa-grid { grid-template-columns: 1fr; }
+    .welcome-title { font-size: 1.4rem; letter-spacing: 2px; }
+    .welcome-sub { font-size: 0.6rem; letter-spacing: 4px; }
+    .welcome-logo { width: 60px; height: 60px; }
+    .welcome-boot .bar { width: 120px; }
+  }
 </style>
 
 <div class="welcome-gltch" id="welcomeGlitch"></div>

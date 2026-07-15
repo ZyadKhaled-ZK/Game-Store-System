@@ -3,17 +3,18 @@
     ViewData["Title"] = "Developer Profile";
     var games = ViewData["Games"] as List<Game> ?? new();
     var rawStats = ViewData["Stats"];
-    var gameStatsList = ViewData["GameStats"] as List<(Game Game, int Downloads, double AvgRating, int ReviewCount)> ?? new();
-    var stats = (GameCount: 0, TotalDownloads: 0, TotalReviews: 0, TotalRevenue: 0, AvgRating: 0.0);
+    var gameStatsList = ViewData["GameStats"] as List<(Game Game, int Downloads, double AvgRating, int ReviewCount, decimal TotalRevenue)> ?? new();
+    var stats = (GameCount: 0, TotalDownloads: 0, TotalReviews: 0, TotalRevenue: 0, NetRevenue: 0, AvgRating: 0.0);
     if (rawStats != null)
     {
-        var t = ((int, int, int, int, double))rawStats;
-        stats = (t.Item1, t.Item2, t.Item3, t.Item4, t.Item5);
+        var t = ((int, int, int, int, int, double))rawStats;
+        stats = (t.Item1, t.Item2, t.Item3, t.Item4, t.Item5, t.Item6);
     }
     var gameCount = stats.GameCount;
     var totalDownloads = stats.TotalDownloads;
     var totalReviews = stats.TotalReviews;
     var totalRevenue = stats.TotalRevenue;
+    var netRevenue = stats.NetRevenue;
     var avgRating = stats.AvgRating;
 }
 
@@ -87,6 +88,25 @@
     content: ''; width: 20px; height: 2px; background: var(--red);
   }
   .stars { color: var(--gold); font-size: 13px; letter-spacing: 2px; }
+  @@media (max-width: 768px) {
+    .profile-header { padding: 24px; flex-direction: column; }
+    .profile-name { font-size: 1.4rem; }
+    .profile-desc { max-width: 100%; }
+    .summary-row { grid-template-columns: repeat(3, 1fr); }
+    .summary-item { padding: 16px; }
+    .summary-num { font-size: 22px; }
+    .section-block { padding: 20px; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .profile-header { padding: 16px; }
+    .profile-name { font-size: 1.2rem; flex-direction: column; align-items: flex-start; }
+    .profile-actions { width: 100%; flex-wrap: wrap; }
+    .profile-actions .btn { flex: 1; text-align: center; }
+    .summary-row { grid-template-columns: repeat(2, 1fr); }
+    .section-block { padding: 16px; }
+    .section-title { font-size: 1.4rem !important; }
+  }
 </style>
 
 <div class="section-header">
@@ -168,6 +188,7 @@
             <th>Downloads</th>
             <th>Rating</th>
             <th>Reviews</th>
+            <th>Revenue</th>
           </tr>
         </thead>
         <tbody>
@@ -189,6 +210,7 @@
                 <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);">(@gs.AvgRating.ToString("0.0"))</span>
               </td>
               <td style="font-family:var(--font-mono);color:var(--text-dim);">@gs.ReviewCount</td>
+              <td style="font-family:var(--font-mono);color:var(--text-dim);">$@gs.TotalRevenue</td>
             </tr>
           }
         </tbody>

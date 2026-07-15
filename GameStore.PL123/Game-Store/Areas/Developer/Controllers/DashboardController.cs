@@ -43,6 +43,7 @@ public class DashboardController : Controller
         ViewData["TotalDownloads"] = stats.TotalDownloads;
         ViewData["TotalReviews"] = stats.TotalReviews;
         ViewData["TotalRevenue"] = stats.TotalRevenue;
+        ViewData["NetRevenue"] = stats.NetRevenue;
         ViewData["AvgRating"] = stats.AvgRating;
         ViewData["DeveloperName"] = dev.Name;
 

@@ -32,6 +32,17 @@
   .user-row td { transition: color 0.2s; }
   .user-row:hover td { color: white; }
   .user-row td:first-child { opacity: 0.5; font-size: 12px; font-family: var(--font-mono); }
+  @@media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: stretch !important; }
+    .filter-bar { flex-direction: column; }
+    .filter-bar select, .filter-bar .btn { width: 100%; }
+    .gs-search-input { width: 100%; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .section-title { font-size: 1.4rem !important; }
+    .role-badge { font-size: 9px; padding: 2px 8px; }
+  }
 </style>
 
 <div class="page-header">

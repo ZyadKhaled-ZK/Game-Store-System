@@ -3,6 +3,17 @@
     var gameCounts = ViewData["GameCounts"] as Dictionary<string, int> ?? new();
 }
 
+<style>
+  @@media (max-width: 768px) {
+    .page-header { flex-direction: column; gap: 12px; }
+    .page-header .btn { width: 100%; text-align: center; }
+    .section-title { font-size: 1.8rem !important; }
+  }
+  @@media (max-width: 576px) {
+    .section-title { font-size: 1.4rem !important; }
+  }
+</style>
+
 <partial name="_Alert" />
 
 <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;">
